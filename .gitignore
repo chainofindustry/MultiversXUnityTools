@@ -4,3 +4,6 @@ UserSettings/
 *.vsconfig
 *.sln
 Temp/
+.vs/
+obj/
+*.csproj
