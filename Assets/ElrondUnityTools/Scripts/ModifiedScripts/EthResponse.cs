@@ -5,9 +5,15 @@ namespace WalletConnectSharp.Core.Models.Ethereum
     public class EthResponse : JsonRpcResponse
     {
         [JsonProperty]
-        private string result;
+        public Result result { get; set; }
 
         [JsonIgnore]
-        public string Result => result;
+        public string Result => result.signature;
     }
+
+    public class Result
+    {
+        public string signature { get; set; }
+    }
+
 }

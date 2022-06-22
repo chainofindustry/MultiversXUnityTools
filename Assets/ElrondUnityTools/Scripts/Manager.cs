@@ -31,9 +31,9 @@ namespace ElrondUnityTools
             ConnectionManager.Instance.Disconnect();
         }
 
-        public static void SendTransaction()
+        public static void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus,string> TransactionStatus)
         {
-
+            ConnectionManager.Instance.SendTransaction(destinationAddress, amount, data, TransactionStatus);
         }
     }
 }

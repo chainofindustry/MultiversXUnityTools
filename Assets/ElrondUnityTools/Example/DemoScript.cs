@@ -1,8 +1,5 @@
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,12 +21,11 @@ namespace ElrondUnityExamples
         public Text status;
         public GameObject disconnectButton;
         public GameObject transactionButton;
-        
+
         bool loginInProgress;
 
         private void Start()
         {
-           
             RefreshButtons();
         }
 
@@ -64,7 +60,7 @@ namespace ElrondUnityExamples
 
         public void Login()
         {
-            ElrondUnityTools.Manager.DeepLinkLogin();  
+            ElrondUnityTools.Manager.DeepLinkLogin();
         }
 
 
@@ -83,7 +79,13 @@ namespace ElrondUnityExamples
 
         public void SendTransaction()
         {
+            status.text = "";
+            ElrondUnityTools.Manager.SendTransaction("", "", "", StatusListener);
+        }
 
+        private void StatusListener(ElrondUnityTools.OperationStatus operationStatus, string message)
+        {
+            status.text = operationStatus + " " + message;
         }
 
         void RefreshButtons()
@@ -95,35 +97,19 @@ namespace ElrondUnityExamples
                     homeScreen.SetActive(false);
                     loginScreen.SetActive(true);
                     connectedScreen.SetActive(false);
-                    //loginButton.SetActive(false);
                 }
                 else
                 {
                     homeScreen.SetActive(true);
                     loginScreen.SetActive(false);
                     connectedScreen.SetActive(false);
-                    //loginButton.SetActive(true);
                 }
-                //disconnectButton.SetActive(false);
-                //transactionButton.SetActive(false);
-                //if (!loginInProgress)
-                //{
-                //    qrImage.gameObject.SetActive(false);
-                //}
-                //address.text = "-";
-                //status.text = "";
             }
             else
             {
                 homeScreen.SetActive(false);
                 loginScreen.SetActive(false);
                 connectedScreen.SetActive(true);
-
-                //loginButton.SetActive(false);
-                //disconnectButton.SetActive(true);
-                //transactionButton.SetActive(true);
-                //qrImage.gameObject.SetActive(false);
-                //loginInProgress = false;
             }
         }
     }

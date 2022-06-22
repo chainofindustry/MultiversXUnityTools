@@ -2,23 +2,30 @@ using Erdcsharp.Configuration;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
+using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Net.Http;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using WalletConnectSharp.Core.Models;
+using WalletConnectSharp.Core.Models.Ethereum;
 using WalletConnectSharp.Unity;
 
 namespace ElrondUnityTools
 {
-    public class ConnectionManager : MonoBehaviour
+    public class ConnectionManager : WalletConnectActions
     {
         private static ConnectionManager instance;
 
+        private AccountDto connectedAccount;
         private ElrondProvider provider;
         private NetworkConfig networkConfig;
+        private UnityAction<OperationStatus, string> OnTransactionStatusChanged;
+        string txHash;
 
 
         UnityAction<AccountDto> OnWalletConnected;
@@ -35,12 +42,154 @@ namespace ElrondUnityTools
                 {
                     GameObject go = new GameObject(Constants.ConnectionManagerObject);
                     instance = go.AddComponent<ConnectionManager>();
-                  
+
                     DontDestroyOnLoad(go);
                 }
                 return instance;
             }
         }
+
+        internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus)
+        {
+            OnTransactionStatusChanged = transactionStatus;
+            var transaction = new TransactionData()
+            {
+                nonce = connectedAccount.Nonce,
+                from = connectedAccount.Address,
+                to = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf",
+                amount = "10000000000000000",
+                data = "You see this?",
+                gasPrice = networkConfig.MinGasPrice.ToString(),
+                gasLimit = (networkConfig.MinGasLimit + 20000).ToString(),
+                chainId = networkConfig.ChainId,
+                version = networkConfig.MinTransactionVersion
+            };
+
+            OnTransactionStatusChanged(OperationStatus.InProgress, "Waiting for signing");
+
+            var signature = await SignTransaction(transaction);
+
+            if (signature.Contains("error"))
+            {
+                OnTransactionStatusChanged(OperationStatus.Error, signature);
+                return;
+            }
+
+            SignedTransactionData tx = new SignedTransactionData(transaction, signature);
+            string json = JsonUtility.ToJson(tx);
+
+
+
+            StartCoroutine(PostTransaction("https://devnet-api.elrond.com/transactions", json));
+        }
+
+        IEnumerator PostTransaction(string uri, string signedData)
+        {
+            OnTransactionStatusChanged(OperationStatus.InProgress, "Broadcasting transaction to blockchain");
+
+            using var webRequest = new UnityWebRequest();
+            webRequest.url = uri; // PostUri is a string containing the url
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(signedData)); // postData is Json file as a string
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+            yield return webRequest.SendWebRequest();
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    OnTransactionStatusChanged(OperationStatus.Error, webRequest.error);
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    OnTransactionStatusChanged(OperationStatus.Error, webRequest.error + " " + webRequest.result + " " + webRequest.downloadHandler.text);
+                    break;
+                case UnityWebRequest.Result.Success:
+                    string output = webRequest.downloadHandler.text;
+                    BroadcastResponse response = JsonConvert.DeserializeObject<BroadcastResponse>(output);
+                    OnTransactionStatusChanged(OperationStatus.InProgress, response.txHash);
+
+                    txHash = response.txHash;
+                    CheckStatus(response.txHash);
+                    break;
+            }
+        }
+
+        private void CheckStatus(string txHash)
+        {
+            StartCoroutine(GetTransactionStatusRequest("https://devnet-api.elrond.com/transactions/" + txHash + "?fields=status", Complete));
+        }
+
+        IEnumerator GetTransactionStatusRequest(string uri, UnityAction<UnityWebRequest.Result, string> CompleteMethod)
+        {
+            Debug.Log(uri);
+
+            yield return new WaitForSeconds(1);
+
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+
+                string result = null;
+
+                switch (webRequest.result)
+                {
+                    case UnityWebRequest.Result.ConnectionError:
+                    case UnityWebRequest.Result.DataProcessingError:
+                        OnTransactionStatusChanged(OperationStatus.Error, webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.ProtocolError:
+                        OnTransactionStatusChanged(OperationStatus.Error, webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.Success:
+                        result = webRequest.downloadHandler.text;
+                        break;
+                }
+
+                CompleteMethod(webRequest.result, result);
+            }
+        }
+
+
+        private void Complete(UnityWebRequest.Result result, string message)
+        {
+            if (result == UnityWebRequest.Result.Success)
+            {
+                TransactionStatus status = JsonConvert.DeserializeObject<TransactionStatus>(message);
+
+                //this.status.text = status.status;
+
+                if (status.status != "success")
+                {
+                    OnTransactionStatusChanged(OperationStatus.InProgress, status.status);
+                    StartCoroutine(GetTransactionStatusRequest("https://devnet-api.elrond.com/transactions/" + txHash + "?fields=status", Complete));
+                }
+                else
+                {
+                    Debug.Log("REFRESH ACCOUNT");
+                    OnTransactionStatusChanged(OperationStatus.Complete, status.status);
+                }
+            }
+        }
+
+        public class TransactionStatus
+        {
+            public string status { get; set; }
+        }
+
+        public class BroadcastResponse
+        {
+            public string txHash;
+            public string receiver;
+            public string sender;
+            public int receiverShard;
+            public int senderShard;
+            public string status;
+        }
+
 
         internal void DeepLinkLogin()
         {
@@ -50,7 +199,7 @@ namespace ElrondUnityTools
         internal bool IsWalletConnected()
         {
             return walletConnected;
-          
+
         }
 
         internal async void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
@@ -112,7 +261,7 @@ namespace ElrondUnityTools
         {
             walletConnected = true;
             WalletConnect.ActiveSession.OnSessionDisconnect += ActiveSessionOnDisconnect;
-            AccountDto connectedAccount = await provider.GetAccount(WalletConnect.ActiveSession.Accounts[0]);
+            connectedAccount = await provider.GetAccount(WalletConnect.ActiveSession.Accounts[0]);
             OnWalletConnected(connectedAccount);
         }
 

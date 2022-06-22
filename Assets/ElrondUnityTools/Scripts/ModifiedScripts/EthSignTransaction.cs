@@ -4,15 +4,16 @@ namespace WalletConnectSharp.Core.Models.Ethereum
 {
     public sealed class EthSignTransaction : JsonRpcRequest
     {
-        [JsonProperty("params")] 
+        [JsonProperty("params")]
         private TransactionData[] _parameters;
 
         [JsonIgnore]
         public TransactionData[] Parameters => _parameters;
 
-        public EthSignTransaction(params TransactionData[] transactionDatas) : base()
+        public EthSignTransaction(TransactionData[] transactionDatas) : base()
         {
-            this.Method = "eth_signTransaction";
+            //this.Method = "erd_sign";
+            this.Method = "erd_batch_sign";
             this._parameters = transactionDatas;
         }
     }
