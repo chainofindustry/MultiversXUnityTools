@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using UnityEngine.Networking;
 
 namespace WalletConnectSharp.Core.Models.Ethereum
 {

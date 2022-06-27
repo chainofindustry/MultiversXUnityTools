@@ -19,51 +19,39 @@ namespace ElrondUnityExamples
         //connected
         public Text address;
         public Text status;
+        public InputField destination;
+        public InputField amount;
+        public InputField message;
         public GameObject disconnectButton;
         public GameObject transactionButton;
 
-        bool loginInProgress;
+        private bool loginInProgress;
+        private AccountDto connectedAccount;
+        private string txHash;
 
+        private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
+        private string defaultMessage = "You see this?";
+        private double egld = 0.001;
+
+        //set default values for everything
         private void Start()
         {
             RefreshButtons();
-        }
-
-
-        private void OnConnected(AccountDto connectedAccount)
-        {
-            Debug.Log("OnConnected");
-            RefreshAccount(connectedAccount);
-            RefreshButtons();
-        }
-
-        private void OnDisconnected()
-        {
-            Debug.Log("OnDisconnected");
-            address.text = "-";
+            destination.text = defaultAddress;
+            message.text = defaultMessage;
+            amount.text = egld.ToString();
             status.text = "";
-            RefreshButtons();
         }
 
 
-        void RefreshAccount(AccountDto connectedAccount)
-        {
-            Debug.Log("refresh account");
-            var amount = TokenAmount.From(connectedAccount.Balance);
-
-            address.text = connectedAccount.Address + "\n EGLD: " + amount.ToDenominated();
-            if (!string.IsNullOrEmpty(connectedAccount.Username))
-            {
-                address.text += "\nHT: " + connectedAccount.Username;
-            }
-        }
-
+        //linked to the login button in editor
         public void Login()
         {
             ElrondUnityTools.Manager.DeepLinkLogin();
         }
 
 
+        //linked to the login options button in editor
         public void LoginOptions()
         {
             ElrondUnityTools.Manager.Connect(OnConnected, OnDisconnected, qrImage);
@@ -71,35 +59,121 @@ namespace ElrondUnityExamples
             RefreshButtons();
         }
 
+
+        //linked to the disconnect button in editor
         public void Disconnect()
         {
             ElrondUnityTools.Manager.Disconnect();
         }
 
 
+        //linked to the send transaction button in editor
         public void SendTransaction()
         {
             status.text = "";
-            ElrondUnityTools.Manager.SendTransaction("", "", "", StatusListener);
+
+            //should verify first if destination, amount and message are in the correct format
+            ElrondUnityTools.Manager.SendTransaction(destination.text, amount.text, message.text, SigningStatusListener);
         }
 
-        private void StatusListener(ElrondUnityTools.OperationStatus operationStatus, string message)
+
+        /// <summary>
+        /// Triggered when Maiar app connected
+        /// </summary>
+        /// <param name="connectedAccount">The erd address of the connected wallet</param>
+        private void OnConnected(AccountDto connectedAccount)
+        {
+            this.connectedAccount = connectedAccount;
+            RefreshAccount(connectedAccount);
+            RefreshButtons();
+        }
+
+
+        /// <summary>
+        /// Triggered when wallet disconnected
+        /// </summary>
+        private void OnDisconnected()
+        {
+            address.text = "-";
+            status.text = "";
+            RefreshButtons();
+        }
+
+
+        /// <summary>
+        /// Refresh the address and the amount of tokens of the connected wallet 
+        /// </summary>
+        /// <param name="connectedAccount"></param>
+        private void RefreshAccount(AccountDto connectedAccount)
+        {
+            var amount = TokenAmount.From(connectedAccount.Balance);
+            address.text = connectedAccount.Address + "\n EGLD: " + amount.ToDenominated();
+            if (!string.IsNullOrEmpty(connectedAccount.Username))
+            {
+                address.text += "\nHT: " + connectedAccount.Username;
+            }
+        }
+
+
+        /// <summary>
+        /// Track the status of the signing transaction
+        /// </summary>
+        /// <param name="operationStatus"></param>
+        /// <param name="message">if operation status is complete the message is the txHash</param>
+        private void SigningStatusListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
             status.text = operationStatus + " " + message;
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                txHash = message;
+                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
+            }
         }
 
+
+        /// <summary>
+        /// Check the status of the current transaction in blockchain 
+        /// </summary>
+        /// <param name="operationStatus"></param>
+        /// <param name="message"></param>
+        private void BlockchainTransactionListener(ElrondUnityTools.OperationStatus operationStatus, string message)
+        {
+            status.text = operationStatus + " " + message;
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                Debug.Log(message);
+                if (message == "pending")
+                {
+                    ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
+                }
+                else
+                {
+                    if (message == "success")
+                    {
+                        RefreshAccount(connectedAccount);
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Set the required UI
+        /// </summary>
         void RefreshButtons()
         {
             if (ElrondUnityTools.Manager.IsWalletConnected() == false)
             {
                 if (loginInProgress == true)
                 {
+                    //show login UI
                     homeScreen.SetActive(false);
                     loginScreen.SetActive(true);
                     connectedScreen.SetActive(false);
                 }
                 else
                 {
+                    //show home screen UI
                     homeScreen.SetActive(true);
                     loginScreen.SetActive(false);
                     connectedScreen.SetActive(false);
@@ -107,6 +181,7 @@ namespace ElrondUnityExamples
             }
             else
             {
+                //show connect screen UI
                 homeScreen.SetActive(false);
                 loginScreen.SetActive(false);
                 connectedScreen.SetActive(true);
