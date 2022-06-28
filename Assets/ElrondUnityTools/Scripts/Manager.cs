@@ -7,7 +7,7 @@ namespace ElrondUnityTools
     public class Manager
     {
         /// <summary>
-        /// This is required before making any blockchain transaction
+        /// This is required before making any blockchain transaction. It is used to initialize the WalletConnect socket used for Maiar connection.
         /// </summary>
         /// <param name="OnWalletConnected">Callback triggered when user wallet connected</param>
         /// <param name="OnWalletDisconnected">Callback triggered when user wallet disconnected</param>
@@ -29,7 +29,7 @@ namespace ElrondUnityTools
 
 
         /// <summary>
-        /// Login for the same mobile device with Maiar app already installed.
+        /// Login from the same mobile device that has the Maiar app already installed. It will automatically open the Maiar app.
         /// </summary>
         public static void DeepLinkLogin()
         {
@@ -47,7 +47,7 @@ namespace ElrondUnityTools
 
 
         /// <summary>
-        /// Send en EGLD transaction for signing to the Maiar wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
+        /// Send an EGLD transaction for signing to the Maiar wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
         /// </summary>
         /// <param name="destinationAddress">The erd address of the receiver</param>
         /// <param name="amount">Amount of EGLD to send(in decimals)</param>

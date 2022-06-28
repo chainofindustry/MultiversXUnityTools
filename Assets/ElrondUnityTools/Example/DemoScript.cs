@@ -88,7 +88,7 @@ namespace ElrondUnityExamples
         /// <summary>
         /// Triggered when Maiar app connected
         /// </summary>
-        /// <param name="connectedAccount">The erd address of the connected wallet</param>
+        /// <param name="connectedAccount">A class containing informations about the connected wallet</param>
         private void OnConnected(AccountDto connectedAccount)
         {
             this.connectedAccount = connectedAccount;
@@ -127,7 +127,7 @@ namespace ElrondUnityExamples
         /// Track the status of the signing transaction
         /// </summary>
         /// <param name="operationStatus"></param>
-        /// <param name="message">if operation status is complete the message is the txHash</param>
+        /// <param name="message">if the operation status is complete, the message is the txHash</param>
         private void SigningStatusListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
             status.text = operationStatus + " " + message;
@@ -136,14 +136,19 @@ namespace ElrondUnityExamples
                 txHash = message;
                 ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
             }
+            if (operationStatus == ElrondUnityTools.OperationStatus.Error)
+            {
+                //do something
+            }
+
         }
 
 
         /// <summary>
-        /// Check the status of the current transaction in blockchain 
+        /// Listener for the transaction status response
         /// </summary>
-        /// <param name="operationStatus"></param>
-        /// <param name="message"></param>
+        /// <param name="operationStatus">Completed, In progress or Error</param>
+        /// <param name="message">additional message</param>
         private void BlockchainTransactionListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
             status.text = operationStatus + " " + message;
