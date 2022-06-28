@@ -77,6 +77,14 @@ namespace ElrondUnityExamples
         }
 
 
+        private void Update()
+        {
+            if(Input.GetKeyDown(KeyCode.Escape))
+            {
+                Application.Quit();
+            }
+        }
+
         /// <summary>
         /// Triggered when Maiar app connected
         /// </summary>
