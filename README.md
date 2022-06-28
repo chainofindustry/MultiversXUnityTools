@@ -12,17 +12,18 @@ We did not developed this tools, but we adapt them to work with our integration
 * [Wallet Connect Unity](https://github.com/WalletConnect/WalletConnectUnity)
 * [Elrond SDK .Net](https://github.com/yann4460/elrond-sdk.dotnet)
 
-### Tested on
-* PC
-* MAC
-* Android
-* iOS (in progress)
+### Tested
+* PC :white_check_mark:
+* MAC :white_check_mark:
+* Android :white_check_mark:
+* :wrench: iOS  :hammer: 
+
 
 ### Content
-1. [Connect Maiar](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Connect-Maiar)
-2. [Send EGLD Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-EGLD-Transaction)
-3. [Check Transaction Status](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Check-Transaction-Status)
-4. [Send ESDT Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-ESDT-Transaction)
+1. [Connect Maiar](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Connect-Maiar) :white_check_mark:
+2. [Send EGLD Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-EGLD-Transaction) :white_check_mark:
+3. [Check Transaction Status](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Check-Transaction-Status) :white_check_mark:
+4. :wrench: [Send ESDT Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-ESDT-Transaction) :hammer:
 
 **Full documentation** available on [Wiki](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki) tab.  
 
