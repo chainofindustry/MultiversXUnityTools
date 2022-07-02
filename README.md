@@ -7,6 +7,9 @@ We intend to keep our APIs as simple as possible and every action to be done wit
 ### Demo
 Android and PC demo apps are available on the [Releases tab](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/releases/).
 
+### Video Tutorial
+https://youtu.be/reZjdcazNJI
+
 ### External Dependencies
 We did not developed these tools but adapt them to work with our integration.
 * [Wallet Connect Unity](https://github.com/WalletConnect/WalletConnectUnity)
