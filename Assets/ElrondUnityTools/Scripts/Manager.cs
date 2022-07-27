@@ -69,5 +69,11 @@ namespace ElrondUnityTools
         {
             ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus, delay);
         }
+
+
+        public static void SendESDTTransaction(string destinationAddress, ESDTToken token, string amount, UnityAction<OperationStatus, string> TransactionStatus)
+        {
+            ConnectionManager.Instance.SendESDTTransaction(destinationAddress, amount, token, TransactionStatus);
+        }
     }
 }

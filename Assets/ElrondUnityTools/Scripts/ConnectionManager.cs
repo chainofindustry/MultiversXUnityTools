@@ -98,8 +98,25 @@ namespace ElrondUnityTools
 
 
         #region SendTransaction
+        internal void SendESDTTransaction(string destinationAddress, string amount, ESDTToken token, UnityAction<OperationStatus, string> transactionStatus)
+        {
+            float value = float.Parse(amount);
+            value = value * Mathf.Pow(10, token.decimals);
+            string hexaAmount = ((int)value).ToString("X");
+            if (hexaAmount.Length % 2 == 1)
+            {
+                hexaAmount = "0" + hexaAmount;
+            }
+
+            string hexaTokenIdentifier = Erdcsharp.Domain.Helper.Converter.ToHexString(token.identifier);
+
+            SendTransaction(destinationAddress, 0.ToString(), "ESDTTransfer" + "@" + hexaTokenIdentifier + "@" + hexaAmount, transactionStatus);
+        }
+
+
         internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus)
         {
+
             OnSigningTransactionStatusChanged = transactionStatus;
             var transaction = new TransactionData()
             {

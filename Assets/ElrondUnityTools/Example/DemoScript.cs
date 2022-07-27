@@ -1,5 +1,7 @@
+using ElrondUnityTools;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -33,6 +35,10 @@ namespace ElrondUnityExamples
         private string defaultMessage = "You see this?";
         private double egld = 0.001;
 
+        //ESDT
+        public InputField esdtAmount;
+        public Dropdown esdtTokenDropdown;
+
         //set default values for everything
         private void Start()
         {
@@ -40,6 +46,8 @@ namespace ElrondUnityExamples
             destination.text = defaultAddress;
             message.text = defaultMessage;
             amount.text = egld.ToString();
+            esdtAmount.text = egld.ToString();
+            PopulateDropDown();
             status.text = "";
         }
 
@@ -77,12 +85,45 @@ namespace ElrondUnityExamples
         }
 
 
+        public void SendESDTTransaction()
+        {
+            Debug.Log("SendESDTTransaction");
+
+            ElrondUnityTools.ESDTToken selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
+            switch(esdtTokenDropdown.options[esdtTokenDropdown.value].text)
+            {
+                case "USDC":
+                    selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
+                    break;
+                case "Web":
+                    selectedToken = ElrondUnityTools.SupportedESDTTokens.WEB;
+                    break;
+            }
+
+
+            ElrondUnityTools.Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, EsdtTransactionStatus);
+        }
+
+        private void EsdtTransactionStatus(OperationStatus operationStatus, string message)
+        {
+            status.text = operationStatus + " " + message;
+
+            Debug.Log(message);
+        }
+
         private void Update()
         {
             if(Input.GetKeyDown(KeyCode.Escape))
             {
                 Application.Quit();
             }
+        }
+
+        void PopulateDropDown()
+        {
+            esdtTokenDropdown.options.Clear();
+            esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = ElrondUnityTools.SupportedESDTTokens.USDC.name });
+            esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = ElrondUnityTools.SupportedESDTTokens.WEB.name });
         }
 
         /// <summary>
