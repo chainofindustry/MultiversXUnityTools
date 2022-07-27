@@ -55,7 +55,7 @@ namespace ElrondUnityTools
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
         {
-            ConnectionManager.Instance.SendTransaction(destinationAddress, amount, data, TransactionStatus);
+            ConnectionManager.Instance.SendEGLDTransaction(destinationAddress, amount, data, TransactionStatus);
         }
 
 

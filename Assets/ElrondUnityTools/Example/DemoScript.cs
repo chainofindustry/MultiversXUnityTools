@@ -1,7 +1,5 @@
-using ElrondUnityTools;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -85,31 +83,24 @@ namespace ElrondUnityExamples
         }
 
 
+        //linked to Send ESDT Transaction button
         public void SendESDTTransaction()
         {
-            Debug.Log("SendESDTTransaction");
-
+            // get the drop down state and determine the ESDT token to transfer
             ElrondUnityTools.ESDTToken selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
             switch(esdtTokenDropdown.options[esdtTokenDropdown.value].text)
             {
                 case "USDC":
                     selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
                     break;
-                case "Web":
+                case "WEB":
                     selectedToken = ElrondUnityTools.SupportedESDTTokens.WEB;
                     break;
             }
-
-
-            ElrondUnityTools.Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, EsdtTransactionStatus);
+            ElrondUnityTools.Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, SigningStatusListener);
         }
 
-        private void EsdtTransactionStatus(OperationStatus operationStatus, string message)
-        {
-            status.text = operationStatus + " " + message;
-
-            Debug.Log(message);
-        }
+       
 
         private void Update()
         {
@@ -119,12 +110,17 @@ namespace ElrondUnityExamples
             }
         }
 
+
+        /// <summary>
+        /// Populate drop down list with available ESDT tokens
+        /// </summary>
         void PopulateDropDown()
         {
             esdtTokenDropdown.options.Clear();
             esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = ElrondUnityTools.SupportedESDTTokens.USDC.name });
             esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = ElrondUnityTools.SupportedESDTTokens.WEB.name });
         }
+
 
         /// <summary>
         /// Triggered when Maiar app connected
@@ -181,7 +177,6 @@ namespace ElrondUnityExamples
             {
                 //do something
             }
-
         }
 
 

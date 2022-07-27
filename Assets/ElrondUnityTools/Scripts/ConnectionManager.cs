@@ -102,7 +102,8 @@ namespace ElrondUnityTools
         {
             float value = float.Parse(amount);
             value = value * Mathf.Pow(10, token.decimals);
-            string hexaAmount = ((int)value).ToString("X");
+            Debug.Log(value + " " + token.identifier);
+            string hexaAmount = ((long)value).ToString("X");
             if (hexaAmount.Length % 2 == 1)
             {
                 hexaAmount = "0" + hexaAmount;
@@ -110,11 +111,16 @@ namespace ElrondUnityTools
 
             string hexaTokenIdentifier = Erdcsharp.Domain.Helper.Converter.ToHexString(token.identifier);
 
-            SendTransaction(destinationAddress, 0.ToString(), "ESDTTransfer" + "@" + hexaTokenIdentifier + "@" + hexaAmount, transactionStatus);
+            SendTransaction(destinationAddress, 0.ToString(), "ESDTTransfer" + "@" + hexaTokenIdentifier + "@" + hexaAmount, transactionStatus, networkConfig.MinGasLimit + 500000);
+        }
+
+        internal void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
+        {
+            SendTransaction(destinationAddress, amount, data, TransactionStatus, networkConfig.MinGasLimit + 20000);
         }
 
 
-        internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus)
+        internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus, long gasLimit)
         {
 
             OnSigningTransactionStatusChanged = transactionStatus;
@@ -126,7 +132,7 @@ namespace ElrondUnityTools
                 amount = TokenAmount.EGLD(amount).ToString(),
                 data = data,
                 gasPrice = networkConfig.MinGasPrice.ToString(),
-                gasLimit = (networkConfig.MinGasLimit + 20000).ToString(),
+                gasLimit = gasLimit.ToString(),
                 chainId = networkConfig.ChainId,
                 version = networkConfig.MinTransactionVersion
             };
