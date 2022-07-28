@@ -26,7 +26,9 @@ We did not developed these tools but adapt them to work with our integration.
 1. [Connect Maiar](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Connect-Maiar) :white_check_mark:
 2. [Send EGLD Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-EGLD-Transaction) :white_check_mark:
 3. [Check Transaction Status](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Check-Transaction-Status) :white_check_mark:
-4. :wrench: [Send ESDT Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-ESDT-Transaction) :hammer:
+4. [Send ESDT Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-ESDT-Transaction)
+5. :wrench: [Send NFT Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-NFT-Transaction) :hammer:
+
 
 **Full documentation** available on the [Wiki](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki) tab.  
 
