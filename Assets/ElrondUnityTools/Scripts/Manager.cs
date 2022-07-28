@@ -71,6 +71,13 @@ namespace ElrondUnityTools
         }
 
 
+        /// <summary>
+        /// Send an ESDT transaction for signing to the Maiar wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
+        /// </summary>
+        /// <param name="destinationAddress">The erd address of the receiver</param>
+        /// <param name="token">Token to send</param>
+        /// <param name="amount">Amount of token to send(in decimals)</param>
+        /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendESDTTransaction(string destinationAddress, ESDTToken token, string amount, UnityAction<OperationStatus, string> TransactionStatus)
         {
             ConnectionManager.Instance.SendESDTTransaction(destinationAddress, amount, token, TransactionStatus);
