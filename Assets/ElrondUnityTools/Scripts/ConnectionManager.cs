@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using UnityEngine;
@@ -274,37 +275,34 @@ namespace ElrondUnityTools
                 return;
             }
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
 
             string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(WalletConnect.Instance.ConnectURL);
 
             Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
-
-
             Application.OpenURL(maiarUrl);
+
 #elif UNITY_IOS
-            if (SelectedWallet == null)
-            {
-                throw new NotImplementedException(
-                    "You must use OpenDeepLink(AppEntry) or set SelectedWallet on iOS!");
-            }
-            else
-            {
-                string url;
-                string encodedConnect = WebUtility.UrlEncode(ConnectURL);
-                if (!string.IsNullOrWhiteSpace(SelectedWallet.mobile.universal))
-                {
-                    url = SelectedWallet.mobile.universal + "/wc?uri=" + encodedConnect;
-                }
-                else
-                {
-                    url = SelectedWallet.mobile.native + (SelectedWallet.mobile.native.EndsWith(":") ? "//" : "/") +
-                          "wc?uri=" + encodedConnect;
-                }
-                
-                Debug.Log("Opening: " + url);
-                Application.OpenURL(url);
-            }
+
+            string url;
+            string encodedConnect = WebUtility.UrlEncode(WalletConnect.Instance.ConnectURL);
+            Debug.Log(encodedConnect);
+            Debug.Log(UnityWebRequest.EscapeURL(WalletConnect.Instance.ConnectURL));
+            //if (!string.IsNullOrWhiteSpace(SelectedWallet.mobile.universal))
+            //{
+            //    url = SelectedWallet.mobile.universal + "/wc?uri=" + encodedConnect;
+            //}
+            //else
+            //{
+            //    url = SelectedWallet.mobile.native + (SelectedWallet.mobile.native.EndsWith(":") ? "//" : "/") +
+            //          "wc?uri=" + encodedConnect;
+            //}
+
+            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(WalletConnect.Instance.ConnectURL);
+
+
+            //Debug.Log("Opening: " + url);
+            //Application.OpenURL(url);
 #else
             Debug.Log("Platform does not support deep linking");
             return;

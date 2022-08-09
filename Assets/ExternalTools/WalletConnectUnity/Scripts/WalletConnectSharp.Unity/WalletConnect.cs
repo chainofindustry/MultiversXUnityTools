@@ -495,32 +495,38 @@ namespace WalletConnectSharp.Unity
 #if UNITY_ANDROID
             var signingURL = ConnectURL.Split('@')[0];
 
-            Application.OpenURL(signingURL);
-#elif UNITY_IOS
-            if (SelectedWallet == null)
-            {
-                throw new NotImplementedException(
-                    "You must use OpenMobileWallet(AppEntry) or set SelectedWallet on iOS!");
-            }
-            else
-            {
-                string url;
-                string encodedConnect = WebUtility.UrlEncode(ConnectURL);
-                if (!string.IsNullOrWhiteSpace(SelectedWallet.mobile.universal))
-                {
-                    url = SelectedWallet.mobile.universal + "/wc?uri=" + encodedConnect;
-                }
-                else
-                {
-                    url = SelectedWallet.mobile.native + (SelectedWallet.mobile.native.EndsWith(":") ? "//" : "/") +
-                          "wc?uri=" + encodedConnect;
-                }
+            Debug.Log("signing url " + signingURL);
+            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(signingURL);
 
-                var signingUrl = url.Split('?')[0];
+            Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
+            Application.OpenURL(maiarUrl);
+
+            //Application.OpenURL(signingURL);
+#elif UNITY_IOS && UNITY_EDITOR
+            //if (SelectedWallet == null)
+            //{
+            //    throw new NotImplementedException(
+            //        "You must use OpenMobileWallet(AppEntry) or set SelectedWallet on iOS!");
+            //}
+            //else
+            //{
+            //    string url;
+            //    string encodedConnect = WebUtility.UrlEncode(ConnectURL);
+            //    if (!string.IsNullOrWhiteSpace(SelectedWallet.mobile.universal))
+            //    {
+            //        url = SelectedWallet.mobile.universal + "/wc?uri=" + encodedConnect;
+            //    }
+            //    else
+            //    {
+            //        url = SelectedWallet.mobile.native + (SelectedWallet.mobile.native.EndsWith(":") ? "//" : "/") +
+            //              "wc?uri=" + encodedConnect;
+            //    }
+
+            //    var signingUrl = url.Split('?')[0];
                 
-                Debug.Log("Opening: " + signingUrl);
-                Application.OpenURL(signingUrl);
-            }
+            //    Debug.Log("Opening: " + signingUrl);
+            //    Application.OpenURL(signingUrl);
+            //}
 #else
             Debug.Log("Platform does not support deep linking");
             return;
