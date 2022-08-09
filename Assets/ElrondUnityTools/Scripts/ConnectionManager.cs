@@ -274,14 +274,13 @@ namespace ElrondUnityTools
                 return;
             }
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
 
             string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(WalletConnect.Instance.ConnectURL);
 
             Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
-
-
             Application.OpenURL(maiarUrl);
+
 #elif UNITY_IOS
             if (SelectedWallet == null)
             {

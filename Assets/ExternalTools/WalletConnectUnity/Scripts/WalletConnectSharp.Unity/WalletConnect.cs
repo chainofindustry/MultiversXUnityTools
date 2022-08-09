@@ -495,7 +495,13 @@ namespace WalletConnectSharp.Unity
 #if UNITY_ANDROID
             var signingURL = ConnectURL.Split('@')[0];
 
-            Application.OpenURL(signingURL);
+            Debug.Log("signing url " + signingURL);
+            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(signingURL);
+
+            Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
+            Application.OpenURL(maiarUrl);
+
+            //Application.OpenURL(signingURL);
 #elif UNITY_IOS
             if (SelectedWallet == null)
             {
