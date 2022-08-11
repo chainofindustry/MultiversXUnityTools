@@ -171,6 +171,7 @@ namespace ElrondUnityExamples
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
                 txHash = message;
+                Debug.Log("Tx Hash: " + txHash);
                 ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
             }
             if (operationStatus == ElrondUnityTools.OperationStatus.Error)

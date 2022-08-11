@@ -28,7 +28,7 @@ namespace ElrondUnityTools
         private UnityAction<OperationStatus, string> OnBlockchainTransactionStatusChanged;
         private UnityAction<AccountDto> OnWalletConnected;
         private UnityAction OnWalletDisconnected;
-
+        private WalletConnect walletConnect;
         private bool walletConnected;
         private bool walletConnectInitialized;
 
@@ -53,7 +53,7 @@ namespace ElrondUnityTools
         {
             this.OnWalletConnected = OnWalletConnected;
             this.OnWalletDisconnected = OnWalletDisconnected;
-            WalletConnect walletConnect = gameObject.AddComponent<WalletConnect>();
+            walletConnect = gameObject.AddComponent<WalletConnect>();
             ClientMeta appData = new ClientMeta();
             appData.Description = Constants.appDescription;
             appData.Icons = new string[1];
@@ -82,7 +82,7 @@ namespace ElrondUnityTools
 
         internal void DeepLinkLogin()
         {
-            OpenDeepLink();
+            walletConnect.OpenDeepLink();
         }
 
 
@@ -262,51 +262,6 @@ namespace ElrondUnityTools
             WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
             walletConnected = false;
             OnWalletDisconnected();
-        }
-
-
-        private void OpenDeepLink()
-        {
-            if (!WalletConnect.ActiveSession.ReadyForUserPrompt)
-            {
-                Debug.LogError("WalletConnectUnity.ActiveSession not ready for a user prompt" +
-                               "\nWait for ActiveSession.ReadyForUserPrompt to be true");
-
-                return;
-            }
-
-#if UNITY_ANDROID && !UNITY_EDITOR
-
-            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(WalletConnect.Instance.ConnectURL);
-
-            Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
-            Application.OpenURL(maiarUrl);
-
-#elif UNITY_IOS
-
-            string url;
-            string encodedConnect = WebUtility.UrlEncode(WalletConnect.Instance.ConnectURL);
-            Debug.Log(encodedConnect);
-            Debug.Log(UnityWebRequest.EscapeURL(WalletConnect.Instance.ConnectURL));
-            //if (!string.IsNullOrWhiteSpace(SelectedWallet.mobile.universal))
-            //{
-            //    url = SelectedWallet.mobile.universal + "/wc?uri=" + encodedConnect;
-            //}
-            //else
-            //{
-            //    url = SelectedWallet.mobile.native + (SelectedWallet.mobile.native.EndsWith(":") ? "//" : "/") +
-            //          "wc?uri=" + encodedConnect;
-            //}
-
-            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(WalletConnect.Instance.ConnectURL);
-
-
-            //Debug.Log("Opening: " + url);
-            //Application.OpenURL(url);
-#else
-            Debug.Log("Platform does not support deep linking");
-            return;
-#endif
         }
     }
 }
