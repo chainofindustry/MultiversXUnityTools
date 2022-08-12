@@ -19,7 +19,8 @@ We did not developed these tools but adapt them to work with our integration.
 * PC :white_check_mark:
 * MAC :white_check_mark:
 * Android :white_check_mark:
-* :wrench: iOS  :hammer: 
+* iOS :white_check_mark:
+* :wrench: WebGL  :hammer: 
 
 
 ### Content
