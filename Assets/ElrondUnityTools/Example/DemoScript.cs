@@ -1,6 +1,9 @@
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
+using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 namespace ElrondUnityExamples
@@ -10,6 +13,7 @@ namespace ElrondUnityExamples
         public GameObject homeScreen;
         public GameObject loginScreen;
         public GameObject connectedScreen;
+        public GameObject nftScreen;
 
         //login
         public Image qrImage;
@@ -19,13 +23,14 @@ namespace ElrondUnityExamples
         //connected
         public Text address;
         public Text status;
-        public InputField destination;
+        public InputField destination, nftDestination;
         public InputField amount;
         public InputField message;
         public GameObject disconnectButton;
         public GameObject transactionButton;
 
         private bool loginInProgress;
+        private bool showNFTs;
         private AccountDto connectedAccount;
         private string txHash;
 
@@ -37,11 +42,15 @@ namespace ElrondUnityExamples
         public InputField esdtAmount;
         public Dropdown esdtTokenDropdown;
 
+        //nfts
+        public Transform nftsHolder;
+        public GameObject nftItem;
+
         //set default values for everything
         private void Start()
         {
             RefreshButtons();
-            destination.text = defaultAddress;
+            destination.text = nftDestination.text = defaultAddress;
             message.text = defaultMessage;
             amount.text = egld.ToString();
             esdtAmount.text = egld.ToString();
@@ -88,7 +97,7 @@ namespace ElrondUnityExamples
         {
             // get the drop down state and determine the ESDT token to transfer
             ElrondUnityTools.ESDTToken selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
-            switch(esdtTokenDropdown.options[esdtTokenDropdown.value].text)
+            switch (esdtTokenDropdown.options[esdtTokenDropdown.value].text)
             {
                 case "USDC":
                     selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
@@ -100,11 +109,11 @@ namespace ElrondUnityExamples
             ElrondUnityTools.Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, SigningStatusListener);
         }
 
-       
+
 
         private void Update()
         {
-            if(Input.GetKeyDown(KeyCode.Escape))
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
                 Application.Quit();
             }
@@ -220,22 +229,99 @@ namespace ElrondUnityExamples
                     homeScreen.SetActive(false);
                     loginScreen.SetActive(true);
                     connectedScreen.SetActive(false);
+                    nftScreen.SetActive(false);
                 }
                 else
                 {
+
                     //show home screen UI
                     homeScreen.SetActive(true);
                     loginScreen.SetActive(false);
                     connectedScreen.SetActive(false);
+                    nftScreen.SetActive(false);
                 }
             }
             else
             {
-                //show connect screen UI
-                homeScreen.SetActive(false);
-                loginScreen.SetActive(false);
-                connectedScreen.SetActive(true);
+                if (showNFTs == false)
+                {
+                    //show connected screen UI
+                    homeScreen.SetActive(false);
+                    loginScreen.SetActive(false);
+                    connectedScreen.SetActive(true);
+                    nftScreen.SetActive(false);
+                }
+                else
+                {
+                    //show connected screen UI
+                    homeScreen.SetActive(false);
+                    loginScreen.SetActive(false);
+                    connectedScreen.SetActive(false);
+                    nftScreen.SetActive(true);
+                }
             }
         }
+
+        #region NFTs
+        public void ShowNFTScreen()
+        {
+            showNFTs = true;
+            RefreshButtons();
+        }
+
+
+        public void LoadWalletNFTs()
+        {
+            ElrondUnityTools.Manager.LoadWalletNFTs(LoadNFTComplete);
+        }
+
+        private void LoadNFTComplete(ElrondUnityTools.OperationStatus status, string message, ElrondUnityTools.NFTMetadata[] allNfts)
+        {
+            if (status == ElrondUnityTools.OperationStatus.Complete)
+            {
+                Debug.Log("Nr of NFTs" + allNfts.Length);
+                for (int i = 0; i < allNfts.Length; i++)
+                {
+                    DisplayNft(allNfts[i]);
+                }
+            }
+            else
+            {
+                Debug.Log(status + " " + message);
+            }
+        }
+
+        private void DisplayNft(ElrondUnityTools.NFTMetadata nFTMetadata)
+        {
+            Debug.Log(nFTMetadata.media);
+            Debug.Log(nFTMetadata.name);
+            Debug.Log(nFTMetadata.type);
+            Debug.Log(nFTMetadata.media[0].thumbnailUrl);
+            NFTHolder holderScript = Instantiate(nftItem, nftsHolder).GetComponent<NFTHolder>();
+            holderScript.gameObject.name = nFTMetadata.name;
+            holderScript.Initialize(nFTMetadata.name, nFTMetadata.collection, nFTMetadata.nonce);
+
+            StartCoroutine(LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image));
+        }
+
+        private IEnumerator LoadImage(string thumbnailUrl, Image image)
+        {
+            UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(thumbnailUrl);
+            yield return webRequest.SendWebRequest();
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
+                    Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
+                    image.sprite = newSprite;
+                    break;
+                default:
+                    Debug.Log(webRequest.error);
+                    break;
+            }
+        }
+
+        #endregion
     }
 }

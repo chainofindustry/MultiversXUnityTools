@@ -5,6 +5,7 @@ using Erdcsharp.Provider.Dtos;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -26,6 +27,7 @@ namespace ElrondUnityTools
         private NetworkConfig networkConfig;
         private UnityAction<OperationStatus, string> OnSigningTransactionStatusChanged;
         private UnityAction<OperationStatus, string> OnBlockchainTransactionStatusChanged;
+        private UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTStatus;
         private UnityAction<AccountDto> OnWalletConnected;
         private UnityAction OnWalletDisconnected;
         private WalletConnect walletConnect;
@@ -49,7 +51,8 @@ namespace ElrondUnityTools
         }
 
 
-        internal async void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
+
+        internal async void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, UnityEngine.UI.Image qrImage)
         {
             this.OnWalletConnected = OnWalletConnected;
             this.OnWalletDisconnected = OnWalletDisconnected;
@@ -119,6 +122,7 @@ namespace ElrondUnityTools
         {
             SendTransaction(destinationAddress, amount, data, TransactionStatus, networkConfig.MinGasLimit + 20000);
         }
+
 
 
         internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus, long gasLimit)
@@ -263,5 +267,85 @@ namespace ElrondUnityTools
             walletConnected = false;
             OnWalletDisconnected();
         }
+
+        #region NFTs
+        public void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTStatus)
+        {
+            Debug.Log("Load wallet nfts");
+            StartCoroutine(GetWalletNFTs(connectedAccount.Address));
+            this.LoadNFTStatus = LoadNFTStatus;
+        }
+
+        private IEnumerator GetWalletNFTs(string address)
+        {
+            string url = Constants.getNFTAPI;
+            //address = "erd1n9mq20fu59hvlm4wnqup5gsq2qey7s8ev8yvaekwp5val5fvmnsqjl4ykf";
+            url = url.Replace("{address}", address);
+
+            Debug.Log(url);
+
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                Debug.Log(webRequest.result);
+                switch (webRequest.result)
+                {
+                    case UnityWebRequest.Result.Success:
+                        Debug.Log(webRequest.downloadHandler.text);
+                        List<NFTMetadata> allNfts = JsonConvert.DeserializeObject<List<NFTMetadata>>(webRequest.downloadHandler.text);
+                        for (int i = allNfts.Count - 1; i >= 0; i--)
+                        {
+                            if (allNfts[i].type == "MetaESDT")
+                            {
+                                //Debug.LogWarning(allNfts[i].name + " " + allNfts[i].identifier);
+                                allNfts.RemoveAt(i);
+                            }
+                        }
+                        LoadNFTStatus(OperationStatus.Complete, "Success", allNfts.ToArray());
+                        break;
+                    default:
+                        LoadNFTStatus(OperationStatus.Error, webRequest.error, null);
+                        break;
+                }
+            }
+        }
+
+
+        internal void SendNFT(string destinationAddress, string tokenIdentifier, int nonce, int quantity, UnityAction<OperationStatus, string> transactionStatus)
+        {
+            Debug.Log("tokenIdentifier" + tokenIdentifier + " nonce " + nonce);
+            string hexaNonce = nonce.ToString("X");
+            if (hexaNonce.Length % 2 == 1)
+            {
+                hexaNonce = "0" + hexaNonce;
+            }
+
+            string hexaQuantity = quantity.ToString("X");
+            if (hexaQuantity.Length % 2 == 1)
+            {
+                hexaQuantity = "0" + hexaQuantity;
+            }
+
+            Debug.Log(destinationAddress);
+            Erdcsharp.Domain.Address destination = Erdcsharp.Domain.Address.FromBech32("erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
+
+            Debug.Log(destination.Hex);
+
+            string data = "ESDTNFTTransfer" +
+                            "@" + Erdcsharp.Domain.Helper.Converter.ToHexString(tokenIdentifier) +
+                            "@" + hexaNonce +
+                            "@" + hexaQuantity +
+                            "@" + destination.Hex;
+
+            long nrOfBytes = System.Text.ASCIIEncoding.Unicode.GetByteCount(data);
+
+            Debug.Log(data);
+
+            SendTransaction(connectedAccount.Address, 0.ToString(), data, transactionStatus, 1000000 + nrOfBytes * 1500);
+        }
+
+        #endregion
     }
 }

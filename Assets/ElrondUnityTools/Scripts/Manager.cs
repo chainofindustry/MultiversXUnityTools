@@ -1,4 +1,5 @@
 using Erdcsharp.Provider.Dtos;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ namespace ElrondUnityTools
         /// <param name="OnWalletConnected">Callback triggered when user wallet connected</param>
         /// <param name="OnWalletDisconnected">Callback triggered when user wallet disconnected</param>
         /// <param name="qrImage">The image component that will display the QR for Maiar login</param>
-        public static void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
+        public static void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, UnityEngine.UI.Image qrImage)
         {
             ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, qrImage);
         }
@@ -81,6 +82,20 @@ namespace ElrondUnityTools
         public static void SendESDTTransaction(string destinationAddress, ESDTToken token, string amount, UnityAction<OperationStatus, string> TransactionStatus)
         {
             ConnectionManager.Instance.SendESDTTransaction(destinationAddress, amount, token, TransactionStatus);
+        }
+
+
+        public static void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTStatus)
+        {
+            Erdcsharp.Domain.Address destination = Erdcsharp.Domain.Address.FromBech32("erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
+
+            Debug.Log(destination.Hex);
+            ConnectionManager.Instance.LoadWalletNFTs(LoadNFTStatus);
+        }
+
+        public static void SendNFT(string destinationAddress, string tokenIdentifier, int nounce, int quantity, UnityAction<OperationStatus, string> TransactionStatus)
+        {
+            ConnectionManager.Instance.SendNFT(destinationAddress, tokenIdentifier, nounce, quantity, TransactionStatus);
         }
     }
 }
