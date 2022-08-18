@@ -175,7 +175,7 @@ namespace ElrondUnityExamples
         /// <summary>
         /// Track the status of the signing transaction
         /// </summary>
-        /// <param name="operationStatus"></param>
+        /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
         private void SigningStatusListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
@@ -266,6 +266,8 @@ namespace ElrondUnityExamples
         }
 
         #region NFTs
+
+        //linked to the UI button to open the NFT screen
         public void ShowNFTScreen()
         {
             showNFTs = true;
@@ -273,18 +275,26 @@ namespace ElrondUnityExamples
         }
 
 
+        //liked to a button to load all nfts from the wallet
         public void LoadWalletNFTs()
         {
             ElrondUnityTools.Manager.LoadWalletNFTs(LoadNFTComplete);
         }
 
-        private void LoadNFTComplete(ElrondUnityTools.OperationStatus status, string message, ElrondUnityTools.NFTMetadata[] allNfts)
+
+        /// <summary>
+        /// Listener triggered when NFT metadata is loaded
+        /// </summary>
+        /// <param name="operationStatus">Completed, In progress or Error</param>
+        /// <param name="message">additional message</param>
+        /// <param name="allNfts">All metadata properties serialized as NFTMetadata type</param>
+        private void LoadNFTComplete(ElrondUnityTools.OperationStatus operationStatus, string message, ElrondUnityTools.NFTMetadata[] allNfts)
         {
-            nftStatus.text = status + " " + message;
+            nftStatus.text = operationStatus + " " + message;
             this.allNfts = allNfts;
-            if (status == ElrondUnityTools.OperationStatus.Complete)
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                //after all metadata is loaded th nfts will be displayed in a scroll view
+                //after all metadata is loaded the NFTs will be displayed in a scroll view
                 for (int i = 0; i < allNfts.Length; i++)
                 {
                     DisplayNft(allNfts[i]);
@@ -292,19 +302,31 @@ namespace ElrondUnityExamples
             }
             else
             {
-                Debug.Log(status + " " + message);
+                Debug.Log(operationStatus + " " + message);
             }
         }
 
+
+        /// <summary>
+        /// Populates the NFT display container on the screen with the desired NFT properties 
+        /// </summary>
+        /// <param name="nFTMetadata"></param>
         private void DisplayNft(ElrondUnityTools.NFTMetadata nFTMetadata)
         {
             NFTHolder holderScript = Instantiate(nftItem, nftsHolder).GetComponent<NFTHolder>();
             holderScript.gameObject.name = nFTMetadata.name;
+            //store the collection and the nonce because they will be needed to send the NFT to another walled
             holderScript.Initialize(this, nFTMetadata.name, nFTMetadata.collection, nFTMetadata.nonce);
             //load and display the NFT thumbnail
             StartCoroutine(LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image));
         }
 
+        /// <summary>
+        /// Load the NFT Thumbnail from the url
+        /// </summary>
+        /// <param name="imageURL"></param>
+        /// <param name="displayComponent">image component to display the downloaded thumbnail picture</param>
+        /// <returns></returns>
         private IEnumerator LoadImage(string imageURL, Image displayComponent)
         {
             UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(imageURL);
@@ -323,6 +345,12 @@ namespace ElrondUnityExamples
             }
         }
 
+
+        /// <summary>
+        /// Refresh the wallet NFTs after sending an NFT
+        /// </summary>
+        /// <param name="collectionIdentifier"></param>
+        /// <param name="nonce"></param>
         public void RefreshNFTs(string collectionIdentifier, int nonce)
         {
             //remove the NFT that was sent from this list
