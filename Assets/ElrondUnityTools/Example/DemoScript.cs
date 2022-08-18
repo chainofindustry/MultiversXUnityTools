@@ -2,6 +2,7 @@ using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -45,6 +46,8 @@ namespace ElrondUnityExamples
         //nfts
         public Transform nftsHolder;
         public GameObject nftItem;
+        public Text nftStatus;
+        ElrondUnityTools.NFTMetadata[] allNfts;
 
         //set default values for everything
         private void Start()
@@ -277,9 +280,11 @@ namespace ElrondUnityExamples
 
         private void LoadNFTComplete(ElrondUnityTools.OperationStatus status, string message, ElrondUnityTools.NFTMetadata[] allNfts)
         {
+            nftStatus.text = status + " " + message;
+            this.allNfts = allNfts;
             if (status == ElrondUnityTools.OperationStatus.Complete)
             {
-                Debug.Log("Nr of NFTs" + allNfts.Length);
+                //after all metadata is loaded th nfts will be displayed in a scroll view
                 for (int i = 0; i < allNfts.Length; i++)
                 {
                     DisplayNft(allNfts[i]);
@@ -293,20 +298,16 @@ namespace ElrondUnityExamples
 
         private void DisplayNft(ElrondUnityTools.NFTMetadata nFTMetadata)
         {
-            Debug.Log(nFTMetadata.media);
-            Debug.Log(nFTMetadata.name);
-            Debug.Log(nFTMetadata.type);
-            Debug.Log(nFTMetadata.media[0].thumbnailUrl);
             NFTHolder holderScript = Instantiate(nftItem, nftsHolder).GetComponent<NFTHolder>();
             holderScript.gameObject.name = nFTMetadata.name;
-            holderScript.Initialize(nFTMetadata.name, nFTMetadata.collection, nFTMetadata.nonce);
-
+            holderScript.Initialize(this, nFTMetadata.name, nFTMetadata.collection, nFTMetadata.nonce);
+            //load and display the NFT thumbnail
             StartCoroutine(LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image));
         }
 
-        private IEnumerator LoadImage(string thumbnailUrl, Image image)
+        private IEnumerator LoadImage(string imageURL, Image displayComponent)
         {
-            UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(thumbnailUrl);
+            UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(imageURL);
             yield return webRequest.SendWebRequest();
 
             switch (webRequest.result)
@@ -314,12 +315,18 @@ namespace ElrondUnityExamples
                 case UnityWebRequest.Result.Success:
                     Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
                     Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
-                    image.sprite = newSprite;
+                    displayComponent.sprite = newSprite;
                     break;
                 default:
-                    Debug.Log(webRequest.error);
+                    Debug.LogError(webRequest.error);
                     break;
             }
+        }
+
+        public void RefreshNFTs(string collectionIdentifier, int nonce)
+        {
+            //remove the NFT that was sent from this list
+            allNfts = allNfts.Where(cond => cond.collection != collectionIdentifier || cond.nonce != nonce).ToArray();
         }
 
         #endregion

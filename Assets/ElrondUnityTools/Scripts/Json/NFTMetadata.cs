@@ -1,5 +1,6 @@
 namespace ElrondUnityTools
 {
+    //automatically generated from response JSON
     public class NFTMetadata
     {
         public string identifier { get; set; }

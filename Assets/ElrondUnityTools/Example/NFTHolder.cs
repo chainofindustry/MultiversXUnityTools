@@ -1,7 +1,3 @@
-using ElrondUnityTools;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,30 +7,68 @@ namespace ElrondUnityExamples
     {
         public Image image;
         public Text name;
-        public string tokenIdentifier;
+        public string collectionIdentifier;
         public int nonce;
-        public void Initialize(string name, string tokenIdentifier, int nonce)
+
+        private DemoScript demoScript;
+        private string txHash;
+
+
+        public void Initialize(DemoScript demoScript, string name, string collectionIdentifier, int nonce)
         {
+            this.demoScript = demoScript;
             this.name.text = name;
-            this.tokenIdentifier = tokenIdentifier;
+            this.collectionIdentifier = collectionIdentifier;
             this.nonce = nonce;
         }
+
 
         public void SetImage(Sprite image)
         {
             this.image.sprite = image;
         }
 
+
         public void SendNFT()
         {
-            Debug.Log("SEND NFT");
-
-            ElrondUnityTools.Manager.SendNFT(FindObjectOfType<DemoScript>().nftDestination.text, tokenIdentifier, nonce, 1, Complete);
+            ElrondUnityTools.Manager.SendNFT(demoScript.nftDestination.text, collectionIdentifier, nonce, 1, CompleteListener);
         }
 
-        private void Complete(OperationStatus arg0, string arg1)
+
+        private void CompleteListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-            Debug.Log(arg0 + " " + arg1);
+            demoScript.nftStatus.text = operationStatus + " " + message;
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                txHash = message;
+                Debug.Log("Tx Hash: " + txHash);
+                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
+            }
+            if (operationStatus == ElrondUnityTools.OperationStatus.Error)
+            {
+                //do something
+            }
+        }
+
+
+        private void BlockchainTransactionListener(ElrondUnityTools.OperationStatus operationStatus, string message)
+        {
+            demoScript.nftStatus.text = operationStatus + " " + message;
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                if (message == "pending")
+                {
+                    ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
+                }
+                else
+                {
+                    if (message == "success")
+                    {
+                        demoScript.RefreshNFTs(collectionIdentifier, nonce);
+                        Destroy(gameObject);
+                    }
+                }
+            }
         }
     }
 }

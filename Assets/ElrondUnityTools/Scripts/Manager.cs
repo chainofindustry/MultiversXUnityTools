@@ -1,7 +1,5 @@
 using Erdcsharp.Provider.Dtos;
-using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 namespace ElrondUnityTools
 {
@@ -85,17 +83,27 @@ namespace ElrondUnityTools
         }
 
 
-        public static void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTStatus)
+        /// <summary>
+        /// Load metadata from all NFT properties from the connected wallet. From the metadata the media files can be downloaded  
+        /// </summary>
+        /// <param name="LoadNFTsComplete">Callback triggered on load finish</param>
+        public static void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTsComplete)
         {
-            Erdcsharp.Domain.Address destination = Erdcsharp.Domain.Address.FromBech32("erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
-
-            Debug.Log(destination.Hex);
-            ConnectionManager.Instance.LoadWalletNFTs(LoadNFTStatus);
+            ConnectionManager.Instance.LoadWalletNFTs(LoadNFTsComplete);
         }
 
-        public static void SendNFT(string destinationAddress, string tokenIdentifier, int nounce, int quantity, UnityAction<OperationStatus, string> TransactionStatus)
+
+        /// <summary>
+        /// Send an NFT to the destination address
+        /// </summary>
+        /// <param name="destinationAddress">the address to send the NFT to</param>
+        /// <param name="collectionIdentifier">the collection ID</param>
+        /// <param name="nftNonce">nonce of the NFT (the characters after the last -(dash) from the NFT identifier)</param>
+        /// <param name="quantity">number of units to send</param>
+        /// <param name="TransactionStatus">Callback to check the transaction status</param>
+        public static void SendNFT(string destinationAddress, string collectionIdentifier, int nftNonce, int quantity, UnityAction<OperationStatus, string> TransactionStatus)
         {
-            ConnectionManager.Instance.SendNFT(destinationAddress, tokenIdentifier, nounce, quantity, TransactionStatus);
+            ConnectionManager.Instance.SendNFT(destinationAddress, collectionIdentifier, nftNonce, quantity, TransactionStatus);
         }
     }
 }
