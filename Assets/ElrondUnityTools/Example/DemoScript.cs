@@ -9,12 +9,24 @@ using UnityEngine.UI;
 
 namespace ElrondUnityExamples
 {
+    enum Screens
+    {
+        Home,
+        Login,
+        Connected,
+        NFT,
+        SC
+    }
+
     public class DemoScript : MonoBehaviour
     {
         public GameObject homeScreen;
         public GameObject loginScreen;
         public GameObject connectedScreen;
         public GameObject nftScreen;
+        public GameObject scScreen;
+
+        private Screens currentScreen;
 
         //login
         public Image qrImage;
@@ -31,7 +43,6 @@ namespace ElrondUnityExamples
         public GameObject transactionButton;
 
         private bool loginInProgress;
-        private bool showNFTs;
         private AccountDto connectedAccount;
         private string txHash;
 
@@ -49,9 +60,20 @@ namespace ElrondUnityExamples
         public Text nftStatus;
         ElrondUnityTools.NFTMetadata[] allNfts;
 
+        //sc
+        public InputField scAddress;
+        public InputField method;
+        public InputField param;
+        public Text scResultText;
+
+        public string defaultScAddress = "erd1qqqqqqqqqqqqqpgqm6q54xrsrnynwjhyn53lpezm4x87zeth0eqqggct6q";
+        public string defaultFuncName = "getSum";
+        public string[] args;
+
         //set default values for everything
         private void Start()
         {
+            currentScreen = Screens.Home;
             RefreshButtons();
             destination.text = nftDestination.text = defaultAddress;
             message.text = defaultMessage;
@@ -59,6 +81,8 @@ namespace ElrondUnityExamples
             esdtAmount.text = egld.ToString();
             PopulateDropDown();
             status.text = "";
+            scAddress.text = defaultScAddress;
+            method.text = defaultFuncName;
         }
 
 
@@ -73,7 +97,7 @@ namespace ElrondUnityExamples
         public void LoginOptions()
         {
             ElrondUnityTools.Manager.Connect(OnConnected, OnDisconnected, qrImage);
-            loginInProgress = true;
+            currentScreen = Screens.Login;
             RefreshButtons();
         }
 
@@ -142,6 +166,7 @@ namespace ElrondUnityExamples
         {
             this.connectedAccount = connectedAccount;
             RefreshAccount(connectedAccount);
+            currentScreen = Screens.Connected;
             RefreshButtons();
         }
 
@@ -153,6 +178,7 @@ namespace ElrondUnityExamples
         {
             address.text = "-";
             status.text = "";
+            currentScreen = Screens.Home;
             RefreshButtons();
         }
 
@@ -224,44 +250,29 @@ namespace ElrondUnityExamples
         /// </summary>
         void RefreshButtons()
         {
-            if (ElrondUnityTools.Manager.IsWalletConnected() == false)
-            {
-                if (loginInProgress == true)
-                {
-                    //show login UI
-                    homeScreen.SetActive(false);
-                    loginScreen.SetActive(true);
-                    connectedScreen.SetActive(false);
-                    nftScreen.SetActive(false);
-                }
-                else
-                {
+            homeScreen.SetActive(false);
+            loginScreen.SetActive(false);
+            connectedScreen.SetActive(false);
+            nftScreen.SetActive(false);
+            scScreen.SetActive(false);
 
-                    //show home screen UI
-                    homeScreen.SetActive(true);
-                    loginScreen.SetActive(false);
-                    connectedScreen.SetActive(false);
-                    nftScreen.SetActive(false);
-                }
-            }
-            else
+            switch (currentScreen)
             {
-                if (showNFTs == false)
-                {
-                    //show connected screen UI
-                    homeScreen.SetActive(false);
-                    loginScreen.SetActive(false);
+                case Screens.Home:
+                    homeScreen.SetActive(true);
+                    break;
+                case Screens.Login:
+                    loginScreen.SetActive(true);
+                    break;
+                case Screens.Connected:
                     connectedScreen.SetActive(true);
-                    nftScreen.SetActive(false);
-                }
-                else
-                {
-                    //show connected screen UI
-                    homeScreen.SetActive(false);
-                    loginScreen.SetActive(false);
-                    connectedScreen.SetActive(false);
+                    break;
+                case Screens.NFT:
                     nftScreen.SetActive(true);
-                }
+                    break;
+                case Screens.SC:
+                    scScreen.SetActive(true);
+                    break;
             }
         }
 
@@ -270,7 +281,13 @@ namespace ElrondUnityExamples
         //linked to the UI button to open the NFT screen
         public void ShowNFTScreen()
         {
-            showNFTs = true;
+            currentScreen = Screens.NFT;
+            RefreshButtons();
+        }
+
+        public void NFTBackButton()
+        {
+            currentScreen = Screens.Connected;
             RefreshButtons();
         }
 
@@ -358,5 +375,44 @@ namespace ElrondUnityExamples
         }
 
         #endregion
+
+        #region SC
+        public void ShowSCScreen()
+        {
+            currentScreen = Screens.SC;
+            RefreshButtons();
+        }
+
+        public void SCBack()
+        {
+            currentScreen = Screens.Connected;
+            RefreshButtons();
+        }
+
+        public void ExecuteQuery()
+        {
+            ElrondUnityTools.Manager.MakeSCQuery(scAddress.text, method.text, new string[] { param.text }, QueryComplete);
+        }
+
+        private void QueryComplete(ElrondUnityTools.OperationStatus operationStatus, string message, ElrondUnityTools.SCData data)
+        {
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                scResultText.text = "Raw data: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(data);
+                string encodedText = data.returnData[0];
+
+                var result = Erdcsharp.Domain.Helper.Converter.ToBigInteger(Convert.FromBase64String(encodedText));
+
+                scResultText.text += "\n\n Current sum: " + result;
+                Debug.Log(result);
+            }
+            else
+            {
+                Debug.LogError(message);
+                scResultText.text = message;
+            }
+        }
+        #endregion
+
     }
 }

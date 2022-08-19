@@ -105,5 +105,10 @@ namespace ElrondUnityTools
         {
             ConnectionManager.Instance.SendNFT(destinationAddress, collectionIdentifier, nftNonce, quantity, TransactionStatus);
         }
+
+        public static void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
+        {
+            ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, args, QueryComplete);
+        }
     }
 }

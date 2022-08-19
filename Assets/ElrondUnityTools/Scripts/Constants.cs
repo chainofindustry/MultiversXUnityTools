@@ -22,6 +22,9 @@ namespace ElrondUnityTools
         //public const string getNFTAPI = "https://api.elrond.com/accounts/{address}/nfts?withScamInfo=true&computeScamInfo=true";
 
 
+        //Smart contracts API
+        //public const string scQueryAPI = "https://devnet-api.elrond.com/query";
+        public const string scQueryAPI = "https://devnet-gateway.elrond.com/vm-values/query";
 
         //Maiar display values
         public const string appDescription = "You are using Chain of Industry test login";

@@ -160,6 +160,7 @@ namespace ElrondUnityTools
         }
 
 
+
         private IEnumerator PostTransaction(string url, string signedData)
         {
             OnSigningTransactionStatusChanged(OperationStatus.InProgress, "Broadcasting transaction to blockchain");
@@ -332,5 +333,67 @@ namespace ElrondUnityTools
         }
 
         #endregion
+
+        #region SCs
+        internal void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
+        {
+            StartCoroutine(PostSCQuery(Constants.scQueryAPI, new SCQuery(scAddress, methodName, args), QueryComplete));
+        }
+
+        IEnumerator PostSCQuery(string uri, SCQuery query, UnityAction<OperationStatus, string, SCData> QueryComplete)
+        {
+            string json = JsonUtility.ToJson(query);
+
+            using var webRequest = new UnityWebRequest();
+            webRequest.url = uri; 
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "*/*");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            yield return webRequest.SendWebRequest();
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    string output = webRequest.downloadHandler.text;
+                    QueryResponse response;
+
+                    try
+                    {
+                        response = JsonConvert.DeserializeObject<QueryResponse>(output);
+                    }
+                    catch (Exception e)
+                    {
+                        QueryComplete(OperationStatus.Error, "Deserialization error: " + e.Message + " " + e.Data, null);
+                        break;
+                    }
+
+
+                    if (!string.IsNullOrEmpty(response.error))
+                    {
+                        QueryComplete(OperationStatus.Error, "SC Call error: " + response.error + " " + response.code, null);
+                        break;
+                    }
+
+                    SCData data = response.data.data;
+                    if (data.returnData == null)
+                    {
+                        QueryComplete(OperationStatus.Error, "Data error: " + data.returnCode + " " + data.returnMessage, null);
+                        break;
+                    }
+
+                    QueryComplete(OperationStatus.Complete, response.code, data);
+                    break;
+
+                default:
+                    QueryComplete(OperationStatus.Error, webRequest.error, null);
+                    break;
+            }
+            #endregion
+        }
     }
 }
+
+
