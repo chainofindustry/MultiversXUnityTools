@@ -66,9 +66,9 @@ namespace ElrondUnityExamples
         public InputField param;
         public Text scResultText;
 
-        public string defaultScAddress = "erd1qqqqqqqqqqqqqpgqm6q54xrsrnynwjhyn53lpezm4x87zeth0eqqggct6q";
-        public string defaultFuncName = "getSum";
-        public string[] args;
+        string defaultScAddress = "erd1qqqqqqqqqqqqqpgqmm2m825y2t9nya0yqeg3nqlh2q50e7pd0eqq98uw2e";
+        string defaultFuncName = "getSum";
+        string[] args;
 
         //set default values for everything
         private void Start()
@@ -377,34 +377,54 @@ namespace ElrondUnityExamples
         #endregion
 
         #region SC
+        //linked to a button to open the SC screen
         public void ShowSCScreen()
         {
             currentScreen = Screens.SC;
             RefreshButtons();
         }
 
+        //linked to the back button
         public void SCBack()
         {
             currentScreen = Screens.Connected;
             RefreshButtons();
         }
 
+        //linked to execute SC query button
         public void ExecuteQuery()
         {
+            //call the method from scAddress with param
             ElrondUnityTools.Manager.MakeSCQuery(scAddress.text, method.text, new string[] { param.text }, QueryComplete);
         }
 
+
+        /// <summary>
+        /// Triggered when Smart contract query is complete
+        /// </summary>
+        /// <param name="operationStatus">Completed, In progress or Error</param>
+        /// <param name="message">additional message</param>
+        /// <param name="data">deserialized returned data</param>
         private void QueryComplete(ElrondUnityTools.OperationStatus operationStatus, string message, ElrondUnityTools.SCData data)
         {
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
                 scResultText.text = "Raw data: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(data);
+                
+                //the returned data is an array(I do not know at this point how to create a SC that returns an Array of data instead of a single element)
                 string encodedText = data.returnData[0];
 
-                var result = Erdcsharp.Domain.Helper.Converter.ToBigInteger(Convert.FromBase64String(encodedText));
+                //convert the received data to bytes
+                byte[] bytes = Convert.FromBase64String(encodedText);
+
+                //convert the bytes array so hex
+                string hexString = Erdcsharp.Domain.Helper.Converter.ToHexString(bytes);
+               
+                //convert the hex string to your data type(int, float, string, etc) 
+                //in this case the return data is an int
+                var result = Convert.ToInt64(hexString, 16);
 
                 scResultText.text += "\n\n Current sum: " + result;
-                Debug.Log(result);
             }
             else
             {

@@ -106,6 +106,14 @@ namespace ElrondUnityTools
             ConnectionManager.Instance.SendNFT(destinationAddress, collectionIdentifier, nftNonce, quantity, TransactionStatus);
         }
 
+
+        /// <summary>
+        /// Make a smart contract query
+        /// </summary>
+        /// <param name="scAddress">the address of the smart contract</param>
+        /// <param name="methodName">the method to call</param>
+        /// <param name="args">the list of arguments</param>
+        /// <param name="QueryComplete">Callback to get the result of the query after finished</param>
         public static void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
         {
             ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, args, QueryComplete);
