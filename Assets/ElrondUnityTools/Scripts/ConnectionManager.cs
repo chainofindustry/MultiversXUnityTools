@@ -345,7 +345,7 @@ namespace ElrondUnityTools
             string json = JsonUtility.ToJson(query);
 
             using var webRequest = new UnityWebRequest();
-            webRequest.url = uri; 
+            webRequest.url = uri;
             webRequest.method = "POST";
             webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
             webRequest.downloadHandler = new DownloadHandlerBuffer();
@@ -392,6 +392,35 @@ namespace ElrondUnityTools
                     break;
             }
             #endregion
+        }
+        internal void CallSCMethod(string scAddress, string methodName, UnityAction<OperationStatus, string> QueryComplete, params object[] args)
+        {
+            string data = methodName;
+            for (int i = 0; i < args.Length; i++)
+            {
+                Debug.Log(args[i].GetType());
+                string converted;
+                if (args[i].IsNumericType())
+                {
+                    converted = args[i].ToHex();
+                    if (converted.Length % 2 == 1)
+                    {
+                        converted = "0" + converted;
+                    }
+                    data += "@" + converted;
+                }
+                else
+                {
+                    converted = (string)args[i];
+                    data += "@" + Erdcsharp.Domain.Helper.Converter.ToHexString(converted);
+                }
+            }
+
+            Debug.Log(data);
+
+            long nrOfBytes = System.Text.ASCIIEncoding.Unicode.GetByteCount(data);
+
+            SendTransaction(scAddress, 0.ToString(), data, QueryComplete, 100000000 + nrOfBytes * 1500);
         }
     }
 }

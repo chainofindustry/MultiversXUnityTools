@@ -1,3 +1,4 @@
+using ElrondUnityTools;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using System;
@@ -67,7 +68,7 @@ namespace ElrondUnityExamples
         public Text scResultText;
 
         string defaultScAddress = "erd1qqqqqqqqqqqqqpgqmm2m825y2t9nya0yqeg3nqlh2q50e7pd0eqq98uw2e";
-        string defaultFuncName = "getSum";
+        string defaultFuncName = "add";
         string[] args;
 
         //set default values for everything
@@ -410,7 +411,7 @@ namespace ElrondUnityExamples
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
                 scResultText.text = "Raw data: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(data);
-                
+
                 //the returned data is an array(I do not know at this point how to create a SC that returns an Array of data instead of a single element)
                 string encodedText = data.returnData[0];
 
@@ -419,7 +420,7 @@ namespace ElrondUnityExamples
 
                 //convert the bytes array so hex
                 string hexString = Erdcsharp.Domain.Helper.Converter.ToHexString(bytes);
-               
+
                 //convert the hex string to your data type(int, float, string, etc) 
                 //in this case the return data is an int
                 var result = Convert.ToInt64(hexString, 16);
@@ -432,6 +433,18 @@ namespace ElrondUnityExamples
                 scResultText.text = message;
             }
         }
+
+        public void ExecuteCall()
+        {
+            //call the method from scAddress with param
+            ElrondUnityTools.Manager.CallSCMethod(scAddress.text, method.text, CallStatus, 10);
+        }
+
+        private void CallStatus(OperationStatus arg0, string arg1)
+        {
+
+        }
+
         #endregion
 
     }

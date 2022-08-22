@@ -1,4 +1,5 @@
 using Erdcsharp.Provider.Dtos;
+using System;
 using UnityEngine.Events;
 
 namespace ElrondUnityTools
@@ -117,6 +118,12 @@ namespace ElrondUnityTools
         public static void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
         {
             ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, args, QueryComplete);
+        }
+
+
+        public static void CallSCMethod(string scAddress, string methodName, UnityAction<OperationStatus, string> CallStatus, params object[] args)
+        {
+            ConnectionManager.Instance.CallSCMethod(scAddress, methodName, CallStatus, args);
         }
     }
 }
