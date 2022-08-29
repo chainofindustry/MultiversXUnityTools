@@ -1,4 +1,3 @@
-using ElrondUnityTools;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using System;
@@ -55,13 +54,13 @@ namespace ElrondUnityExamples
         public InputField esdtAmount;
         public Dropdown esdtTokenDropdown;
 
-        //nfts
+        //NFTs
         public Transform nftsHolder;
         public GameObject nftItem;
         public Text nftStatus;
         ElrondUnityTools.NFTMetadata[] allNfts;
 
-        //sc
+        //SC
         public InputField scAddress;
         public InputField method;
         public InputField param;
@@ -293,7 +292,7 @@ namespace ElrondUnityExamples
         }
 
 
-        //liked to a button to load all nfts from the wallet
+        //liked to a button to load all NFTs from the wallet
         public void LoadWalletNFTs()
         {
             ElrondUnityTools.Manager.LoadWalletNFTs(LoadNFTComplete);
@@ -395,7 +394,7 @@ namespace ElrondUnityExamples
         //linked to execute SC query button
         public void ExecuteQuery()
         {
-            //call the method from scAddress with param
+            //call the method from scAddress with parameters
             ElrondUnityTools.Manager.MakeSCQuery(scAddress.text, method.text, new string[] { param.text }, QueryComplete);
         }
 
@@ -434,18 +433,59 @@ namespace ElrondUnityExamples
             }
         }
 
+        //linked to a button to execute the SC call 
         public void ExecuteCall()
         {
             //call the method from scAddress with param
-            ElrondUnityTools.Manager.CallSCMethod(scAddress.text, method.text, CallStatus, 10);
+            int nr = int.Parse(param.text);
+            ElrondUnityTools.Manager.CallSCMethod(scAddress.text, method.text, CallStatus, nr);
         }
 
-        private void CallStatus(OperationStatus arg0, string arg1)
+
+        /// <summary>
+        /// Listener for the call response
+        /// </summary>
+        /// <param name="operationStatus">Completed, In progress or Error</param>
+        /// <param name="message">additional message</param>
+        private void CallStatus(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-
+            scResultText.text = operationStatus + " " + message;
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                txHash = message;
+                Debug.Log("Tx Hash: " + txHash);
+                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, SCTransactionListener, 1);
+            }
+            if (operationStatus == ElrondUnityTools.OperationStatus.Error)
+            {
+                //do something
+            }
         }
 
-        #endregion
 
+        /// <summary>
+        /// Listener for the SC transaction status 
+        /// </summary>
+        /// <param name="operationStatus">Completed, In progress or Error</param>
+        /// <param name="message">additional message</param>
+        private void SCTransactionListener(ElrondUnityTools.OperationStatus operationStatus, string message)
+        {
+            scResultText.text = operationStatus + " " + message;
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                if (message == "pending")
+                {
+                    ElrondUnityTools.Manager.CheckTransactionStatus(txHash, SCTransactionListener, 1);
+                }
+                else
+                {
+                    if (message == "success")
+                    {
+                        //do something 
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }

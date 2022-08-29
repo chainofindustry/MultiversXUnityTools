@@ -1,5 +1,4 @@
 using Erdcsharp.Provider.Dtos;
-using System;
 using UnityEngine.Events;
 
 namespace ElrondUnityTools
@@ -97,10 +96,10 @@ namespace ElrondUnityTools
         /// <summary>
         /// Send an NFT to the destination address
         /// </summary>
-        /// <param name="destinationAddress">the address to send the NFT to</param>
-        /// <param name="collectionIdentifier">the collection ID</param>
-        /// <param name="nftNonce">nonce of the NFT (the characters after the last -(dash) from the NFT identifier)</param>
-        /// <param name="quantity">number of units to send</param>
+        /// <param name="destinationAddress">The address to send the NFT to</param>
+        /// <param name="collectionIdentifier">The collection ID</param>
+        /// <param name="nftNonce">Nonce of the NFT (the characters after the last -(dash) from the NFT identifier)</param>
+        /// <param name="quantity">Number of units to send</param>
         /// <param name="TransactionStatus">Callback to check the transaction status</param>
         public static void SendNFT(string destinationAddress, string collectionIdentifier, int nftNonce, int quantity, UnityAction<OperationStatus, string> TransactionStatus)
         {
@@ -111,9 +110,9 @@ namespace ElrondUnityTools
         /// <summary>
         /// Make a smart contract query
         /// </summary>
-        /// <param name="scAddress">the address of the smart contract</param>
-        /// <param name="methodName">the method to call</param>
-        /// <param name="args">the list of arguments</param>
+        /// <param name="scAddress">The address of the smart contract</param>
+        /// <param name="methodName">The method to call</param>
+        /// <param name="args">The list of arguments</param>
         /// <param name="QueryComplete">Callback to get the result of the query after finished</param>
         public static void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
         {
@@ -121,6 +120,13 @@ namespace ElrondUnityTools
         }
 
 
+        /// <summary>
+        /// Call a smart contract method
+        /// </summary>
+        /// <param name="scAddress">The address of the smart contract</param>
+        /// <param name="methodName">The method to call</param>
+        /// <param name="CallStatus">Callback to get the result of the call</param>
+        /// <param name="args">The list of arguments</param>
         public static void CallSCMethod(string scAddress, string methodName, UnityAction<OperationStatus, string> CallStatus, params object[] args)
         {
             ConnectionManager.Instance.CallSCMethod(scAddress, methodName, CallStatus, args);
