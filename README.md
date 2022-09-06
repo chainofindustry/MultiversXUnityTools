@@ -29,8 +29,9 @@ We did not developed these tools but adapt them to work with our integration.
 3. [Check Transaction Status](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Check-Transaction-Status) :white_check_mark:
 4. [Send ESDT Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-ESDT-Transaction) :white_check_mark:
 5. [Send NFT Transaction](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Send-NFT-Transaction) :white_check_mark:
-6. [Interacting with Smart Contracts](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Interacting-with-Smart-Contracts):white_check_mark:
-7. :wrench: Compute gas :hammer:
+6. [Interacting with Smart Contracts](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Interacting-with-Smart-Contracts) :white_check_mark:
+7. [Gas Cost](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Gas-Cost) :white_check_mark:
+7. :wrench: Generic Method for API Calls :hammer:
 
 
 **Full documentation** available on the [Wiki](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki) tab.  
