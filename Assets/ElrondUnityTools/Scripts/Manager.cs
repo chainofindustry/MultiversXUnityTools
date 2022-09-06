@@ -52,7 +52,7 @@ namespace ElrondUnityTools
         /// <param name="amount">Amount of EGLD to send(in decimals)</param>
         /// <param name="data">An optional custom message</param>
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
-        public static void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
+        public static void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
         {
             ConnectionManager.Instance.SendEGLDTransaction(destinationAddress, amount, data, TransactionStatus);
         }
@@ -125,7 +125,7 @@ namespace ElrondUnityTools
         /// </summary>
         /// <param name="scAddress">The address of the smart contract</param>
         /// <param name="methodName">The method to call</param>
-        /// <param name="gas">The gas required by the called method for execution</param>
+        /// <param name="gas">The gas required to execute the called SC method</param>
         /// <param name="CallStatus">Callback to get the result of the call</param>
         /// <param name="args">The list of arguments</param>
         public static void CallSCMethod(string scAddress, string methodName, long gas, UnityAction<OperationStatus, string> CallStatus, params object[] args)

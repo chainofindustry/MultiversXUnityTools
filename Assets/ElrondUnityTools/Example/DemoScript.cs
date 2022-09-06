@@ -118,7 +118,7 @@ namespace ElrondUnityExamples
             status.text = "";
 
             //should verify first if destination, amount and message are in the correct format
-            ElrondUnityTools.Manager.SendTransaction(destination.text, amount.text, message.text, SigningStatusListener);
+            ElrondUnityTools.Manager.SendEGLDTransaction(destination.text, amount.text, message.text, SigningStatusListener);
         }
 
 
