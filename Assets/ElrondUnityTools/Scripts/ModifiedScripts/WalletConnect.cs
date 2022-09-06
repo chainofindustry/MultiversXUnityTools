@@ -460,6 +460,7 @@ namespace WalletConnectSharp.Unity
 
         private async Task SaveOrDisconnect()
         {
+            Debug.Log(Session);
             if (!Session.Connected)
                 return;
 

@@ -125,11 +125,12 @@ namespace ElrondUnityTools
         /// </summary>
         /// <param name="scAddress">The address of the smart contract</param>
         /// <param name="methodName">The method to call</param>
+        /// <param name="gas">The gas required by the called method for execution</param>
         /// <param name="CallStatus">Callback to get the result of the call</param>
         /// <param name="args">The list of arguments</param>
-        public static void CallSCMethod(string scAddress, string methodName, UnityAction<OperationStatus, string> CallStatus, params object[] args)
+        public static void CallSCMethod(string scAddress, string methodName, long gas, UnityAction<OperationStatus, string> CallStatus, params object[] args)
         {
-            ConnectionManager.Instance.CallSCMethod(scAddress, methodName, CallStatus, args);
+            ConnectionManager.Instance.CallSCMethod(scAddress, methodName, gas, CallStatus, args);
         }
     }
 }

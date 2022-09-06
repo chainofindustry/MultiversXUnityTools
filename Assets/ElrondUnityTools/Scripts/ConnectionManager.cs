@@ -52,6 +52,11 @@ namespace ElrondUnityTools
 
         internal async void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
+            if(gameObject.GetComponent<WalletConnect>())
+            {
+                return;
+            }
+
             this.OnWalletConnected = OnWalletConnected;
             this.OnWalletDisconnected = OnWalletDisconnected;
             walletConnect = gameObject.AddComponent<WalletConnect>();
@@ -104,7 +109,6 @@ namespace ElrondUnityTools
         {
             float value = float.Parse(amount);
             value = value * Mathf.Pow(10, token.decimals);
-            Debug.Log(value + " " + token.identifier);
             string hexaAmount = ((long)value).ToString("X");
             if (hexaAmount.Length % 2 == 1)
             {
@@ -112,13 +116,21 @@ namespace ElrondUnityTools
             }
 
             string hexaTokenIdentifier = Erdcsharp.Domain.Helper.Converter.ToHexString(token.identifier);
+            string data = "ESDTTransfer" +
+                "@" + hexaTokenIdentifier +
+                "@" + hexaAmount;
 
-            SendTransaction(destinationAddress, 0.ToString(), "ESDTTransfer" + "@" + hexaTokenIdentifier + "@" + hexaAmount, transactionStatus, networkConfig.MinGasLimit + 500000);
+            //https://docs.elrond.com/tokens/esdt-tokens/
+            //the GasLimit must be set to the value required by the protocol for ESDT transfers, namely 500000
+            long gas = 500000;
+
+            SendTransaction(destinationAddress, 0.ToString(), data, transactionStatus, gas);
         }
 
         internal void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
         {
-            SendTransaction(destinationAddress, amount, data, TransactionStatus, networkConfig.MinGasLimit + 20000);
+            long gas = networkConfig.MinGasLimit + System.Text.ASCIIEncoding.Unicode.GetByteCount(data) * networkConfig.GasPerDataByte;
+            SendTransaction(destinationAddress, amount, data, TransactionStatus, gas);
         }
 
 
@@ -329,7 +341,10 @@ namespace ElrondUnityTools
 
             long nrOfBytes = System.Text.ASCIIEncoding.Unicode.GetByteCount(data);
 
-            SendTransaction(connectedAccount.Address, 0.ToString(), data, transactionStatus, 1000000 + nrOfBytes * 1500);
+            //https://docs.elrond.com/tokens/nft-tokens/#tab-group-43-content-44
+            long gas = 1000000 + nrOfBytes * networkConfig.GasPerDataByte;
+
+            SendTransaction(connectedAccount.Address, 0.ToString(), data, transactionStatus, gas);
         }
 
         #endregion
@@ -393,7 +408,7 @@ namespace ElrondUnityTools
             }
             #endregion
         }
-        internal void CallSCMethod(string scAddress, string methodName, UnityAction<OperationStatus, string> QueryComplete, params object[] args)
+        internal void CallSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, UnityAction<OperationStatus, string> QueryComplete, params object[] args)
         {
             string data = methodName;
             for (int i = 0; i < args.Length; i++)
@@ -419,8 +434,9 @@ namespace ElrondUnityTools
             Debug.Log(data);
 
             long nrOfBytes = System.Text.ASCIIEncoding.Unicode.GetByteCount(data);
+            long gas = gasRequiredForSCExecution + nrOfBytes * networkConfig.GasPerDataByte;
 
-            SendTransaction(scAddress, 0.ToString(), data, QueryComplete, 100000000 + nrOfBytes * 1500);
+            SendTransaction(scAddress, 0.ToString(), data, QueryComplete, gas);
         }
     }
 }

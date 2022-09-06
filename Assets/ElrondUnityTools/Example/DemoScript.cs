@@ -64,10 +64,12 @@ namespace ElrondUnityExamples
         public InputField scAddress;
         public InputField method;
         public InputField param;
+        public InputField gasInput;
         public Text scResultText;
 
         string defaultScAddress = "erd1qqqqqqqqqqqqqpgqmm2m825y2t9nya0yqeg3nqlh2q50e7pd0eqq98uw2e";
         string defaultFuncName = "add";
+        string defaultGas = "1500000";
         string[] args;
 
         //set default values for everything
@@ -83,6 +85,7 @@ namespace ElrondUnityExamples
             status.text = "";
             scAddress.text = defaultScAddress;
             method.text = defaultFuncName;
+            gasInput.text = defaultGas;
         }
 
 
@@ -438,7 +441,8 @@ namespace ElrondUnityExamples
         {
             //call the method from scAddress with param
             int nr = int.Parse(param.text);
-            ElrondUnityTools.Manager.CallSCMethod(scAddress.text, method.text, CallStatus, nr);
+            long gas = long.Parse(gasInput.text);
+            ElrondUnityTools.Manager.CallSCMethod(scAddress.text, method.text, gas, CallStatus, nr);
         }
 
 
