@@ -49,10 +49,9 @@ namespace ElrondUnityTools
         }
 
 
-
         internal async void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
-            if(gameObject.GetComponent<WalletConnect>())
+            if (gameObject.GetComponent<WalletConnect>())
             {
                 return;
             }
@@ -134,7 +133,6 @@ namespace ElrondUnityTools
         }
 
 
-
         internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus, long gasLimit)
         {
 
@@ -170,7 +168,6 @@ namespace ElrondUnityTools
 
             StartCoroutine(PostTransaction(Constants.transactionPostAPI, json));
         }
-
 
 
         private IEnumerator PostTransaction(string url, string signedData)
@@ -279,11 +276,13 @@ namespace ElrondUnityTools
             OnWalletDisconnected();
         }
 
+
         #region NFTs
         public void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTCompletes)
         {
             StartCoroutine(GetWalletNFTs(connectedAccount.Address, LoadNFTCompletes));
         }
+
 
         private IEnumerator GetWalletNFTs(string address, UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTsComplete)
         {
@@ -346,8 +345,8 @@ namespace ElrondUnityTools
 
             SendTransaction(connectedAccount.Address, 0.ToString(), data, transactionStatus, gas);
         }
-
         #endregion
+
 
         #region SCs
         internal void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
@@ -406,8 +405,10 @@ namespace ElrondUnityTools
                     QueryComplete(OperationStatus.Error, webRequest.error, null);
                     break;
             }
-            #endregion
+
         }
+
+
         internal void CallSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, UnityAction<OperationStatus, string> QueryComplete, params object[] args)
         {
             string data = methodName;
@@ -431,13 +432,72 @@ namespace ElrondUnityTools
                 }
             }
 
-            Debug.Log(data);
-
             long nrOfBytes = System.Text.ASCIIEncoding.Unicode.GetByteCount(data);
             long gas = gasRequiredForSCExecution + nrOfBytes * networkConfig.GasPerDataByte;
 
             SendTransaction(scAddress, 0.ToString(), data, QueryComplete, gas);
         }
+        #endregion
+
+        #region GenericMethods
+        internal void GetRequest(string url, UnityAction<OperationStatus, string, string> completeMethod)
+        {
+            StartCoroutine(MakeAPICall(url, completeMethod));
+        }
+
+
+        private IEnumerator MakeAPICall(string url, UnityAction<OperationStatus, string, string> completeMethod)
+        {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                switch (webRequest.result)
+                {
+                    case UnityWebRequest.Result.Success:
+                        completeMethod(OperationStatus.Complete, "Success", webRequest.downloadHandler.text);
+                        break;
+                    default:
+                        completeMethod(OperationStatus.Error, webRequest.error, null);
+                        break;
+                }
+            }
+        }
+
+
+        internal void PostRequest(string url, string jsonData, UnityAction<OperationStatus, string, string> completeMethod)
+        {
+            StartCoroutine(Post(url, jsonData, completeMethod));
+        }
+
+
+        IEnumerator Post(string url, string jsonData, UnityAction<OperationStatus, string, string> completeMethod)
+        {
+            using var webRequest = new UnityWebRequest();
+            webRequest.url = url;
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonData));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+            yield return webRequest.SendWebRequest();
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    completeMethod(OperationStatus.Complete, "Success", webRequest.downloadHandler.text);
+                    break;
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    completeMethod(OperationStatus.Error, webRequest.error, webRequest.downloadHandler.text);
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    completeMethod(OperationStatus.Error, webRequest.error + " " + webRequest.result, webRequest.downloadHandler.text);
+                    break;
+            }
+        }
+        #endregion
     }
 }
 

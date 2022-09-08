@@ -132,5 +132,29 @@ namespace ElrondUnityTools
         {
             ConnectionManager.Instance.CallSCMethod(scAddress, methodName, gas, CallStatus, args);
         }
+
+
+        /// <summary>
+        /// Call any API method from the Elrond Network
+        /// </summary>
+        /// <param name="url">Get API url</param>
+        /// <param name="CompleteMethod">Complete listener (operation status, error message, return data)</param>
+        public static void GetRequest(string url, UnityAction<OperationStatus, string, string> CompleteMethod)
+        {
+            ConnectionManager.Instance.GetRequest(url, CompleteMethod);
+        }
+
+
+        /// <summary>
+        /// Make a POST request to Elrond APIs
+        /// </summary>
+        /// <param name="url">Post url</param>
+        /// <param name="jsonData">json data to send</param>
+        /// <param name="CompleteMethod">Complete listener (operation status, error message, return data)</param>
+        public static void PostRequest(string url, string jsonData, UnityAction<OperationStatus, string, string> CompleteMethod)
+        {
+            ConnectionManager.Instance.PostRequest(url, jsonData, CompleteMethod);
+        }
+
     }
 }
