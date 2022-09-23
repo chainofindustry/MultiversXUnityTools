@@ -10,7 +10,7 @@ namespace ElrondUnityExamples
         public string collectionIdentifier;
         public int nonce;
 
-        private DemoScript demoScript;
+        private NftsScreen demoScript;
         private string txHash;
 
 
@@ -21,7 +21,7 @@ namespace ElrondUnityExamples
         /// <param name="name">the display name for NFT</param>
         /// <param name="collectionIdentifier">collection identifier</param>
         /// <param name="nonce">nonce of the NFT (the characters after the last -(dash) from the NFT identifier)</param>
-        public void Initialize(DemoScript demoScript, string name, string collectionIdentifier, int nonce)
+        public void Initialize(NftsScreen demoScript, string name, string collectionIdentifier, int nonce)
         {
             this.demoScript = demoScript;
             this.name.text = name;

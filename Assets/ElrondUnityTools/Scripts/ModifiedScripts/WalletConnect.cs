@@ -78,8 +78,8 @@ namespace WalletConnectSharp.Unity
         public bool retryOnTimeout = true;
         public bool autoSaveAndResume = true;
         public bool connectOnAwake = false;
-        public bool connectOnStart = true;
-        public bool createNewSessionOnSessionDisconnect = true;
+        public bool connectOnStart = false;
+        public bool createNewSessionOnSessionDisconnect = false;
         public int connectSessionRetryCount = 3;
         public string customBridgeUrl;
 

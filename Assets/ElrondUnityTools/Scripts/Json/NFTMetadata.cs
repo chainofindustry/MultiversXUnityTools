@@ -36,7 +36,7 @@ namespace ElrondUnityTools
         public string name { get; set; }
         public string description { get; set; }
         public Attribute[] attributes { get; set; }
-        public string image { get; set; }
+        public NFTImage image { get; set; }
         public string dna { get; set; }
         public long date { get; set; }
         public string[] tags { get; set; }
@@ -113,4 +113,12 @@ namespace ElrondUnityTools
         public float percent { get; set; }
     }
 
+    public class NFTImage
+    {
+        public string href { get; set; }
+        public string hash { get; set; }
+        public string ipfsUri { get; set; }
+        public string ipfsCid { get; set; }
+        public string fileName { get; set; }
+    }
 }

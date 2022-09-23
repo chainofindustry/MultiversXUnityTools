@@ -1,5 +1,6 @@
 using Erdcsharp.Provider.Dtos;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace ElrondUnityTools
 {
@@ -11,7 +12,7 @@ namespace ElrondUnityTools
         /// <param name="OnWalletConnected">Callback triggered when user wallet connected</param>
         /// <param name="OnWalletDisconnected">Callback triggered when user wallet disconnected</param>
         /// <param name="qrImage">The image component that will display the QR for Maiar login</param>
-        public static void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, UnityEngine.UI.Image qrImage)
+        public static void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
             ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, qrImage);
         }

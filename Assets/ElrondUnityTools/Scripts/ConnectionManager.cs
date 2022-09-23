@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using WalletConnectSharp.Core;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Models.Ethereum;
 using WalletConnectSharp.Unity;
@@ -53,6 +54,7 @@ namespace ElrondUnityTools
         {
             if (gameObject.GetComponent<WalletConnect>())
             {
+                AddQRImageScript(qrImage);
                 return;
             }
 
@@ -69,21 +71,32 @@ namespace ElrondUnityTools
             walletConnect.customBridgeUrl = Constants.customBridgeUrl;
             walletConnect.ConnectedEvent = new WalletConnect.WalletConnectEventNoSession();
             walletConnect.ConnectedEventSession = new WalletConnect.WalletConnectEventWithSessionData();
+            walletConnect.ConnectedEvent.AddListener(Connected);
 
             walletConnectInitialized = true;
-            if (qrImage != null)
-            {
-
-                qrImage.gameObject.SetActive(false);
-                WalletConnectQRImage WalletConnectQRImage = qrImage.gameObject.AddComponent<WalletConnectQRImage>();
-                WalletConnectQRImage.walletConnect = walletConnect;
-                qrImage.gameObject.SetActive(true);
-            }
+            AddQRImageScript(qrImage);
 
             provider = new ElrondProvider(new HttpClient(), new ElrondNetworkConfiguration(Constants.networkType));
             networkConfig = await NetworkConfig.GetFromNetwork(provider);
         }
 
+
+        async void AddQRImageScript(Image qrImage)
+        {
+            Debug.Log("AddQRImageScript" + qrImage);
+            if (qrImage != null)
+            {
+                qrImage.gameObject.AddComponent<WalletConnectQRImage>().Init(walletConnect);
+            }
+
+            await walletConnect.Connect();
+            Debug.LogWarning("DE CE NU APARE ASTA?");
+        }
+
+        private void Connected()
+        {
+            OnConnected();
+        }
 
         internal void DeepLinkLogin()
         {
@@ -99,7 +112,7 @@ namespace ElrondUnityTools
 
         internal void Disconnect()
         {
-            WalletConnect.Instance.CloseSession();
+            WalletConnect.Instance.CloseSession(false);
         }
 
 
@@ -239,24 +252,6 @@ namespace ElrondUnityTools
         }
         #endregion
 
-
-        //TODO This should be removed and only use events
-        private void Update()
-        {
-            if (!walletConnectInitialized)
-                return;
-
-            if (WalletConnect.ActiveSession == null)
-                return;
-
-            if (walletConnected == true)
-                return;
-
-            if (WalletConnect.ActiveSession.Accounts != null)
-            {
-                OnConnected();
-            }
-        }
 
 
         private async void OnConnected()
@@ -496,6 +491,11 @@ namespace ElrondUnityTools
                     completeMethod(OperationStatus.Error, webRequest.error + " " + webRequest.result, webRequest.downloadHandler.text);
                     break;
             }
+        }
+
+        private void OnDestroy()
+        {
+            walletConnect.ConnectedEvent.RemoveAllListeners();
         }
         #endregion
     }
