@@ -6,7 +6,7 @@ namespace ElrondUnityExamples
     public class NFTHolder : MonoBehaviour
     {
         public Image image;
-        public Text name;
+        public Text nftName;
         public string collectionIdentifier;
         public int nonce;
 
@@ -24,7 +24,7 @@ namespace ElrondUnityExamples
         public void Initialize(NftsScreen demoScript, string name, string collectionIdentifier, int nonce)
         {
             this.demoScript = demoScript;
-            this.name.text = name;
+            this.nftName.text = name;
             this.collectionIdentifier = collectionIdentifier;
             this.nonce = nonce;
         }
@@ -32,8 +32,6 @@ namespace ElrondUnityExamples
         //linked to the send button on screen
         public void SendNFT()
         {
-            ElrondUnityTools.Manager.SendNFT("erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf", "ADT-8daf0d", 3560, 1, CompleteListener);
-
             ElrondUnityTools.Manager.SendNFT(demoScript.nftDestination.text, collectionIdentifier, nonce, 1, CompleteListener);
         }
 
@@ -45,7 +43,7 @@ namespace ElrondUnityExamples
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
         private void CompleteListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-            demoScript.nftStatus.text = operationStatus + " " + message;
+            demoScript.status.text = operationStatus + " " + message;
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
                 txHash = message;
@@ -66,7 +64,7 @@ namespace ElrondUnityExamples
         /// <param name="message">additional message</param>
         private void BlockchainTransactionListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-            demoScript.nftStatus.text = operationStatus + " " + message;
+            demoScript.status.text = operationStatus + " " + message;
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
                 if (message == "pending")

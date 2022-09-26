@@ -157,5 +157,21 @@ namespace ElrondUnityTools
             ConnectionManager.Instance.PostRequest(url, jsonData, CompleteMethod);
         }
 
+
+        public static void RefreshAccount(UnityAction CompleteMethod = null)
+        {
+            ConnectionManager.Instance.RefreshAccount(CompleteMethod);
+        }
+
+
+        public static void LoadAllTokens(UnityAction<OperationStatus, string, TokenMetadata[]> LoadTokensComplete)
+        {
+            ConnectionManager.Instance.LoadAllTokens(LoadTokensComplete);
+        }
+
+        public static void LoadImage(string imageURL, Image displayComponent)
+        {
+            ConnectionManager.Instance.LoadImage(imageURL, displayComponent);
+        }
     }
 }

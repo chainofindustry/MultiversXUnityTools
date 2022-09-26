@@ -7,6 +7,8 @@ namespace ElrondUnityExamples
     public class ConnectedScreen : GenericUIScreen
     {
         public Text address;
+        public Text ht;
+        public Text egldValue;
 
         public override void Init(params object[] args)
         {
@@ -21,11 +23,9 @@ namespace ElrondUnityExamples
         private void RefreshAccount(AccountDto connectedAccount)
         {
             var amount = TokenAmount.From(connectedAccount.Balance);
-            address.text = connectedAccount.Address + "\n EGLD: " + amount.ToDenominated();
-            if (!string.IsNullOrEmpty(connectedAccount.Username))
-            {
-                address.text += "\nHT: " + connectedAccount.Username;
-            }
+            address.text = connectedAccount.Address;
+            egldValue.text = "EGLD: " + amount.ToDenominated();
+            ht.text = "HT: " + connectedAccount.Username;
         }
 
         public void ShowTransactions()

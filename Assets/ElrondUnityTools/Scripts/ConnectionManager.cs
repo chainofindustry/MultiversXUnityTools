@@ -83,14 +83,12 @@ namespace ElrondUnityTools
 
         async void AddQRImageScript(Image qrImage)
         {
-            Debug.Log("AddQRImageScript" + qrImage);
             if (qrImage != null)
             {
                 qrImage.gameObject.AddComponent<WalletConnectQRImage>().Init(walletConnect);
             }
 
             await walletConnect.Connect();
-            Debug.LogWarning("DE CE NU APARE ASTA?");
         }
 
         private void Connected()
@@ -212,6 +210,8 @@ namespace ElrondUnityTools
                     break;
             }
         }
+
+
         #endregion
 
 
@@ -254,12 +254,27 @@ namespace ElrondUnityTools
 
 
 
-        private async void OnConnected()
+        private void OnConnected()
         {
             walletConnected = true;
             WalletConnect.ActiveSession.OnSessionDisconnect += ActiveSessionOnDisconnect;
-            connectedAccount = await provider.GetAccount(WalletConnect.ActiveSession.Accounts[0]);
+            RefreshAccount(AccountRefreshed);
+
+        }
+
+        private void AccountRefreshed()
+        {
             OnWalletConnected(connectedAccount);
+        }
+
+        public async void RefreshAccount(UnityAction CompleteMethod)
+        {
+            connectedAccount = await provider.GetAccount(WalletConnect.ActiveSession.Accounts[0]);
+            Debug.LogWarning(connectedAccount.Nonce);
+            if (CompleteMethod != null)
+            {
+                CompleteMethod();
+            }
         }
 
 
@@ -271,6 +286,65 @@ namespace ElrondUnityTools
             OnWalletDisconnected();
         }
 
+        #region Tokens
+        internal void LoadAllTokens(UnityAction<OperationStatus, string, TokenMetadata[]> loadTokensComplete)
+        {
+            StartCoroutine(GetWalletTokens(connectedAccount.Address, loadTokensComplete));
+        }
+
+        private IEnumerator GetWalletTokens(string address, UnityAction<OperationStatus, string, TokenMetadata[]> loadTokensComplete)
+        {
+            string url = Constants.getTokensCount;
+            url = url.Replace("{address}", address);
+
+            int totalTokens = 0;
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                switch (webRequest.result)
+                {
+                    case UnityWebRequest.Result.Success:
+                        totalTokens = int.Parse(webRequest.downloadHandler.text);
+                        break;
+                    default:
+                        loadTokensComplete(OperationStatus.Error, webRequest.error, null);
+                        break;
+                }
+            }
+            if (totalTokens == 0)
+                yield break;
+
+            url = Constants.getTokensAPI;
+            url = url.Replace("{address}", address);
+            url += "?from=0&size=" + totalTokens;
+
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                switch (webRequest.result)
+                {
+                    case UnityWebRequest.Result.Success:
+                        try
+                        {
+                            List<TokenMetadata> allNfts = JsonConvert.DeserializeObject<List<TokenMetadata>>(webRequest.downloadHandler.text);
+                            loadTokensComplete(OperationStatus.Complete, "Success", allNfts.ToArray());
+                        }
+                        catch (Exception e)
+                        {
+                            loadTokensComplete(OperationStatus.Error, e.Message + ": " + e.Data, null);
+                        }
+                        break;
+                    default:
+                        loadTokensComplete(OperationStatus.Error, webRequest.error, null);
+                        break;
+                }
+            }
+        }
+        #endregion
 
         #region NFTs
         public void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTCompletes)
@@ -281,8 +355,32 @@ namespace ElrondUnityTools
 
         private IEnumerator GetWalletNFTs(string address, UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTsComplete)
         {
-            string url = Constants.getNFTAPI;
+            string url = Constants.getNFTCount;
             url = url.Replace("{address}", address);
+
+            int totalNfts = 0;
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                switch (webRequest.result)
+                {
+                    case UnityWebRequest.Result.Success:
+                        totalNfts = int.Parse(webRequest.downloadHandler.text);
+                        Debug.Log(totalNfts);
+                        break;
+                    default:
+                        LoadNFTsComplete(OperationStatus.Error, webRequest.error, null);
+                        break;
+                }
+            }
+            if (totalNfts == 0)
+                yield break;
+
+            url = Constants.getNFTAPI;
+            url = url.Replace("{address}", address);
+            url += "?from=" + 0 + "&size=" + totalNfts;
 
             using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
             {
@@ -497,6 +595,39 @@ namespace ElrondUnityTools
         {
             walletConnect.ConnectedEvent.RemoveAllListeners();
         }
+        #endregion
+
+        #region Utils
+
+        public void LoadImage(string imageURL, Image displayComponent)
+        {
+            StartCoroutine(LoadImageCoroutine(imageURL, displayComponent));
+        }
+
+        /// <summary>
+        /// Load the NFT Thumbnail from the url
+        /// </summary>
+        /// <param name="imageURL"></param>
+        /// <param name="displayComponent">image component to display the downloaded thumbnail picture</param>
+        /// <returns></returns>
+        private IEnumerator LoadImageCoroutine(string imageURL, Image displayComponent)
+        {
+            UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(imageURL);
+            yield return webRequest.SendWebRequest();
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
+                    Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
+                    displayComponent.sprite = newSprite;
+                    break;
+                default:
+                    Debug.LogError(webRequest.error);
+                    break;
+            }
+        }
+
         #endregion
     }
 }

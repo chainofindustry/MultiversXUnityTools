@@ -35,7 +35,6 @@ namespace ElrondUnityTools
         {
             _image = GetComponent<Image>();
             this.walletConnect = walletConnect;
-            Debug.LogWarning("On enable");
             if (walletConnect == null)
             {
                 Debug.LogError("WalletConnectQRImage: No WalletConnect object given, QRImage will be disabled");

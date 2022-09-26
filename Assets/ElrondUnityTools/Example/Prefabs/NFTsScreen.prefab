@@ -604,9 +604,9 @@ MonoBehaviour:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 40
     m_FontStyle: 0
-    m_BestFit: 0
+    m_BestFit: 1
     m_MinSize: 4
-    m_MaxSize: 140
+    m_MaxSize: 40
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -1126,7 +1126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nftDestination: {fileID: 5173935250248042110}
-  nftStatus: {fileID: 5173935250466143633}
+  status: {fileID: 5173935250466143633}
   nftsHolder: {fileID: 5173935251972130577}
   nftItem: {fileID: 1123858048468479161, guid: 85dc7f33838648b48838d1675504b172, type: 3}
 --- !u!1 &5173935251467780724

@@ -18,8 +18,12 @@ namespace ElrondUnityTools
 
         //API to check for NFTs
         //{address} will be replaced at runtime with the connected address
-        public const string getNFTAPI = "https://devnet-api.elrond.com/accounts/{address}/nfts?withScamInfo=true&computeScamInfo=true";
-        //public const string getNFTAPI = "https://api.elrond.com/accounts/{address}/nfts?withScamInfo=true&computeScamInfo=true";
+        public const string getNFTAPI = "https://devnet-api.elrond.com/accounts/{address}/nfts";
+        public const string getNFTCount = "https://devnet-api.elrond.com/accounts/{address}/nfts/count";
+        //public const string getNFTAPI = "https://api.elrond.com/accounts/{address}/nfts";
+
+        public const string getTokensAPI = "https://devnet-api.elrond.com/accounts/{address}/tokens";
+        public const string getTokensCount = "https://devnet-api.elrond.com/accounts/{address}/tokens/count";
 
 
         //Smart contracts API

@@ -12,13 +12,13 @@ namespace ElrondUnityExamples
     public class NftsScreen : GenericUIScreen
     {
         public InputField nftDestination;
-        public Text nftStatus;
+        public Text status;
         public Transform nftsHolder;
         public GameObject nftItem;
 
         private NFTMetadata[] allNfts;
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
-        
+
         public override void Init(params object[] args)
         {
             base.Init(args);
@@ -33,6 +33,7 @@ namespace ElrondUnityExamples
         //liked to a button to load all NFTs from the wallet
         public void LoadWalletNFTs()
         {
+            status.text = "Start loading NFTs";
             ElrondUnityTools.Manager.LoadWalletNFTs(LoadNFTComplete);
         }
 
@@ -46,7 +47,7 @@ namespace ElrondUnityExamples
         /// <param name="allNfts">All metadata properties serialized as NFTMetadata type</param>
         private void LoadNFTComplete(OperationStatus operationStatus, string message, NFTMetadata[] allNfts)
         {
-            nftStatus.text = operationStatus + " " + message;
+            status.text = operationStatus + " " + message;
             this.allNfts = allNfts;
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
@@ -73,33 +74,11 @@ namespace ElrondUnityExamples
             //store the collection and the nonce because they will be needed to send the NFT to another walled
             holderScript.Initialize(this, nFTMetadata.name, nFTMetadata.collection, nFTMetadata.nonce);
             //load and display the NFT thumbnail
-            StartCoroutine(LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image));
+            Manager.LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image);
         }
 
 
-        /// <summary>
-        /// Load the NFT Thumbnail from the url
-        /// </summary>
-        /// <param name="imageURL"></param>
-        /// <param name="displayComponent">image component to display the downloaded thumbnail picture</param>
-        /// <returns></returns>
-        private IEnumerator LoadImage(string imageURL, Image displayComponent)
-        {
-            UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(imageURL);
-            yield return webRequest.SendWebRequest();
 
-            switch (webRequest.result)
-            {
-                case UnityWebRequest.Result.Success:
-                    Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
-                    Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
-                    displayComponent.sprite = newSprite;
-                    break;
-                default:
-                    Debug.LogError(webRequest.error);
-                    break;
-            }
-        }
 
         /// <summary>
         /// Refresh the wallet NFTs after sending an NFT
@@ -110,6 +89,7 @@ namespace ElrondUnityExamples
         {
             //remove the NFT that was sent from this list
             allNfts = allNfts.Where(cond => cond.collection != collectionIdentifier || cond.nonce != nonce).ToArray();
+            Manager.RefreshAccount();
         }
     }
 }
