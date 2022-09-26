@@ -1,5 +1,6 @@
 using Erdcsharp.Configuration;
 using Erdcsharp.Domain;
+using Erdcsharp.Domain.Exceptions;
 using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
 using Newtonsoft.Json;
@@ -7,7 +8,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Numerics;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,6 +20,7 @@ using WalletConnectSharp.Core;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Models.Ethereum;
 using WalletConnectSharp.Unity;
+using Vector2 = UnityEngine.Vector2;
 
 namespace ElrondUnityTools
 {
@@ -117,13 +121,24 @@ namespace ElrondUnityTools
         #region SendTransaction
         internal void SendESDTTransaction(string destinationAddress, string amount, ESDTToken token, UnityAction<OperationStatus, string> transactionStatus)
         {
-            float value = float.Parse(amount);
-            value = value * Mathf.Pow(10, token.decimals);
-            string hexaAmount = ((long)value).ToString("X");
+
+            //string[] array = amount.Split(new char[1] { '.' });
+            //string obj = array.FirstOrDefault() ?? "0";
+            //string text = ((array.Length == 2) ? array[1] : string.Empty);
+            //string something = obj + text.PadRight(token.decimals, '0');
+            //BigInteger value = BigInteger.Parse(something);
+            //if (value.Sign == -1)
+            //{
+            //    throw new InvalidTokenAmountException(something);
+            //}
+            //Debug.Log(something+" "+value);
+
+            string hexaAmount = TokenAmount.ESDT(amount, token.ToToken()).Value.ToString("X");
             if (hexaAmount.Length % 2 == 1)
             {
                 hexaAmount = "0" + hexaAmount;
             }
+
 
             string hexaTokenIdentifier = Erdcsharp.Domain.Helper.Converter.ToHexString(token.identifier);
             string data = "ESDTTransfer" +

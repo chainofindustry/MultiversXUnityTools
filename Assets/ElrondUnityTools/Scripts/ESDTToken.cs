@@ -1,3 +1,5 @@
+using Erdcsharp.Domain;
+
 namespace ElrondUnityTools
 {
     public class ESDTToken
@@ -17,6 +19,11 @@ namespace ElrondUnityTools
             this.name = name;
             this.identifier = identifier;
             this.decimals = decimals;
+        }
+
+        public Token ToToken()
+        {
+            return new Token(name, "AAA", decimals);
         }
     }
 }

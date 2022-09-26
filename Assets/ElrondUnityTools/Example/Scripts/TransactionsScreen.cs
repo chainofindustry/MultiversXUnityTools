@@ -30,7 +30,7 @@ namespace ElrondUnityExamples
             base.Init(args);
             destination.text = defaultAddress;
             message.text = defaultMessage;
-            amount.text = egld.ToString();
+            amount.text = esdtAmount.text = egld.ToString();
             PopulateDropDown();
             status.text = "Start loading tokens";
             Manager.LoadAllTokens(TokensLoaded);
@@ -157,7 +157,7 @@ namespace ElrondUnityExamples
                     {
                         ElrondUnityTools.Manager.RefreshAccount(RefreshDone);
                         status.text = "Success -> Refreshing tokens";
-                        
+
                     }
                 }
             }

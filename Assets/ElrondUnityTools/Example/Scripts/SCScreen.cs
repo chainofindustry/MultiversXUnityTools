@@ -83,6 +83,7 @@ namespace ElrondUnityExamples
                 {
                     Debug.LogError("No data returned, check the call");
                 }
+                
             }
             else
             {
@@ -131,6 +132,7 @@ namespace ElrondUnityExamples
                     if (message == "success")
                     {
                         //do something 
+                        ElrondUnityTools.Manager.RefreshAccount();
                     }
                 }
             }
