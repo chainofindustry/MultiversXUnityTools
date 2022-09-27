@@ -1,6 +1,4 @@
 using ElrondUnityTools;
-using Erdcsharp.Domain;
-using System;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,7 +28,7 @@ namespace ElrondUnityExamples
             base.Init(args);
             destination.text = defaultAddress;
             message.text = defaultMessage;
-            amount.text = esdtAmount.text = egld.ToString();
+            amount.text = egld.ToString();
             PopulateDropDown();
             status.text = "Start loading tokens";
             Manager.LoadAllTokens(TokensLoaded);
@@ -155,10 +153,9 @@ namespace ElrondUnityExamples
                 {
                     if (message == "success")
                     {
-                        ElrondUnityTools.Manager.RefreshAccount(RefreshDone);
                         status.text = "Success -> Refreshing tokens";
-
                     }
+                    ElrondUnityTools.Manager.RefreshAccount(RefreshDone);
                 }
             }
         }

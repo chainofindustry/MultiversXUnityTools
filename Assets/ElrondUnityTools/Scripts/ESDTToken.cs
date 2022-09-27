@@ -23,7 +23,7 @@ namespace ElrondUnityTools
 
         public Token ToToken()
         {
-            return new Token(name, "AAA", decimals);
+            return new Token(name, identifier.Split("-")[0], decimals);
         }
     }
 }

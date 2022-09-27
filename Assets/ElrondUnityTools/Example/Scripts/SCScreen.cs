@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -132,8 +130,8 @@ namespace ElrondUnityExamples
                     if (message == "success")
                     {
                         //do something 
-                        ElrondUnityTools.Manager.RefreshAccount();
                     }
+                    ElrondUnityTools.Manager.RefreshAccount();
                 }
             }
         }

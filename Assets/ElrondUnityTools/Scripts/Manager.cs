@@ -158,17 +158,31 @@ namespace ElrondUnityTools
         }
 
 
+        /// <summary>
+        /// Refresh the account balance and nonce
+        /// </summary>
+        /// <param name="CompleteMethod"></param>
         public static void RefreshAccount(UnityAction CompleteMethod = null)
         {
             ConnectionManager.Instance.RefreshAccount(CompleteMethod);
         }
 
 
+        /// <summary>
+        /// Load all ESDT tokens from an account
+        /// </summary>
+        /// <param name="LoadTokensComplete">Callback triggered on load finish</param>
         public static void LoadAllTokens(UnityAction<OperationStatus, string, TokenMetadata[]> LoadTokensComplete)
         {
             ConnectionManager.Instance.LoadAllTokens(LoadTokensComplete);
         }
 
+
+        /// <summary>
+        /// Load an image from and URL and display it directly on an image component when loaded
+        /// </summary>
+        /// <param name="imageURL">url to download image from</param>
+        /// <param name="displayComponent">the image component to display the picture</param>
         public static void LoadImage(string imageURL, Image displayComponent)
         {
             ConnectionManager.Instance.LoadImage(imageURL, displayComponent);

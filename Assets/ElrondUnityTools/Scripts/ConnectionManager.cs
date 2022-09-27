@@ -285,7 +285,6 @@ namespace ElrondUnityTools
         public async void RefreshAccount(UnityAction CompleteMethod)
         {
             connectedAccount = await provider.GetAccount(WalletConnect.ActiveSession.Accounts[0]);
-            Debug.LogWarning(connectedAccount.Nonce);
             if (CompleteMethod != null)
             {
                 CompleteMethod();
@@ -295,7 +294,6 @@ namespace ElrondUnityTools
 
         private void ActiveSessionOnDisconnect(object sender, EventArgs e)
         {
-            Debug.Log("ActiveSessionOnDisconnect");
             WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
             walletConnected = false;
             OnWalletDisconnected();
@@ -383,7 +381,6 @@ namespace ElrondUnityTools
                 {
                     case UnityWebRequest.Result.Success:
                         totalNfts = int.Parse(webRequest.downloadHandler.text);
-                        Debug.Log(totalNfts);
                         break;
                     default:
                         LoadNFTsComplete(OperationStatus.Error, webRequest.error, null);

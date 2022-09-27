@@ -28,12 +28,14 @@ namespace ElrondUnityExamples
             ht.text = "HT: " + connectedAccount.Username;
         }
 
+
+        //linked to the UI button to open the Transactions screen
         public void ShowTransactions()
         {
             DemoScript.Instance.LoadScreen(Screens.Transactions);
         }
 
-        //linked to a button to open the SC screen
+        //linked to the UI button to open the SC screen
         public void ShowSCScreen()
         {
             DemoScript.Instance.LoadScreen(Screens.SC);

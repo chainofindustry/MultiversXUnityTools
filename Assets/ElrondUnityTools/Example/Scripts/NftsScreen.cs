@@ -1,11 +1,7 @@
 using ElrondUnityTools;
-using System;
-using System.Collections;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
-using Image = UnityEngine.UI.Image;
 
 namespace ElrondUnityExamples
 {
@@ -76,8 +72,6 @@ namespace ElrondUnityExamples
             //load and display the NFT thumbnail
             Manager.LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image);
         }
-
-
 
 
         /// <summary>

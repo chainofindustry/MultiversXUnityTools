@@ -1,8 +1,3 @@
-using Erdcsharp.Domain;
-using Erdcsharp.Provider.Dtos;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace ElrondUnityExamples
