@@ -70,7 +70,7 @@ namespace ElrondUnityExamples
             //store the collection and the nonce because they will be needed to send the NFT to another walled
             holderScript.Initialize(this, nFTMetadata.name, nFTMetadata.collection, nFTMetadata.nonce);
             //load and display the NFT thumbnail
-            Manager.LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image);
+            Manager.LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image, null);
         }
 
 

@@ -183,9 +183,9 @@ namespace ElrondUnityTools
         /// </summary>
         /// <param name="imageURL">url to download image from</param>
         /// <param name="displayComponent">the image component to display the picture</param>
-        public static void LoadImage(string imageURL, Image displayComponent)
+        public static void LoadImage(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> CompleteMethod)
         {
-            ConnectionManager.Instance.LoadImage(imageURL, displayComponent);
+            ConnectionManager.Instance.LoadImage(imageURL, displayComponent, CompleteMethod);
         }
     }
 }

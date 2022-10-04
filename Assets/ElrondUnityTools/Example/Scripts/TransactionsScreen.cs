@@ -59,7 +59,7 @@ namespace ElrondUnityExamples
                 {
                     if (!string.IsNullOrEmpty(allTokens[i].assets.pngUrl))
                     {
-                        Manager.LoadImage(allTokens[i].assets.pngUrl, script.tokenImage);
+                        Manager.LoadImage(allTokens[i].assets.pngUrl, script.tokenImage, null);
                     }
                     else
                     {

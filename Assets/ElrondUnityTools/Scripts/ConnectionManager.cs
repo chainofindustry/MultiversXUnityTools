@@ -611,9 +611,9 @@ namespace ElrondUnityTools
 
         #region Utils
 
-        public void LoadImage(string imageURL, Image displayComponent)
+        public void LoadImage(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> completeMethod)
         {
-            StartCoroutine(LoadImageCoroutine(imageURL, displayComponent));
+            StartCoroutine(LoadImageCoroutine(imageURL, displayComponent, completeMethod));
         }
 
         /// <summary>
@@ -622,8 +622,9 @@ namespace ElrondUnityTools
         /// <param name="imageURL"></param>
         /// <param name="displayComponent">image component to display the downloaded thumbnail picture</param>
         /// <returns></returns>
-        private IEnumerator LoadImageCoroutine(string imageURL, Image displayComponent)
+        private IEnumerator LoadImageCoroutine(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> completeMethod)
         {
+            Debug.Log(imageURL);
             UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(imageURL);
             yield return webRequest.SendWebRequest();
 
@@ -631,11 +632,20 @@ namespace ElrondUnityTools
             {
                 case UnityWebRequest.Result.Success:
                     Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
+                    Debug.Log(imageTex.width + "x" + imageTex.height);
                     Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
                     displayComponent.sprite = newSprite;
+                    if (completeMethod != null)
+                    {
+                        completeMethod(OperationStatus.Complete, "Success");
+                    }
                     break;
                 default:
                     Debug.LogError(webRequest.error);
+                    if (completeMethod != null)
+                    {
+                        completeMethod(OperationStatus.Error, webRequest.error);
+                    }
                     break;
             }
         }

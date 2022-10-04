@@ -1,5 +1,7 @@
+using ElrondUnityTools;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
+using System;
 using UnityEngine.UI;
 
 namespace ElrondUnityExamples
@@ -9,11 +11,36 @@ namespace ElrondUnityExamples
         public Text address;
         public Text ht;
         public Text egldValue;
+        public Image profilePicture;
+        public Image banner;
 
         public override void Init(params object[] args)
         {
             base.Init(args);
             RefreshAccount(DemoScript.Instance.GetConnectedAccount());
+            LoadProfileImages(DemoScript.Instance.GetConnectedAccount().Address);
+        }
+
+        private void LoadProfileImages(string address)
+        {
+
+            ElrondUnityTools.Manager.LoadImage("https://id.maiar.com/users/photos/profile/" + address, profilePicture, PictureLoadComplete1);
+            ElrondUnityTools.Manager.LoadImage("https://id.maiar.com/users/photos/cover/" + address, banner, PictureLoadComplete2);
+        }
+
+        private void PictureLoadComplete1(OperationStatus status, string arg1)
+        {
+            if (status == OperationStatus.Complete)
+            {
+                profilePicture.color = UnityEngine.Color.white;
+            }
+        }
+        private void PictureLoadComplete2(OperationStatus status, string arg1)
+        {
+            if (status == OperationStatus.Complete)
+            {
+                banner.color = UnityEngine.Color.white;
+            }
         }
 
         /// <summary>
