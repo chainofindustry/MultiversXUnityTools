@@ -1,4 +1,3 @@
-using ElrondUnityTools;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using System;
@@ -28,16 +27,16 @@ namespace ElrondUnityExamples
             ElrondUnityTools.Manager.LoadImage("https://id.maiar.com/users/photos/cover/" + address, banner, PictureLoadComplete2);
         }
 
-        private void PictureLoadComplete1(OperationStatus status, string arg1)
+        private void PictureLoadComplete1(ElrondUnityTools.OperationStatus status, string arg1)
         {
-            if (status == OperationStatus.Complete)
+            if (status == ElrondUnityTools.OperationStatus.Complete)
             {
                 profilePicture.color = UnityEngine.Color.white;
             }
         }
-        private void PictureLoadComplete2(OperationStatus status, string arg1)
+        private void PictureLoadComplete2(ElrondUnityTools.OperationStatus status, string arg1)
         {
-            if (status == OperationStatus.Complete)
+            if (status == ElrondUnityTools.OperationStatus.Complete)
             {
                 banner.color = UnityEngine.Color.white;
             }

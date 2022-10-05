@@ -27,7 +27,7 @@ namespace ElrondUnityTools
     public class ConnectionManager : WalletConnectActions
     {
         private AccountDto connectedAccount;
-        private ElrondProvider provider;
+        private ElrondProviderUnity provider;
         private NetworkConfig networkConfig;
         private UnityAction<OperationStatus, string> OnSigningTransactionStatusChanged;
         private UnityAction<OperationStatus, string> OnBlockchainTransactionStatusChanged;
@@ -80,7 +80,7 @@ namespace ElrondUnityTools
             walletConnectInitialized = true;
             AddQRImageScript(qrImage);
 
-            provider = new ElrondProvider(new HttpClient(), new ElrondNetworkConfiguration(Constants.networkType));
+            provider = new ElrondProviderUnity(new ElrondNetworkConfiguration(Constants.networkType));
             networkConfig = await NetworkConfig.GetFromNetwork(provider);
         }
 
@@ -641,7 +641,7 @@ namespace ElrondUnityTools
                     }
                     break;
                 default:
-                    Debug.LogError(webRequest.error);
+                    Debug.LogError("LOAD IMAGE ERROR " + webRequest.error);
                     if (completeMethod != null)
                     {
                         completeMethod(OperationStatus.Error, webRequest.error);
