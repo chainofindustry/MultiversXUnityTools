@@ -32,8 +32,14 @@ namespace ElrondUnityTools
 
         //Maiar display values
         public const string appDescription = "You are using Chain of Industry test login";
-        public const string appIcon = "https://vilas.edu.vn/wp-content/uploads/2019/07/SCSS-7-Icon2-150x150.png";
+        public const string appIcon = "https://gleygames.com/blockchain/COI-Building-Avatar-192x192.jpg";
         public const string appName = "Chain of Industry";
-        public const string appWebsite = "http://chainofindustry.com/";
+        public const string appWebsite = "https://chainofindustry.com/";
+
+#if UNITY_WEBGL
+        public const string CORSFixUrl = "https://gleygames.com/getImage.php?imageUrl=";
+#else
+        public const string CORSFixUrl = null;
+#endif
     }
 }

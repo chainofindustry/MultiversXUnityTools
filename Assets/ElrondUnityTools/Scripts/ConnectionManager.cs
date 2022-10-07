@@ -624,20 +624,26 @@ namespace ElrondUnityTools
         /// <returns></returns>
         private IEnumerator LoadImageCoroutine(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> completeMethod)
         {
-            Debug.Log(imageURL);
+            if(!string.IsNullOrEmpty(Constants.CORSFixUrl))
+            {
+                imageURL = Constants.CORSFixUrl + UnityWebRequest.EscapeURL(imageURL);
+            }
+
             UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(imageURL);
             yield return webRequest.SendWebRequest();
 
             switch (webRequest.result)
             {
                 case UnityWebRequest.Result.Success:
-                    Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
-                    Debug.Log(imageTex.width + "x" + imageTex.height);
-                    Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
-                    displayComponent.sprite = newSprite;
-                    if (completeMethod != null)
+                    if (displayComponent)
                     {
-                        completeMethod(OperationStatus.Complete, "Success");
+                        Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
+                        Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
+                        displayComponent.sprite = newSprite;
+                        if (completeMethod != null)
+                        {
+                            completeMethod(OperationStatus.Complete, "Success");
+                        }
                     }
                     break;
                 default:

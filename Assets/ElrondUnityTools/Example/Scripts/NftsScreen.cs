@@ -1,4 +1,5 @@
 using ElrondUnityTools;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,24 +16,29 @@ namespace ElrondUnityExamples
         private NFTMetadata[] allNfts;
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
 
+        private int downloaded = 0;
+        private int total = 0;
+
+
         public override void Init(params object[] args)
         {
             base.Init(args);
             nftDestination.text = defaultAddress;
         }
 
+
         public void NFTBackButton()
         {
             DemoScript.Instance.LoadScreen(Screens.Connected);
         }
 
+
         //liked to a button to load all NFTs from the wallet
         public void LoadWalletNFTs()
         {
             status.text = "Start loading NFTs";
-            ElrondUnityTools.Manager.LoadWalletNFTs(LoadNFTComplete);
+            Manager.LoadWalletNFTs(LoadNFTComplete);
         }
-
 
 
         /// <summary>
@@ -45,17 +51,38 @@ namespace ElrondUnityExamples
         {
             status.text = operationStatus + " " + message;
             this.allNfts = allNfts;
-            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            if (operationStatus == OperationStatus.Complete)
             {
-                //after all metadata is loaded the NFTs will be displayed in a scroll view
-                for (int i = 0; i < allNfts.Length; i++)
-                {
-                    DisplayNft(allNfts[i]);
-                }
+                ////after all metadata is loaded the NFTs will be displayed in a scroll view
+                StartCoroutine(LoadNFTs(allNfts,1));
             }
             else
             {
                 Debug.Log(operationStatus + " " + message);
+            }
+        }
+
+
+        /// <summary>
+        /// Load NFTs async
+        /// </summary>
+        /// <param name="allNfts">array with all NFT metadata</param>
+        /// <param name="paralelDownloads">number of NFTs to be downloaded simultaneous</param>
+        /// <returns></returns>
+        IEnumerator LoadNFTs(NFTMetadata[] allNfts, int paralelDownloads)
+        {
+            status.text = "Start downloading NFTs";
+            downloaded = 0;
+            total = allNfts.Length;
+            int started = 0;
+            while (started < total)
+            {
+                if (started - downloaded < paralelDownloads)
+                {
+                    DisplayNft(allNfts[started]);
+                    started++;
+                }
+                yield return null;
             }
         }
 
@@ -70,7 +97,23 @@ namespace ElrondUnityExamples
             //store the collection and the nonce because they will be needed to send the NFT to another walled
             holderScript.Initialize(this, nFTMetadata.name, nFTMetadata.collection, nFTMetadata.nonce);
             //load and display the NFT thumbnail
-            Manager.LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image, null);
+            Manager.LoadImage(nFTMetadata.media[0].thumbnailUrl, holderScript.image, NFTLoaded);
+        }
+
+
+        /// <summary>
+        /// Callback when an NFT image is downloaded
+        /// </summary>
+        /// <param name="arg0"></param>
+        /// <param name="arg1"></param>
+        private void NFTLoaded(OperationStatus operationStatus, string message)
+        {
+            downloaded++;
+            status.text = $"Downloaded {downloaded}/{total}";
+            if(downloaded==total)
+            {
+                status.text = "Downloaded Complete";
+            }
         }
 
 
