@@ -5,7 +5,8 @@ A work-in-progress set of tools to interact with Elrond Blockchain directly from
 We intend to keep our APIs as simple as possible and every action to be done with just a single line of code. 
 
 ### Demo
-Android and PC demo apps are available on the [Releases tab](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/releases/).
+Android and PC demo apps are available on the [Releases tab](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/releases/).  
+WebGL demo : https://chainofindustry.github.io/WebGLBuild/ 
 
 ### Video Tutorial
 https://youtu.be/reZjdcazNJI
@@ -20,7 +21,7 @@ We did not developed these tools but adapt them to work with our integration.
 * MAC :white_check_mark:
 * Android :white_check_mark:
 * iOS :white_check_mark:
-* :wrench: WebGL  :hammer: 
+* WebGL :white_check_mark:
 
 
 ### Content
