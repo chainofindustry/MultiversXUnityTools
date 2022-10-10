@@ -1,9 +1,10 @@
-using System.Text;
 using System.Linq;
+using System.Text;
 using Org.BouncyCastle.Crypto.Digests;
 
 namespace WalletConnectSharp.Core.Utils
 {
+
     public class Sha3Keccack
     {
         public static Sha3Keccack Current { get; } = new Sha3Keccack();

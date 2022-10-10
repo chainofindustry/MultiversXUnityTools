@@ -2,18 +2,18 @@ using Newtonsoft.Json;
 
 namespace WalletConnectSharp.Core.Models.Ethereum
 {
-    public sealed class EthGenericRequest<T> : JsonRpcRequest
+
+    public class EthGenericRequest<T> : JsonRpcRequest
     {
-        [JsonProperty("params")] 
-        private T[] _parameters;
+        [JsonProperty("params", Order = 4)]
+        private readonly T[] _parameters;
 
         [JsonIgnore]
         public T[] Parameters => _parameters;
 
-        public EthGenericRequest(string jsonRpcMethodName, params T[] data) : base()
+        public EthGenericRequest(string jsonRpcMethodName, params T[] data) : base(jsonRpcMethodName)
         {
-            this.Method = jsonRpcMethodName;
-            this._parameters = data;
+            _parameters = data;
         }
     }
 }

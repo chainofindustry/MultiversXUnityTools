@@ -1,19 +1,14 @@
-using Newtonsoft.Json;
-
 namespace WalletConnectSharp.Core.Models.Ethereum
 {
-    public sealed class EthSign : JsonRpcRequest
+
+    public sealed class EthSign : EthGenericRequest<string>
     {
-        [JsonProperty("params")] 
-        private string[] _parameters;
-
-        [JsonIgnore]
-        public string[] Parameters => _parameters;
-
-        public EthSign(string address, string hexData) : base()
+        public EthSign(string address, string hexData) :
+            base(
+                ValidJsonRpcRequestMethods.EthSign,
+                address, hexData
+            )
         {
-            this.Method = "eth_sign";
-            this._parameters = new[] {address, hexData};
         }
     }
 }

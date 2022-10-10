@@ -1,8 +1,9 @@
-using System;
 using Newtonsoft.Json;
+using System;
 
 namespace WalletConnectSharp.Core.Models
 {
+
     [Serializable]
     public class ClientMeta
     {

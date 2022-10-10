@@ -6,14 +6,15 @@ using WalletConnectSharp.Core.Models;
 
 namespace WalletConnectSharp.Core.Network
 {
+
     public interface ITransport : IDisposable
     {
         bool Connected { get; }
-        
+
         event EventHandler<MessageReceivedEventArgs> MessageReceived;
-        
+
         string URL { get; }
-        
+
         Task Open(string bridgeURL, bool clearSubscriptions = true);
 
         Task Close();

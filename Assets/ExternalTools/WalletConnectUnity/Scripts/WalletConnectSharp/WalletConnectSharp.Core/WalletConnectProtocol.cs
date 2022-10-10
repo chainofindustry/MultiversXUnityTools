@@ -1,32 +1,20 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using WalletConnectSharp.Core.Events;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Network;
+using WalletConnectSharp.Core.Utils;
 
 namespace WalletConnectSharp.Core
 {
-    public class WalletConnectProtocol : IDisposable
-    {
-        public static readonly string[] SigningMethods = new[]
-        {
-            "eth_sendTransaction",
-            "eth_signTransaction",
-            "eth_sign",
-            "eth_signTypedData",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v2",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4",
-            "personal_sign",
-        };
 
+    public class WalletConnectProtocol : DisposableBase
+    {
         public readonly EventDelegator Events;
-        
+
         protected string Version = "1";
         protected string _bridgeUrl;
         protected string _key;
@@ -37,7 +25,7 @@ namespace WalletConnectSharp.Core
         public event EventHandler<WalletConnectProtocol> OnTransportDisconnect;
 
         public bool SessionConnected { get; protected set; }
-        
+
         public bool Disconnected { get; protected set; }
 
         public bool Connected
@@ -47,23 +35,25 @@ namespace WalletConnectSharp.Core
                 return SessionConnected && TransportConnected;
             }
         }
-        
+
         public bool Connecting { get; protected set; }
 
         public bool TransportConnected
         {
             get
             {
-                return Transport != null && Transport.Connected && Transport.URL == _bridgeUrl;
+                return Transport != null &&
+                       Transport.Connected &&
+                       Transport.URL.Replace("https://", "").Replace("wss://", "") == _bridgeUrl.Replace("https://", "").Replace("wss://", "");
             }
         }
 
-        public ITransport Transport { get; private set; }
+        public ITransport Transport { get; protected set; }
 
-        public ICipher Cipher { get; private set; }
-        
+        public ICipher Cipher { get; protected set; }
+
         public ClientMeta DappMetadata { get; set; }
-        
+
         public ClientMeta WalletMetadata { get; set; }
 
         public ReadOnlyCollection<string> ActiveTopics
@@ -90,12 +80,12 @@ namespace WalletConnectSharp.Core
         /// <param name="cipher">The cipher to use for encrypting and decrypting payload data, null will result in AESCipher being used</param>
         /// <param name="eventDelegator">The EventDelegator class to use, null will result in the default being used</param>
         /// <exception cref="ArgumentException">If a null SavedSession object was given</exception>
-        public WalletConnectProtocol(SavedSession savedSession, ITransport transport = null, 
+        public WalletConnectProtocol(SavedSession savedSession, ITransport transport = null,
                                     ICipher cipher = null, EventDelegator eventDelegator = null)
         {
             if (savedSession == null)
                 throw new ArgumentException("savedSession cannot be null");
-            
+
             if (eventDelegator == null)
                 eventDelegator = new EventDelegator();
 
@@ -114,12 +104,12 @@ namespace WalletConnectSharp.Core
                 cipher = new AESCipher();
 
             this.Cipher = cipher;
-            
+
             this._keyRaw = savedSession.KeyRaw;
 
             //Convert hex 
             this._key = savedSession.Key;
-            
+
             this.PeerId = savedSession.PeerID;
 
             /*Transport.Open(this._bridgeUrl).ContinueWith(delegate(Task task)
@@ -152,7 +142,7 @@ namespace WalletConnectSharp.Core
 
             if (transport == null)
                 transport = TransportFactory.Instance.BuildDefaultTransport(eventDelegator);
-            
+
             this.Transport = transport;
 
             if (cipher == null)
@@ -164,18 +154,18 @@ namespace WalletConnectSharp.Core
         protected async Task SetupTransport()
         {
             Transport.MessageReceived += TransportOnMessageReceived;
-            
+
             await Transport.Open(this._bridgeUrl);
-            
+
             //Debug.Log("[WalletConnect] Transport Opened");
-            
+
             TriggerOnTransportConnect();
         }
 
         protected async Task DisconnectTransport()
         {
             await Transport.Close();
-            
+
             Transport.MessageReceived -= TransportOnMessageReceived;
 
             if (OnTransportDisconnect != null)
@@ -187,20 +177,20 @@ namespace WalletConnectSharp.Core
             if (OnTransportConnect != null)
                 OnTransportConnect(this, this);
         }
-        
+
         public virtual async Task Connect()
         {
             await SetupTransport();
         }
-        
-        public async Task SubscribeAndListenToTopic(string topic)
+
+        public virtual async Task SubscribeAndListenToTopic(string topic)
         {
             await Transport.Subscribe(topic);
-            
+
             ListenToTopic(topic);
         }
 
-        public void ListenToTopic(string topic)
+        public virtual void ListenToTopic(string topic)
         {
             if (!_activeTopics.Contains(topic))
             {
@@ -208,7 +198,7 @@ namespace WalletConnectSharp.Core
             }
         }
 
-        private async void TransportOnMessageReceived(object sender, MessageReceivedEventArgs e)
+        protected async void TransportOnMessageReceived(object sender, MessageReceivedEventArgs e)
         {
             var networkMessage = e.Message;
 
@@ -219,26 +209,19 @@ namespace WalletConnectSharp.Core
 
             var json = await Cipher.DecryptWithKey(_keyRaw, encryptedPayload);
 
-            var response = JsonConvert.DeserializeObject<JsonRpcResponse>(json);
+            var payload = JsonConvert.DeserializeObject<JsonRpcPayload>(json);
 
-            bool wasResponse = false;
-            if (response != null && response.Event != null)
-                wasResponse = Events.Trigger(response.Event, json);
-
-            if (!wasResponse)
+            if (payload != null)
             {
-                var request = JsonConvert.DeserializeObject<JsonRpcRequest>(json);
-
-                if (request != null && request.Method != null)
-                    Events.Trigger(request.Method, json);
+                Events.Trigger(payload.Event, json);
             }
         }
 
-        public async Task<TR> SendRequestAwaitResponse<T, TR>(T requestObject, object requestId, string sendingTopic = null,
+        public virtual async Task<TR> SendRequestAwaitResponse<T, TR>(T requestObject, object requestId, string sendingTopic = null,
             bool? forcePushNotification = null)
         {
             TaskCompletionSource<TR> response = new TaskCompletionSource<TR>(TaskCreationOptions.None);
-            
+
             Events.ListenForGenericResponse<TR>(requestId, (sender, args) =>
             {
                 response.SetResult(args.Response);
@@ -249,23 +232,33 @@ namespace WalletConnectSharp.Core
             return await response.Task;
         }
 
-        public async Task SendRequest<T>(T requestObject, string sendingTopic = null, bool? forcePushNotification = null)
+        public virtual async Task<R> Send<T, R>(T data) where T : JsonRpcRequest where R : JsonRpcResponse
         {
-            bool silent;
-            if (forcePushNotification != null)
-            {
-                silent = (bool) !forcePushNotification;
-            }
-            else if (requestObject is JsonRpcRequest request)
-            {
-                silent = request.Method.StartsWith("wc_") || !SigningMethods.Contains(request.Method);
-            }
-            else
-            {
-                silent = false;
-            }
+            TaskCompletionSource<R> eventCompleted = new TaskCompletionSource<R>(TaskCreationOptions.None);
 
-            string json = JsonConvert.SerializeObject(requestObject);
+            Events.ListenForResponse<R>(data.ID, (sender, @event) =>
+            {
+                var response = @event.Response;
+                if (response.IsError)
+                {
+                    eventCompleted.SetException(new WalletException(response.Error));
+                }
+                else
+                {
+                    eventCompleted.SetResult(@event.Response);
+                }
+
+            });
+
+            await SendRequest(data);
+
+            return await eventCompleted.Task;
+        }
+
+        public virtual async Task SendRequest<T>(T requestObject, string sendingTopic = null, bool? forcePushNotification = null)
+        {
+            var silent = isRequestSilent(forcePushNotification, requestObject);
+            var json = JsonConvert.SerializeObject(requestObject);
 
             var encrypted = await Cipher.EncryptWithKey(_keyRaw, json);
 
@@ -282,8 +275,13 @@ namespace WalletConnectSharp.Core
 
             await this.Transport.SendMessage(message);
         }
-        
-        public void Dispose()
+
+        public virtual async Task Disconnect()
+        {
+            await DisconnectTransport();
+        }
+
+        protected override void DisposeManaged()
         {
             if (Transport != null)
             {
@@ -292,9 +290,15 @@ namespace WalletConnectSharp.Core
             }
         }
 
-        public virtual async Task Disconnect()
+        private bool isRequestSilent<T>(bool? forcePushNotification, T requestObject)
         {
-            await DisconnectTransport();
+            if (forcePushNotification.HasValue)
+            {
+                return !forcePushNotification.Value;
+            }
+
+            return requestObject is JsonRpcRequest request
+                && (JsonRpcRequest.IsWalletConnectMethod(request.Method) || !JsonRpcRequest.IsSigningMethod(request.Method));
         }
     }
 }

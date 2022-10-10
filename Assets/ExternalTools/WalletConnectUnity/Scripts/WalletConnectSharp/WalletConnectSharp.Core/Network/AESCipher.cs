@@ -17,7 +17,7 @@ namespace WalletConnectSharp.Core.Network
                 encoding = Encoding.UTF8;
 
             byte[] data = encoding.GetBytes(message);
-            
+
             //Encrypt with AES/CBC/PKCS7Padding
             using (MemoryStream ms = new MemoryStream())
             {
@@ -40,19 +40,19 @@ namespace WalletConnectSharp.Core.Network
                     using (HMACSHA256 hmac = new HMACSHA256(key))
                     {
                         hmac.Initialize();
-                        
+
                         byte[] toSign = new byte[iv.Length + encryptedContent.Length];
-                        
+
                         //copy our 2 array into one
-                        Buffer.BlockCopy(encryptedContent, 0, toSign, 0,encryptedContent.Length);
+                        Buffer.BlockCopy(encryptedContent, 0, toSign, 0, encryptedContent.Length);
                         Buffer.BlockCopy(iv, 0, toSign, encryptedContent.Length, iv.Length);
-                        
+
                         byte[] signature = hmac.ComputeHash(toSign);
-                        
+
                         string ivHex = iv.ToHex();
                         string dataHex = encryptedContent.ToHex();
                         string hmacHex = signature.ToHex();
-                        
+
                         return new EncryptedPayload()
                         {
                             data = dataHex,
@@ -68,21 +68,21 @@ namespace WalletConnectSharp.Core.Network
         {
             if (encoding == null)
                 encoding = Encoding.UTF8;
-            
-            byte[] rawData = encryptedData.data.FromHex();
-            byte[] iv = encryptedData.iv.FromHex();
-            byte[] hmacReceived = encryptedData.hmac.FromHex();
+
+            byte[] rawData = encryptedData.data.HexToByteArray();
+            byte[] iv = encryptedData.iv.HexToByteArray();
+            byte[] hmacReceived = encryptedData.hmac.HexToByteArray();
 
             using (HMACSHA256 hmac = new HMACSHA256(key))
             {
                 hmac.Initialize();
 
                 byte[] toSign = new byte[iv.Length + rawData.Length];
-                        
+
                 //copy our 2 array into one
-                Buffer.BlockCopy(rawData, 0, toSign, 0,rawData.Length);
+                Buffer.BlockCopy(rawData, 0, toSign, 0, rawData.Length);
                 Buffer.BlockCopy(iv, 0, toSign, rawData.Length, iv.Length);
-                
+
                 byte[] signature = hmac.ComputeHash(toSign);
 
                 if (!signature.SequenceEqual(hmacReceived))
@@ -111,7 +111,7 @@ namespace WalletConnectSharp.Core.Network
                             do
                             {
                                 read = await cs.ReadAsync(buffer, 0, buffer.Length);
-                                
+
                                 if (read > 0)
                                     await sink.WriteAsync(buffer, 0, read);
                             } while (read > 0);

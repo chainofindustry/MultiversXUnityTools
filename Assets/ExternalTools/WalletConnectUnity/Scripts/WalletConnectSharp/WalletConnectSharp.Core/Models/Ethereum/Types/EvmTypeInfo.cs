@@ -1,5 +1,6 @@
 namespace WalletConnectSharp.Core.Models.Ethereum.Types
 {
+
     public class EvmTypeInfo
     {
         public string name;

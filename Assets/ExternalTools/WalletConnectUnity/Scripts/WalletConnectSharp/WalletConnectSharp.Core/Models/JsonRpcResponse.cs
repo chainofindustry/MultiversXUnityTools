@@ -2,14 +2,9 @@ using Newtonsoft.Json;
 
 namespace WalletConnectSharp.Core.Models
 {
-    public class JsonRpcResponse : IEventSource
-    {
-        [JsonProperty]
-        private long id;
-        
-        [JsonProperty]
-        private string jsonrpc = "2.0";
 
+    public class JsonRpcResponse : JsonRpcPayload, IEventSource
+    {
         [JsonProperty]
         private JsonRpcError error;
 
@@ -25,23 +20,11 @@ namespace WalletConnectSharp.Core.Models
             get { return error != null; }
         }
 
-        [JsonIgnore]
-        public long ID
-        {
-            get { return id; }
-        }
-
-        [JsonIgnore]
-        public string JsonRPC
-        {
-            get { return jsonrpc; }
-        }
-
         public class JsonRpcError
         {
             [JsonProperty]
             private int? code;
-            
+
             [JsonProperty]
             private string message;
 

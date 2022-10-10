@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace WalletConnectSharp.Core.Events
 {
@@ -13,24 +10,24 @@ namespace WalletConnectSharp.Core.Events
 
         public static EventManager<T, TEventArgs> Instance
         {
-            get 
+            get
             {
                 if (_instance == null)
                 {
                     _instance = new EventManager<T, TEventArgs>();
                 }
-                
-                return _instance; 
+
+                return _instance;
             }
         }
 
         private EventManager()
         {
             EventTriggers = new EventHandlerMap<TEventArgs>(CallbackBeforeExecuted);
-            
+
             EventFactory.Instance.Register<T>(this);
         }
-        
+
         private void CallbackBeforeExecuted(object sender, TEventArgs e)
         {
         }
@@ -43,7 +40,6 @@ namespace WalletConnectSharp.Core.Events
 
                 if (eventTrigger != null)
                 {
-                    Debug.Log(responseJson);
                     var response = JsonConvert.DeserializeObject<T>(responseJson);
                     var eventArgs = new TEventArgs();
                     eventArgs.SetData(response);

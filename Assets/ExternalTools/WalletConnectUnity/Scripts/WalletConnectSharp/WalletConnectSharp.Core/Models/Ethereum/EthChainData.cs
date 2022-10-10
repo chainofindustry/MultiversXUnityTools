@@ -1,5 +1,6 @@
 namespace WalletConnectSharp.Core.Models.Ethereum
 {
+
     public class EthChainData : EthChain
     {
         public string[] blockExplorerUrls;

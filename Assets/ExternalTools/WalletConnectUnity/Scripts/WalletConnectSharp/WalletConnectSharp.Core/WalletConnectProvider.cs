@@ -1,6 +1,5 @@
 using System;
 using System.Net;
-using System.Threading.Tasks;
 using WalletConnectSharp.Core.Events;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Network;
@@ -8,22 +7,23 @@ using WalletConnectSharp.Core.Utils;
 
 namespace WalletConnectSharp.Core
 {
+
     public class WalletConnectProvider : WalletConnectProtocol
     {
         private string _handshakeTopic;
-        
+
         private long _handshakeId;
-        
+
         public event EventHandler<WalletConnectProtocol> OnProviderConnect;
 
         public int? NetworkId { get; private set; }
-        
+
         public string[] Accounts { get; private set; }
 
         public int ChainId { get; private set; }
 
         public ClientMeta ClientMetadata { get; set; }
-        
+
         private string clientId = "";
 
         public string URI
@@ -31,17 +31,17 @@ namespace WalletConnectSharp.Core
             get;
             private set;
         }
-        
+
         public WalletConnectProvider(SavedSession savedSession, ITransport transport = null, ICipher cipher = null, EventDelegator eventDelegator = null) : base(savedSession, transport, cipher, eventDelegator)
         {
             this.ClientMetadata = savedSession.DappMeta;
             this.WalletMetadata = savedSession.WalletMeta;
             this.ChainId = savedSession.ChainID;
-            
+
             clientId = savedSession.ClientID;
-            
+
             this.Accounts = savedSession.Accounts;
-                        
+
             this.NetworkId = savedSession.NetworkID;
         }
 
@@ -49,11 +49,11 @@ namespace WalletConnectSharp.Core
         {
             this.ChainId = chainId;
             this.URI = url;
-            
+
             this.ParseUrl();
         }
 
-        private void ParseUrl()
+        protected void ParseUrl()
         {
             /*
              *  var topicEncode = WebUtility.UrlEncode(_handshakeTopic);
@@ -66,14 +66,14 @@ namespace WalletConnectSharp.Core
 
             if (!this.URI.StartsWith("wc"))
                 return;
-            
+
             //TODO Figure out a better way to parse this
-            
+
             // topicEncode + "@" + versionEncode + "?bridge=" + bridgeUrlEncode + "&key=" + keyEncoded
             var data = this.URI.Split(':')[0];
-            
+
             _handshakeTopic = WebUtility.UrlDecode(data.Split('@')[0]);
-            
+
             // versionEncode + "?bridge=" + bridgeUrlEncode + "&key=" + keyEncoded
             data = data.Split('@')[1];
 
@@ -81,8 +81,6 @@ namespace WalletConnectSharp.Core
 
             //bridge=" + bridgeUrlEncode + "&key=" + keyEncoded
             data = data.Split('?')[1];
-            
-            
 
             var parameters = data.Split('&');
 
@@ -99,7 +97,7 @@ namespace WalletConnectSharp.Core
                         break;
                     case "key":
                         base._key = WebUtility.UrlDecode(value);
-                        base._keyRaw = base._key.FromHex();
+                        base._keyRaw = base._key.HexToByteArray();
                         break;
                 }
             }

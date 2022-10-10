@@ -1,19 +1,14 @@
-using Newtonsoft.Json;
-
 namespace WalletConnectSharp.Core.Models.Ethereum
 {
-    public sealed class EthSendTransaction : JsonRpcRequest
+
+    public sealed class EthSendTransaction : EthGenericRequest<TransactionData>
     {
-        [JsonProperty("params")] 
-        private TransactionData[] _parameters;
-
-        [JsonIgnore]
-        public TransactionData[] Parameters => _parameters;
-
-        public EthSendTransaction(params TransactionData[] transactionDatas) : base()
+        public EthSendTransaction(params TransactionData[] transactionDatas) :
+        base(
+            ValidJsonRpcRequestMethods.EthSendTransaction,
+            transactionDatas
+        )
         {
-            this.Method = "eth_sendTransaction";
-            this._parameters = transactionDatas;
         }
     }
 }

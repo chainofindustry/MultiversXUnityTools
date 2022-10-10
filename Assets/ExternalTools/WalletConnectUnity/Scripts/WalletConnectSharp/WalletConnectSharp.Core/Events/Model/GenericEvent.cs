@@ -12,7 +12,7 @@ namespace WalletConnectSharp.Core.Events
             {
                 throw new ArgumentException("Response was already set");
             }
-            
+
             Response = response;
         }
     }

@@ -7,31 +7,31 @@ namespace WalletConnectUnity.Demo.Scripts
     {
         public class GasData
         {
-            [EvmType("uint256")]
+            //[EvmType("uint256")]
             public string gasLimit;
         
-            [EvmType("uint256")]
+            //[EvmType("uint256")]
             public string gasPrice;
         
-            [EvmType("uint256")]
+            //[EvmType("uint256")]
             public string baseRelayFee;
         
-            [EvmType("uint256")]
+            //[EvmType("uint256")]
             public string pctRelayFee;
         }
 
         public class RelayData
         {
-            [EvmType("address")]
+            //[EvmType("address")]
             public string senderAddress;
         
-            [EvmType("uint256")]
+            //[EvmType("uint256")]
             public string senderNonce;
         
-            [EvmType("address")]
+            //[EvmType("address")]
             public string relayWorker;
         
-            [EvmType("address")]
+            //[EvmType("address")]
             public string paymaster;
         }
 

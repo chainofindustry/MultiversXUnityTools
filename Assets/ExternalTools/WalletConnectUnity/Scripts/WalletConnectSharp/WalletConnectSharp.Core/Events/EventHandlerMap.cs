@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace WalletConnectSharp.Core.Events
 {
+
     public class EventHandlerMap<TEventArgs>
     {
         private Dictionary<string, EventHandler<TEventArgs>> mapping =
@@ -32,7 +33,7 @@ namespace WalletConnectSharp.Core.Events
                 {
                     mapping.Add(topic, BeforeEventExecuted);
                 }
-                
+
                 return mapping[topic];
             }
             set
@@ -41,7 +42,7 @@ namespace WalletConnectSharp.Core.Events
                 {
                     mapping.Remove(topic);
                 }
-                
+
                 mapping.Add(topic, value);
             }
         }

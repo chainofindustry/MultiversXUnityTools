@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace WalletConnectSharp.Core.Utils
 {
+
     public static class HexByteConvertorExtensions
     {
         //From article http://blogs.msdn.com/b/heikkiri/archive/2012/07/17/hex-string-to-corresponding-byte-array.aspx
@@ -103,7 +104,7 @@ namespace WalletConnectSharp.Core.Utils
                     var upper = FromCharacterToByte(value[read_index], read_index, 4);
                     var lower = FromCharacterToByte(value[read_index + 1], read_index + 1);
 
-                    bytes[write_index++] = (byte) (upper | lower);
+                    bytes[write_index++] = (byte)(upper | lower);
                 }
             }
 
@@ -112,7 +113,8 @@ namespace WalletConnectSharp.Core.Utils
 
         public static byte[] HexToByteArray(this string value)
         {
-            try {
+            try
+            {
                 return HexToByteArrayInternal(value);
             }
             catch (FormatException ex)
@@ -124,18 +126,18 @@ namespace WalletConnectSharp.Core.Utils
 
         private static byte FromCharacterToByte(char character, int index, int shift = 0)
         {
-            var value = (byte) character;
+            var value = (byte)character;
             if (0x40 < value && 0x47 > value || 0x60 < value && 0x67 > value)
             {
                 if (0x40 == (0x40 & value))
                     if (0x20 == (0x20 & value))
-                        value = (byte) ((value + 0xA - 0x61) << shift);
+                        value = (byte)((value + 0xA - 0x61) << shift);
                     else
-                        value = (byte) ((value + 0xA - 0x41) << shift);
+                        value = (byte)((value + 0xA - 0x41) << shift);
             }
             else if (0x29 < value && 0x40 > value)
             {
-                value = (byte) ((value - 0x30) << shift);
+                value = (byte)((value - 0x30) << shift);
             }
             else
             {
@@ -146,7 +148,7 @@ namespace WalletConnectSharp.Core.Utils
             return value;
         }
 
-        [Obsolete]
+        [Obsolete("use the builtin string.HexToByteArray. This method will be removed in a future release.")]
         public static byte[] FromHex(this string value)
         {
             return value.HexToByteArray();

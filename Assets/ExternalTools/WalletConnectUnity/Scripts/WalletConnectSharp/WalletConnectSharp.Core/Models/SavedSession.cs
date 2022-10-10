@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine.XR;
 
 namespace WalletConnectSharp.Core.Models
 {
+
     public class SavedSession
     {
         public string ClientID { get; }
@@ -16,7 +15,7 @@ namespace WalletConnectSharp.Core.Models
         public string[] Accounts { get; }
         public int ChainID { get; }
         public ClientMeta DappMeta { get; }
-        
+
         public ClientMeta WalletMeta { get; }
 
         public SavedSession(string clientID, long handshakeID, string bridgeURL, string key, byte[] keyRaw, string peerID, int networkID, string[] accounts, int chainID, ClientMeta dappMeta, ClientMeta walletMeta)
@@ -76,7 +75,7 @@ namespace WalletConnectSharp.Core.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((SavedSession) obj);
+            return Equals((SavedSession)obj);
         }
 
         public override int GetHashCode()
@@ -101,10 +100,10 @@ namespace WalletConnectSharp.Core.Models
         {
             bool isStatNull = object.ReferenceEquals(session, null);
             bool isOtherNull = object.ReferenceEquals(other, null);
-        
+
             return !isOtherNull && !isStatNull && session.Equals(other);
         }
-    
+
         public static bool operator !=(SavedSession session, SavedSession other)
         {
             bool isSessionNull = object.ReferenceEquals(session, null);
