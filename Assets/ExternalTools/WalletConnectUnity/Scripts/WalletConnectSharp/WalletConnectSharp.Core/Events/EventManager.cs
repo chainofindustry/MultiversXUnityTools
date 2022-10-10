@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace WalletConnectSharp.Core.Events
 {
@@ -42,6 +43,7 @@ namespace WalletConnectSharp.Core.Events
 
                 if (eventTrigger != null)
                 {
+                    Debug.Log(responseJson);
                     var response = JsonConvert.DeserializeObject<T>(responseJson);
                     var eventArgs = new TEventArgs();
                     eventArgs.SetData(response);

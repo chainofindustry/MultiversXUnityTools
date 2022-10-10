@@ -23,11 +23,11 @@ namespace ElrondUnityExamples
         private void LoadProfileImages(string address)
         {
 
-            ElrondUnityTools.Manager.LoadImage("https://id.maiar.com/users/photos/profile/" + address, profilePicture, PictureLoadComplete1);
-            ElrondUnityTools.Manager.LoadImage("https://id.maiar.com/users/photos/cover/" + address, banner, PictureLoadComplete2);
+            ElrondUnityTools.Manager.LoadImage($"https://id.maiar.com/users/photos/profile/{address}", profilePicture, PictureLoadComplete1);
+            ElrondUnityTools.Manager.LoadImage($"https://id.maiar.com/users/photos/cover/{address}", banner, PictureLoadComplete2);
         }
 
-        private void PictureLoadComplete1(ElrondUnityTools.OperationStatus status, string arg1)
+        private void PictureLoadComplete1(ElrondUnityTools.OperationStatus status, string message)
         {
             if (status == ElrondUnityTools.OperationStatus.Complete)
             {

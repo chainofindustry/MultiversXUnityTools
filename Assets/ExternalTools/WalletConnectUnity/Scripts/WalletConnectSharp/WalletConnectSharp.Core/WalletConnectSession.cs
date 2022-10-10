@@ -388,7 +388,7 @@ namespace WalletConnectSharp.Core
             EnsureNotDisconnected();
             
             var request = new EthSignTransaction(transaction);
-            
+            Debug.Log(request);
             var response = await Send<EthSignTransaction, EthResponse>(request);
 
             return response.Result;

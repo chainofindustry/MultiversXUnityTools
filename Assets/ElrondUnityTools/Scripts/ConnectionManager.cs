@@ -132,7 +132,7 @@ namespace ElrondUnityTools
             //    throw new InvalidTokenAmountException(something);
             //}
             //Debug.Log(something+" "+value);
-
+            amount = amount.Replace(",", ".");
             string hexaAmount = TokenAmount.ESDT(amount, token.ToToken()).Value.ToString("X");
             if (hexaAmount.Length % 2 == 1)
             {
@@ -161,7 +161,7 @@ namespace ElrondUnityTools
 
         internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus, long gasLimit)
         {
-
+            amount = amount.Replace(",", ".");
             OnSigningTransactionStatusChanged = transactionStatus;
             var transaction = new TransactionData()
             {
@@ -647,7 +647,6 @@ namespace ElrondUnityTools
                     }
                     break;
                 default:
-                    Debug.LogError("LOAD IMAGE ERROR " + webRequest.error);
                     if (completeMethod != null)
                     {
                         completeMethod(OperationStatus.Error, webRequest.error);
