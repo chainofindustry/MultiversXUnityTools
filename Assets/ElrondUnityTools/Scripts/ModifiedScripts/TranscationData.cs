@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace WalletConnectSharp.Core.Models.Ethereum
+namespace ElrondUnityTools
 {
     public class TransactionData
     {

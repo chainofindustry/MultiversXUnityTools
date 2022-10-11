@@ -13,8 +13,6 @@ using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using WalletConnectSharp.Core.Models;
-using WalletConnectSharp.Core.Models.Ethereum;
-using WalletConnectSharp.Unity;
 using Vector2 = UnityEngine.Vector2;
 
 namespace ElrondUnityTools
@@ -22,7 +20,7 @@ namespace ElrondUnityTools
     public class ConnectionManager : WalletConnectActions
     {
         private AccountDto connectedAccount;
-        private ElrondProviderUnity provider;
+        private IElrondProvider provider;
         private NetworkConfig networkConfig;
         private UnityAction<OperationStatus, string> OnSigningTransactionStatusChanged;
         private UnityAction<OperationStatus, string> OnBlockchainTransactionStatusChanged;

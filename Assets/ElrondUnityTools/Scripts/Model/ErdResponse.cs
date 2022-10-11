@@ -1,8 +1,9 @@
 using Newtonsoft.Json;
+using WalletConnectSharp.Core.Models;
 
-namespace WalletConnectSharp.Core.Models.Ethereum
+namespace ElrondUnityTools
 {
-    public class EthResponse : JsonRpcResponse
+    public class ErdResponse : JsonRpcResponse
     {
         [JsonProperty]
         public Result result { get; set; }

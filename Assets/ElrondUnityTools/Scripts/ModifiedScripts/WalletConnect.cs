@@ -12,7 +12,7 @@ using WalletConnectSharp.Core.Network;
 using WalletConnectSharp.Unity.Network;
 using WalletConnectSharp.Unity.Utils;
 
-namespace WalletConnectSharp.Unity
+namespace ElrondUnityTools
 {
     [RequireComponent(typeof(NativeWebSocketTransport))]
     public class WalletConnect : BindableMonoBehavior

@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
 using Erdcsharp.Configuration;
 using Erdcsharp.Domain.Helper;
+using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Erdcsharp.Provider
+namespace ElrondUnityTools
 {
     public class ElrondProviderUnity : IElrondProvider
     {

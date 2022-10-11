@@ -1,18 +1,14 @@
-using System;
-using System.IO;
 using System.Threading.Tasks;
 using WalletConnectSharp.Core;
 using WalletConnectSharp.Core.Events;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Network;
 
-namespace WalletConnectSharp.Unity
+namespace ElrondUnityTools
 {
     public class WalletConnectUnitySession : WalletConnectSession
     {
         private WalletConnect unityObjectSource;
-
-        private bool listenerAdded;
 
         public WalletConnectUnitySession(SavedSession savedSession, WalletConnect source, ITransport transport = null, ICipher cipher = null, EventDelegator eventDelegator = null) : base(savedSession, transport, cipher, eventDelegator)
         {
@@ -48,6 +44,28 @@ namespace WalletConnectSharp.Unity
         public override async Task<WCSessionData> ConnectSession()
         {
             return await unityObjectSource.Connect();
+        }
+
+        public async Task<string> ErdBatchSignTransaction(params TransactionData[] transaction)
+        {
+            EnsureNotDisconnected();
+
+            var request = new ErdBatchSignTransaction(transaction);
+
+            var response = await Send<ErdBatchSignTransaction, ErdResponse>(request);
+
+            return response.Result;
+        }
+
+        public async Task<string> ErdSignTransaction(TransactionData transaction)
+        {
+            EnsureNotDisconnected();
+
+            var request = new ErdSignTransaction(transaction);
+
+            var response = await Send<ErdSignTransaction, ErdResponse>(request);
+
+            return response.Result;
         }
     }
 }
