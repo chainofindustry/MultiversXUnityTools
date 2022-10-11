@@ -213,7 +213,10 @@ namespace WalletConnectSharp.Core
 
             if (payload != null)
             {
-                Events.Trigger(payload.Event, json);
+                if (payload.Event != null)
+                {
+                    Events.Trigger(payload.Event, json);
+                }
             }
         }
 

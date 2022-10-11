@@ -1,6 +1,5 @@
 using Erdcsharp.Configuration;
 using Erdcsharp.Domain;
-using Erdcsharp.Domain.Exceptions;
 using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
 using Newtonsoft.Json;
@@ -8,15 +7,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Numerics;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using WalletConnectSharp.Core;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Models.Ethereum;
 using WalletConnectSharp.Unity;
@@ -35,7 +30,6 @@ namespace ElrondUnityTools
         private UnityAction OnWalletDisconnected;
         private WalletConnect walletConnect;
         private bool walletConnected;
-        private bool walletConnectInitialized;
 
         private static ConnectionManager instance;
         public static ConnectionManager Instance
@@ -65,6 +59,9 @@ namespace ElrondUnityTools
             this.OnWalletConnected = OnWalletConnected;
             this.OnWalletDisconnected = OnWalletDisconnected;
             walletConnect = gameObject.AddComponent<WalletConnect>();
+            walletConnect.connectOnStart = false;
+            walletConnect.connectOnAwake = false;
+            walletConnect.createNewSessionOnSessionDisconnect = false;
             ClientMeta appData = new ClientMeta();
             appData.Description = Constants.appDescription;
             appData.Icons = new string[1];
@@ -76,8 +73,6 @@ namespace ElrondUnityTools
             walletConnect.ConnectedEvent = new WalletConnect.WalletConnectEventNoSession();
             walletConnect.ConnectedEventSession = new WalletConnect.WalletConnectEventWithSessionData();
             walletConnect.ConnectedEvent.AddListener(Connected);
-
-            walletConnectInitialized = true;
             AddQRImageScript(qrImage);
 
             provider = new ElrondProviderUnity(new ElrondNetworkConfiguration(Constants.networkType));
