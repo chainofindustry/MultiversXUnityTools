@@ -14,6 +14,7 @@ https://youtu.be/reZjdcazNJI
 ### External Dependencies
 We did not developed these tools but adapt them to work with our integration.
 * [Wallet Connect Unity](https://github.com/WalletConnect/WalletConnectUnity)
+* [Wallet Connect Sharp](https://github.com/WalletConnect/WalletConnectSharp)
 * [Elrond SDK .Net](https://github.com/yann4460/elrond-sdk.dotnet)
 
 ### Tested
