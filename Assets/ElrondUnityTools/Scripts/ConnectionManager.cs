@@ -6,8 +6,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
@@ -19,12 +19,12 @@ namespace ElrondUnityTools
 {
     public class ConnectionManager : WalletConnectActions
     {
-        private AccountDto connectedAccount;
-        private IElrondProvider provider;
+        private Account connectedAccount;
+        private IElrondProvider elrondAPI;
         private NetworkConfig networkConfig;
         private UnityAction<OperationStatus, string> OnSigningTransactionStatusChanged;
         private UnityAction<OperationStatus, string> OnBlockchainTransactionStatusChanged;
-        private UnityAction<AccountDto> OnWalletConnected;
+        private UnityAction<Account> OnWalletConnected;
         private UnityAction OnWalletDisconnected;
         private WalletConnect walletConnect;
         private bool walletConnected;
@@ -46,7 +46,7 @@ namespace ElrondUnityTools
         }
 
 
-        internal async void Connect(UnityAction<AccountDto> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
+        public async void Connect(UnityAction<Account> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
             if (gameObject.GetComponent<WalletConnect>())
             {
@@ -73,10 +73,31 @@ namespace ElrondUnityTools
             walletConnect.ConnectedEvent.AddListener(Connected);
             AddQRImageScript(qrImage);
 
-            provider = new ElrondProviderUnity(new ElrondNetworkConfiguration(Constants.networkType));
-            networkConfig = await NetworkConfig.GetFromNetwork(provider);
+            elrondAPI = new ElrondProviderUnity(new ElrondNetworkConfiguration(Constants.networkType));
+            //elrondAPI = new ElrondProvider(new System.Net.Http.HttpClient(), new ElrondNetworkConfiguration(Constants.networkType));
+            networkConfig = await LoadNetworkConfig();
         }
 
+        private async Task<NetworkConfig> LoadNetworkConfig(bool throwException = false)
+        {
+            if (networkConfig != null)
+            {
+                return networkConfig;
+            }
+            try
+            {
+                networkConfig = await NetworkConfig.GetFromNetwork(elrondAPI);
+                return networkConfig;
+            }
+            catch (Exception e)
+            {
+                if (throwException)
+                {
+                    throw e;
+                }
+            }
+            return null;
+        }
 
         async void AddQRImageScript(Image qrImage)
         {
@@ -114,17 +135,6 @@ namespace ElrondUnityTools
         #region SendTransaction
         internal void SendESDTTransaction(string destinationAddress, string amount, ESDTToken token, UnityAction<OperationStatus, string> transactionStatus)
         {
-
-            //string[] array = amount.Split(new char[1] { '.' });
-            //string obj = array.FirstOrDefault() ?? "0";
-            //string text = ((array.Length == 2) ? array[1] : string.Empty);
-            //string something = obj + text.PadRight(token.decimals, '0');
-            //BigInteger value = BigInteger.Parse(something);
-            //if (value.Sign == -1)
-            //{
-            //    throw new InvalidTokenAmountException(something);
-            //}
-            //Debug.Log(something+" "+value);
             amount = amount.Replace(",", ".");
             string hexaAmount = TokenAmount.ESDT(amount, token.ToToken()).Value.ToString("X");
             if (hexaAmount.Length % 2 == 1)
@@ -145,21 +155,48 @@ namespace ElrondUnityTools
             SendTransaction(destinationAddress, 0.ToString(), data, transactionStatus, gas);
         }
 
-        internal void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
+        internal async void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> completeMethod)
         {
-            long gas = networkConfig.MinGasLimit + System.Text.ASCIIEncoding.Unicode.GetByteCount(data) * networkConfig.GasPerDataByte;
-            SendTransaction(destinationAddress, amount, data, TransactionStatus, gas);
+            long gas = 0;
+            try
+            {
+                NetworkConfig networkConfig = await LoadNetworkConfig(true);
+                gas = networkConfig.MinGasLimit + System.Text.ASCIIEncoding.Unicode.GetByteCount(data) * networkConfig.GasPerDataByte;
+            }
+            catch (Exception e)
+            {
+                if (completeMethod != null)
+                {
+                    completeMethod(OperationStatus.Error, $"{e.Data} {e.Message}");
+                    return;
+                }
+            }
+            SendTransaction(destinationAddress, amount, data, completeMethod, gas);
         }
 
 
-        internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> transactionStatus, long gasLimit)
+        internal async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> completeMethod, long gasLimit)
         {
             amount = amount.Replace(",", ".");
-            OnSigningTransactionStatusChanged = transactionStatus;
+            NetworkConfig networkConfig = null;
+            try
+            {
+                networkConfig = await LoadNetworkConfig(true);
+            }
+            catch (Exception e)
+            {
+                if (completeMethod != null)
+                {
+                    completeMethod(OperationStatus.Error, $"{e.Data} {e.Message}");
+                    return;
+                }
+            }
+
+            OnSigningTransactionStatusChanged = completeMethod;
             var transaction = new TransactionData()
             {
                 nonce = connectedAccount.Nonce,
-                from = connectedAccount.Address,
+                from = connectedAccount.Address.ToString(),
                 to = destinationAddress,
                 amount = TokenAmount.EGLD(amount).ToString(),
                 data = data,
@@ -176,46 +213,23 @@ namespace ElrondUnityTools
             {
                 signature = await SignTransaction(transaction);
             }
-            catch (IOException e)
+            catch (Exception e)
             {
-                OnSigningTransactionStatusChanged(OperationStatus.Error, e.Message + " " + e.Data);
+                OnSigningTransactionStatusChanged(OperationStatus.Error, $"{e.Data} {e.Message}");
                 return;
             }
 
-            SignedTransactionData tx = new SignedTransactionData(transaction, signature);
-            string json = JsonUtility.ToJson(tx);
+            TransactionRequestDto transactionRequestDto = transaction.ToSignedTransaction(signature);
 
-            StartCoroutine(PostTransaction(Constants.transactionPostAPI, json));
-        }
-
-
-        private IEnumerator PostTransaction(string url, string signedData)
-        {
-            OnSigningTransactionStatusChanged(OperationStatus.InProgress, "Broadcasting transaction to blockchain");
-
-            using var webRequest = new UnityWebRequest();
-            webRequest.url = url;
-            webRequest.method = "POST";
-            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(signedData));
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("accept", "application/json");
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-            yield return webRequest.SendWebRequest();
-
-            switch (webRequest.result)
+            try
             {
-                case UnityWebRequest.Result.ConnectionError:
-                case UnityWebRequest.Result.DataProcessingError:
-                    OnSigningTransactionStatusChanged(OperationStatus.Error, webRequest.error);
-                    break;
-                case UnityWebRequest.Result.ProtocolError:
-                    OnSigningTransactionStatusChanged(OperationStatus.Error, webRequest.error + " " + webRequest.result + " " + webRequest.downloadHandler.text);
-                    break;
-                case UnityWebRequest.Result.Success:
-                    string output = webRequest.downloadHandler.text;
-                    BroadcastResponse response = JsonConvert.DeserializeObject<BroadcastResponse>(output);
-                    OnSigningTransactionStatusChanged(OperationStatus.Complete, response.txHash);
-                    break;
+                var response = await elrondAPI.SendTransaction(transactionRequestDto);
+                OnSigningTransactionStatusChanged(OperationStatus.Complete, response.TxHash);
+            }
+            catch (Exception e)
+            {
+                OnSigningTransactionStatusChanged(OperationStatus.Error, $"{e.Data} {e.Message}");
+                return;
             }
         }
 
@@ -224,37 +238,28 @@ namespace ElrondUnityTools
 
 
         #region CheckTransactionStatus
-        internal void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> transactionStatus, float delay)
+        internal async void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> transactionStatus, float delay)
         {
-            OnBlockchainTransactionStatusChanged = transactionStatus;
-            string url = Constants.transactionStatusAPI;
-            url = url.Replace("{txHash}", txHash);
-            StartCoroutine(GetTransactionStatusRequest(url, delay));
+            await CheckTransaction(txHash, transactionStatus, delay);
         }
 
 
-        private IEnumerator GetTransactionStatusRequest(string uri, float delay)
+        internal async Task CheckTransaction(string txHash, UnityAction<OperationStatus, string> transactionStatus, float delay)
         {
-            yield return new WaitForSeconds(delay);
-
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
+            Task.Delay((int)TimeSpan.FromSeconds(delay).TotalMilliseconds).Wait();
+            try
             {
-                // Request and wait for the desired page.
-                yield return webRequest.SendWebRequest();
-
-                switch (webRequest.result)
+                var result = await elrondAPI.GetTransactionDetail(txHash);
+                if (transactionStatus != null)
                 {
-                    case UnityWebRequest.Result.ConnectionError:
-                    case UnityWebRequest.Result.DataProcessingError:
-                        OnBlockchainTransactionStatusChanged(OperationStatus.Error, webRequest.error);
-                        break;
-                    case UnityWebRequest.Result.ProtocolError:
-                        OnBlockchainTransactionStatusChanged(OperationStatus.Error, webRequest.error);
-                        break;
-                    case UnityWebRequest.Result.Success:
-                        TransactionStatus status = JsonConvert.DeserializeObject<TransactionStatus>(webRequest.downloadHandler.text);
-                        OnBlockchainTransactionStatusChanged(OperationStatus.Complete, status.status);
-                        break;
+                    transactionStatus(OperationStatus.Complete, result.Status);
+                }
+            }
+            catch (Exception e)
+            {
+                if (transactionStatus != null)
+                {
+                    transactionStatus(OperationStatus.Error, $"{e.Data} {e.Message}");
                 }
             }
         }
@@ -270,18 +275,31 @@ namespace ElrondUnityTools
 
         }
 
-        private void AccountRefreshed()
+        private void AccountRefreshed(OperationStatus status, string message)
         {
             OnWalletConnected(connectedAccount);
         }
 
-        public async void RefreshAccount(UnityAction CompleteMethod)
+        public async void RefreshAccount(UnityAction<OperationStatus, string> CompleteMethod)
         {
-            connectedAccount = await provider.GetAccount(WalletConnect.ActiveSession.Accounts[0]);
-            if (CompleteMethod != null)
+            connectedAccount = new Account(Erdcsharp.Domain.Address.From(WalletConnect.ActiveSession.Accounts[0]));
+            try
             {
-                CompleteMethod();
+                await connectedAccount.Sync(elrondAPI);
+                if (CompleteMethod != null)
+                {
+                    CompleteMethod(OperationStatus.Complete, "");
+                }
             }
+            catch (Exception e)
+            {
+                if (CompleteMethod != null)
+                {
+                    CompleteMethod(OperationStatus.Error, $"{e.Data} {e.Message}");
+                }
+            }
+
+
         }
 
 
@@ -295,7 +313,7 @@ namespace ElrondUnityTools
         #region Tokens
         internal void LoadAllTokens(UnityAction<OperationStatus, string, TokenMetadata[]> loadTokensComplete)
         {
-            StartCoroutine(GetWalletTokens(connectedAccount.Address, loadTokensComplete));
+            StartCoroutine(GetWalletTokens(connectedAccount.Address.ToString(), loadTokensComplete));
         }
 
         private IEnumerator GetWalletTokens(string address, UnityAction<OperationStatus, string, TokenMetadata[]> loadTokensComplete)
@@ -355,7 +373,7 @@ namespace ElrondUnityTools
         #region NFTs
         public void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTCompletes)
         {
-            StartCoroutine(GetWalletNFTs(connectedAccount.Address, LoadNFTCompletes));
+            StartCoroutine(GetWalletNFTs(connectedAccount.Address.ToString(), LoadNFTCompletes));
         }
 
 
@@ -414,8 +432,23 @@ namespace ElrondUnityTools
         }
 
 
-        internal void SendNFT(string destinationAddress, string collectionIdentifier, int nonce, int quantity, UnityAction<OperationStatus, string> transactionStatus)
+        internal async void SendNFT(string destinationAddress, string collectionIdentifier, int nonce, int quantity, UnityAction<OperationStatus, string> completeMethod)
         {
+            NetworkConfig networkConfig = null;
+            try
+            {
+                networkConfig = await LoadNetworkConfig(true);
+            }
+            catch (Exception e)
+            {
+                if (completeMethod != null)
+                {
+                    completeMethod(OperationStatus.Error, $"{e.Data} {e.Message}");
+                    return;
+                }
+            }
+
+
             string hexaNonce = nonce.ToString("X");
             if (hexaNonce.Length % 2 == 1)
             {
@@ -441,7 +474,7 @@ namespace ElrondUnityTools
             //https://docs.elrond.com/tokens/nft-tokens/#tab-group-43-content-44
             long gas = 1000000 + nrOfBytes * networkConfig.GasPerDataByte;
 
-            SendTransaction(connectedAccount.Address, 0.ToString(), data, transactionStatus, gas);
+            SendTransaction(connectedAccount.Address.ToString(), 0.ToString(), data, completeMethod, gas);
         }
         #endregion
 
@@ -507,8 +540,22 @@ namespace ElrondUnityTools
         }
 
 
-        internal void CallSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, UnityAction<OperationStatus, string> QueryComplete, params object[] args)
+        internal async void CallSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, UnityAction<OperationStatus, string> completeMethod, params object[] args)
         {
+            NetworkConfig networkConfig = null;
+            try
+            {
+                networkConfig = await LoadNetworkConfig(true);
+            }
+            catch (Exception e)
+            {
+                if (completeMethod != null)
+                {
+                    completeMethod(OperationStatus.Error, $"{e.Data} {e.Message}");
+                    return;
+                }
+            }
+
             string data = methodName;
             for (int i = 0; i < args.Length; i++)
             {
@@ -533,7 +580,7 @@ namespace ElrondUnityTools
             long nrOfBytes = System.Text.ASCIIEncoding.Unicode.GetByteCount(data);
             long gas = gasRequiredForSCExecution + nrOfBytes * networkConfig.GasPerDataByte;
 
-            SendTransaction(scAddress, 0.ToString(), data, QueryComplete, gas);
+            SendTransaction(scAddress, 0.ToString(), data, completeMethod, gas);
         }
         #endregion
 
@@ -617,7 +664,7 @@ namespace ElrondUnityTools
         /// <returns></returns>
         private IEnumerator LoadImageCoroutine(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> completeMethod)
         {
-            if(!string.IsNullOrEmpty(Constants.CORSFixUrl))
+            if (!string.IsNullOrEmpty(Constants.CORSFixUrl))
             {
                 imageURL = Constants.CORSFixUrl + UnityWebRequest.EscapeURL(imageURL);
             }
@@ -642,7 +689,7 @@ namespace ElrondUnityTools
                 default:
                     if (completeMethod != null)
                     {
-                        completeMethod(OperationStatus.Error, webRequest.error);
+                        completeMethod(OperationStatus.Error, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
                     }
                     break;
             }

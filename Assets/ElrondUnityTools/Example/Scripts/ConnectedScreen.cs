@@ -1,6 +1,7 @@
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using System;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace ElrondUnityExamples
@@ -10,35 +11,50 @@ namespace ElrondUnityExamples
         public Text address;
         public Text ht;
         public Text egldValue;
+        public Text status;
         public Image profilePicture;
         public Image banner;
 
         public override void Init(params object[] args)
         {
             base.Init(args);
-            RefreshAccount(DemoScript.Instance.GetConnectedAccount());
-            LoadProfileImages(DemoScript.Instance.GetConnectedAccount().Address);
+            status.text = "Refresh account";
+            ElrondUnityTools.Manager.RefreshAccount(AccountRefreshed);
+            LoadProfileImages(DemoScript.Instance.GetConnectedAccount().Address.ToString());
+        }
+
+        private void AccountRefreshed(ElrondUnityTools.OperationStatus operationStatus, string message)
+        {
+            status.text = $"Account Refresh Complete {operationStatus} {message}";
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            {
+                RefreshAccount(DemoScript.Instance.GetConnectedAccount());
+            }
         }
 
         private void LoadProfileImages(string address)
         {
-
-            ElrondUnityTools.Manager.LoadImage($"https://id.maiar.com/users/photos/profile/{address}", profilePicture, PictureLoadComplete1);
-            ElrondUnityTools.Manager.LoadImage($"https://id.maiar.com/users/photos/cover/{address}", banner, PictureLoadComplete2);
+            status.text = "Start Loading Images";
+            ElrondUnityTools.Manager.LoadImage($"https://id.maiar.com/users/photos/profile/{address}", profilePicture, PictureLoadComplete);
+            ElrondUnityTools.Manager.LoadImage($"https://id.maiar.com/users/photos/cover/{address}", banner, CoverLoadComplete2);
         }
 
-        private void PictureLoadComplete1(ElrondUnityTools.OperationStatus status, string message)
+        private void PictureLoadComplete(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-            if (status == ElrondUnityTools.OperationStatus.Complete)
+            status.text = $"Picture Load Complete {operationStatus} {message}";
+
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                profilePicture.color = UnityEngine.Color.white;
+                profilePicture.color = Color.white;
             }
         }
-        private void PictureLoadComplete2(ElrondUnityTools.OperationStatus status, string arg1)
+        private void CoverLoadComplete2(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-            if (status == ElrondUnityTools.OperationStatus.Complete)
+            status.text = $"Cover Load Complete {operationStatus} {message}";
+
+            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                banner.color = UnityEngine.Color.white;
+                banner.color = Color.white;
             }
         }
 
@@ -46,12 +62,13 @@ namespace ElrondUnityExamples
         /// Refresh the address and the amount of tokens of the connected wallet 
         /// </summary>
         /// <param name="connectedAccount"></param>
-        private void RefreshAccount(AccountDto connectedAccount)
+        private void RefreshAccount(Account connectedAccount)
         {
-            var amount = TokenAmount.From(connectedAccount.Balance);
-            address.text = connectedAccount.Address;
+            Debug.Log("RefreshAccount " + connectedAccount.Balance);
+            var amount = connectedAccount.Balance;
+            address.text = connectedAccount.Address.ToString();
             egldValue.text = "EGLD: " + amount.ToDenominated();
-            ht.text = "HT: " + connectedAccount.Username;
+            ht.text = "HT: " + connectedAccount.UserName;
         }
 
 

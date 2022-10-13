@@ -1,5 +1,7 @@
+using System.Text;
 using System.Threading.Tasks;
 using Erdcsharp.Configuration;
+using Erdcsharp.Domain.Exceptions;
 using Erdcsharp.Domain.Helper;
 using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
@@ -25,16 +27,15 @@ namespace ElrondUnityTools
         {
             UnityWebRequest webRequest = UnityWebRequest.Get(baseAddress.AbsoluteUri + "network/config");
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
             switch (response)
             {
-                case UnityWebRequest.Result.Success:
-                    var content = webRequest.downloadHandler.text;
+                case UnityWebRequest.Result.Success:                 
                     var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<ConfigDataDto>>(content);
                     result.EnsureSuccessStatusCode();
                     return result.Data;
                 default:
-                    Debug.LogError(webRequest.error);
-                    return null;
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
             }
         }
 
@@ -42,54 +43,157 @@ namespace ElrondUnityTools
         {
             UnityWebRequest webRequest = UnityWebRequest.Get(baseAddress.AbsoluteUri + $"address/{address}");
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
-                    var content = webRequest.downloadHandler.text;
                     var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<AccountDataDto>>(content);
                     result.EnsureSuccessStatusCode();
                     return result.Data.Account;
                 default:
-                    Debug.LogError(webRequest.error);
-                    return null;
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
             }
         }
 
-        public Task<EsdtItemDto> GetEsdtNftToken(string address, string tokenIdentifier, ulong tokenId)
+        public async Task<EsdtItemDto> GetEsdtNftToken(string address, string tokenIdentifier, ulong tokenId)
         {
-            throw new System.NotImplementedException();
+            UnityWebRequest webRequest = UnityWebRequest.Get(baseAddress.AbsoluteUri + $"address1/{address}/nft/{tokenIdentifier}/nonce/{tokenId}");
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtItemDto>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
         }
 
-        public Task<EsdtTokenData> GetEsdtToken(string address, string tokenIdentifier)
+        public async Task<EsdtTokenData> GetEsdtToken(string address, string tokenIdentifier)
         {
-            throw new System.NotImplementedException();
+            UnityWebRequest webRequest = UnityWebRequest.Get(baseAddress.AbsoluteUri + $"address1/{address}/esdt/{tokenIdentifier}");
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtTokenData>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
         }
 
-        public Task<EsdtTokenDataDto> GetEsdtTokens(string address)
+        public async Task<EsdtTokenDataDto> GetEsdtTokens(string address)
         {
-            throw new System.NotImplementedException();
+            UnityWebRequest webRequest = UnityWebRequest.Get(baseAddress.AbsoluteUri + $"address1/{address}/esdt");
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtTokenDataDto>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
         }
 
 
 
-        public Task<TransactionCostDataDto> GetTransactionCost(TransactionRequestDto transactionRequestDto)
+        public async Task<TransactionCostDataDto> GetTransactionCost(TransactionRequestDto transactionRequestDto)
         {
-            throw new System.NotImplementedException();
+            var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
+
+            var webRequest = new UnityWebRequest();
+            webRequest.url = baseAddress.AbsoluteUri + "transaction1/cost";
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<TransactionCostDataDto>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
         }
 
-        public Task<TransactionDto> GetTransactionDetail(string txHash)
+        public async Task<TransactionDto> GetTransactionDetail(string txHash)
         {
-            throw new System.NotImplementedException();
+            UnityWebRequest webRequest = UnityWebRequest.Get(baseAddress.AbsoluteUri + $"transaction/{txHash}?withResults=true");
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<TransactionResponseData>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data.Transaction;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
         }
 
-        public Task<QueryVmResultDataDto> QueryVm(QueryVmRequestDto queryVmRequestDto)
+        public async Task<QueryVmResultDataDto> QueryVm(QueryVmRequestDto queryVmRequestDto)
         {
-            throw new System.NotImplementedException();
+            var raw = JsonSerializerWrapper.Serialize(queryVmRequestDto);
+
+            var webRequest = new UnityWebRequest();
+            webRequest.url = baseAddress.AbsoluteUri + "vm-values1/query";
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<QueryVmResultDataDto>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
         }
 
-        public Task<CreateTransactionResponseDataDto> SendTransaction(TransactionRequestDto transactionRequestDto)
+        public async Task<CreateTransactionResponseDataDto> SendTransaction(TransactionRequestDto transactionRequestDto)
         {
-            throw new System.NotImplementedException();
+            var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
+
+            var webRequest = new UnityWebRequest();
+            webRequest.url = baseAddress.AbsoluteUri + "transaction/send";
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<CreateTransactionResponseDataDto>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
         }
     }
 }

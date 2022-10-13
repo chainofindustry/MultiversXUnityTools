@@ -54,7 +54,7 @@ namespace ElrondUnityExamples
             if (operationStatus == OperationStatus.Complete)
             {
                 ////after all metadata is loaded the NFTs will be displayed in a scroll view
-                StartCoroutine(LoadNFTs(allNfts,1));
+                StartCoroutine(LoadNFTs(allNfts,10));
             }
             else
             {

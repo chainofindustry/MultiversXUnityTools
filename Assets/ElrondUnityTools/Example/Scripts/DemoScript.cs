@@ -1,3 +1,4 @@
+using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using System.Linq;
 using UnityEngine;
@@ -30,7 +31,7 @@ namespace ElrondUnityExamples
         public Transform canvas;
 
         private GameObject loadedScreen;
-        private AccountDto connectedAccount;
+        private Account connectedAccount;
 
 
         public static DemoScript Instance { get; private set; }
@@ -61,7 +62,7 @@ namespace ElrondUnityExamples
         }
 
 
-        public AccountDto GetConnectedAccount()
+        public Account GetConnectedAccount()
         {
             return connectedAccount;
         }
@@ -92,7 +93,7 @@ namespace ElrondUnityExamples
         /// Triggered when Maiar app connected
         /// </summary>
         /// <param name="connectedAccount">A class containing informations about the connected wallet</param>
-        private void OnConnected(AccountDto connectedAccount)
+        private void OnConnected(Account connectedAccount)
         {
             this.connectedAccount = connectedAccount;
             LoadScreen(Screens.Connected, connectedAccount);

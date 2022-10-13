@@ -36,7 +36,7 @@ namespace ElrondUnityExamples
 
         private void TokensLoaded(OperationStatus operationStatus, string message, TokenMetadata[] allTokens)
         {
-            status.text = operationStatus + " " + message;
+            status.text = $"Tokens Loaded status: {operationStatus} message: {message}";
             if (operationStatus == OperationStatus.Complete)
             {
                 PopulateUI(allTokens);
@@ -81,7 +81,7 @@ namespace ElrondUnityExamples
         //linked to the send transaction button in editor
         public void SendTransaction()
         {
-            status.text = "";
+            status.text = "Send Transaction";
 
             //should verify first if destination, amount and message are in the correct format
             ElrondUnityTools.Manager.SendEGLDTransaction(destination.text, amount.text, message.text, SigningStatusListener);
@@ -121,7 +121,7 @@ namespace ElrondUnityExamples
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
         private void SigningStatusListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-            status.text = operationStatus + " " + message;
+            status.text = $"Signing status: {operationStatus} message: {message}";
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
                 txHash = message;
@@ -141,7 +141,7 @@ namespace ElrondUnityExamples
         /// <param name="message">additional message</param>
         private void BlockchainTransactionListener(ElrondUnityTools.OperationStatus operationStatus, string message)
         {
-            status.text = operationStatus + " " + message;
+            status.text = $"Transaction status: {operationStatus} message: {message}"; ;
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
                 Debug.Log(message);
@@ -160,9 +160,13 @@ namespace ElrondUnityExamples
             }
         }
 
-        private void RefreshDone()
+        private void RefreshDone(OperationStatus operationStatus, string message)
         {
-            Manager.LoadAllTokens(TokensLoaded);
+            status.text = $"Refresh tokens status: {operationStatus} message: {message}"; ;
+            if (operationStatus == OperationStatus.Complete)
+            {
+                Manager.LoadAllTokens(TokensLoaded);
+            }
         }
     }
 }
