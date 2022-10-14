@@ -8,7 +8,7 @@ namespace ElrondUnityExamples
         public Image image;
         public Text nftName;
         public string collectionIdentifier;
-        public int nonce;
+        public ulong nonce;
 
         private NftsScreen demoScript;
         private string txHash;
@@ -21,7 +21,7 @@ namespace ElrondUnityExamples
         /// <param name="name">the display name for NFT</param>
         /// <param name="collectionIdentifier">collection identifier</param>
         /// <param name="nonce">nonce of the NFT (the characters after the last -(dash) from the NFT identifier)</param>
-        public void Initialize(NftsScreen demoScript, string name, string collectionIdentifier, int nonce)
+        public void Initialize(NftsScreen demoScript, string name, string collectionIdentifier, ulong nonce)
         {
             this.demoScript = demoScript;
             this.nftName.text = name;
@@ -48,7 +48,7 @@ namespace ElrondUnityExamples
             {
                 txHash = message;
                 Debug.Log("Tx Hash: " + txHash);
-                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
+                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener);
             }
             if (operationStatus == ElrondUnityTools.OperationStatus.Error)
             {
@@ -67,18 +67,8 @@ namespace ElrondUnityExamples
             demoScript.status.text = operationStatus + " " + message;
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                if (message == "pending")
-                {
-                    ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
-                }
-                else
-                {
-                    if (message == "success")
-                    {
-                        demoScript.RefreshNFTs(collectionIdentifier, nonce);
-                        Destroy(gameObject);
-                    }
-                }
+                demoScript.RefreshNFTs(collectionIdentifier, nonce);
+                Destroy(gameObject);
             }
         }
     }

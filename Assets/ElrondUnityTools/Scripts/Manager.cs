@@ -1,4 +1,5 @@
 using Erdcsharp.Domain;
+using Erdcsharp.Domain.Values;
 using Erdcsharp.Provider.Dtos;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -65,10 +66,9 @@ namespace ElrondUnityTools
         /// </summary>
         /// <param name="txHash">The hash of the transaction obtained after signing</param>
         /// <param name="TransactionStatus">Callback to track the result</param>
-        /// <param name="delay">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of APIs</param>
-        public static void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> TransactionStatus, float delay)
+        public static void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> TransactionStatus)
         {
-            ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus, delay);
+            ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus);
         }
 
 
@@ -79,7 +79,7 @@ namespace ElrondUnityTools
         /// <param name="token">Token to send</param>
         /// <param name="amount">Amount of token to send(in decimals)</param>
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
-        public static void SendESDTTransaction(string destinationAddress, ESDTToken token, string amount, UnityAction<OperationStatus, string> TransactionStatus)
+        public static void SendESDTTransaction(string destinationAddress, Token token, string amount, UnityAction<OperationStatus, string> TransactionStatus)
         {
             ConnectionManager.Instance.SendESDTTransaction(destinationAddress, amount, token, TransactionStatus);
         }
@@ -103,7 +103,7 @@ namespace ElrondUnityTools
         /// <param name="nftNonce">Nonce of the NFT (the characters after the last -(dash) from the NFT identifier)</param>
         /// <param name="quantity">Number of units to send</param>
         /// <param name="TransactionStatus">Callback to check the transaction status</param>
-        public static void SendNFT(string destinationAddress, string collectionIdentifier, int nftNonce, int quantity, UnityAction<OperationStatus, string> TransactionStatus)
+        public static void SendNFT(string destinationAddress, string collectionIdentifier, ulong nftNonce, int quantity, UnityAction<OperationStatus, string> TransactionStatus)
         {
             ConnectionManager.Instance.SendNFT(destinationAddress, collectionIdentifier, nftNonce, quantity, TransactionStatus);
         }
@@ -130,7 +130,16 @@ namespace ElrondUnityTools
         /// <param name="gas">The gas required to execute the called SC method</param>
         /// <param name="CallStatus">Callback to get the result of the call</param>
         /// <param name="args">The list of arguments</param>
-        public static void CallSCMethod(string scAddress, string methodName, long gas, UnityAction<OperationStatus, string> CallStatus, params object[] args)
+        /// Address
+        /// BooleanValue
+        /// BytesValue
+        /// EnumValue
+        /// MultiValue
+        /// NumericValue
+        /// OptionValue
+        /// StructValue
+        /// TokenIdentifierValue
+        public static void CallSCMethod(string scAddress, string methodName, long gas, UnityAction<OperationStatus, string> CallStatus, params IBinaryType[] args)
         {
             ConnectionManager.Instance.CallSCMethod(scAddress, methodName, gas, CallStatus, args);
         }

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Numerics;
+using Erdcsharp.Domain.Values;
 
 namespace ElrondUnityExamples
 {
@@ -44,9 +46,9 @@ namespace ElrondUnityExamples
         public void ExecuteCall()
         {
             //call the method from scAddress with param
-            int nr = int.Parse(param.text);
+            BigInteger nr = int.Parse(param.text);
             long gas = long.Parse(gasInput.text);
-            ElrondUnityTools.Manager.CallSCMethod(scAddress.text, method.text, gas, CallStatus, nr);
+            ElrondUnityTools.Manager.CallSCMethod(scAddress.text, method.text, gas, CallStatus, NumericValue.BigIntValue(nr));
         }
 
         /// <summary>
@@ -61,7 +63,7 @@ namespace ElrondUnityExamples
             {
                 scResultText.text = "Raw data: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(data);
                 if (data.returnData.Length > 0)
-                { 
+                {
                     //the returned data is an array(I do not know at this point how to create a SC that returns an Array of data instead of a single element)
                     string encodedText = data.returnData[0];
 
@@ -81,7 +83,7 @@ namespace ElrondUnityExamples
                 {
                     Debug.LogError("No data returned, check the call");
                 }
-                
+
             }
             else
             {
@@ -103,7 +105,7 @@ namespace ElrondUnityExamples
             {
                 txHash = message;
                 Debug.Log("Tx Hash: " + txHash);
-                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, SCTransactionListener, 1);
+                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, SCTransactionListener);
             }
             if (operationStatus == ElrondUnityTools.OperationStatus.Error)
             {
@@ -121,18 +123,7 @@ namespace ElrondUnityExamples
             scResultText.text = operationStatus + " " + message;
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                if (message == "pending")
-                {
-                    ElrondUnityTools.Manager.CheckTransactionStatus(txHash, SCTransactionListener, 1);
-                }
-                else
-                {
-                    if (message == "success")
-                    {
-                        //do something 
-                    }
-                    ElrondUnityTools.Manager.RefreshAccount();
-                }
+                ElrondUnityTools.Manager.RefreshAccount();
             }
         }
     }

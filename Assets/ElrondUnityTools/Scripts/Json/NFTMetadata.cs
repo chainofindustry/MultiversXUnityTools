@@ -6,7 +6,7 @@ namespace ElrondUnityTools
         public string identifier { get; set; }
         public string collection { get; set; }
         public string attributes { get; set; }
-        public int nonce { get; set; }
+        public ulong nonce { get; set; }
         public string type { get; set; }
         public string name { get; set; }
         public string creator { get; set; }

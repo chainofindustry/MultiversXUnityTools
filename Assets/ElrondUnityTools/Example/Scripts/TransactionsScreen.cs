@@ -1,4 +1,5 @@
 using ElrondUnityTools;
+using Erdcsharp.Domain;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,7 +22,6 @@ namespace ElrondUnityExamples
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
         private string defaultMessage = "You see this?";
         private double egld = 0.001;
-        private string txHash;
 
         public override void Init(params object[] args)
         {
@@ -84,7 +84,7 @@ namespace ElrondUnityExamples
             status.text = "Send Transaction";
 
             //should verify first if destination, amount and message are in the correct format
-            ElrondUnityTools.Manager.SendEGLDTransaction(destination.text, amount.text, message.text, SigningStatusListener);
+            Manager.SendEGLDTransaction(destination.text, amount.text, message.text, SigningStatusListener);
         }
 
 
@@ -92,25 +92,25 @@ namespace ElrondUnityExamples
         public void SendESDTTransaction()
         {
             // get the drop down state and determine the ESDT token to transfer
-            ElrondUnityTools.ESDTToken selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
+            Token selectedToken = SupportedESDTTokens.USDC;
             switch (esdtTokenDropdown.options[esdtTokenDropdown.value].text)
             {
                 case "USDC":
-                    selectedToken = ElrondUnityTools.SupportedESDTTokens.USDC;
+                    selectedToken = SupportedESDTTokens.USDC;
                     break;
                 case "WEB":
-                    selectedToken = ElrondUnityTools.SupportedESDTTokens.WEB;
+                    selectedToken = SupportedESDTTokens.WEB;
                     break;
             }
-            ElrondUnityTools.Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, SigningStatusListener);
+            Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, SigningStatusListener);
         }
 
         void PopulateDropDown()
         {
             Debug.Log(esdtTokenDropdown);
             esdtTokenDropdown.options.Clear();
-            esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = ElrondUnityTools.SupportedESDTTokens.USDC.name });
-            esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = ElrondUnityTools.SupportedESDTTokens.WEB.name });
+            esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = SupportedESDTTokens.USDC.Name });
+            esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = SupportedESDTTokens.WEB.Name });
         }
 
 
@@ -119,16 +119,16 @@ namespace ElrondUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
-        private void SigningStatusListener(ElrondUnityTools.OperationStatus operationStatus, string message)
+        private void SigningStatusListener(OperationStatus operationStatus, string message)
         {
             status.text = $"Signing status: {operationStatus} message: {message}";
-            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            if (operationStatus == OperationStatus.Complete)
             {
-                txHash = message;
-                Debug.Log("Tx Hash: " + txHash);
-                ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
+                Debug.Log("Tx Hash: " + message);
+                status.text = $"Tx pending: {message}";
+                Manager.CheckTransactionStatus(message, TransactionProcessed);
             }
-            if (operationStatus == ElrondUnityTools.OperationStatus.Error)
+            if (operationStatus == OperationStatus.Error)
             {
                 //do something
             }
@@ -139,32 +139,22 @@ namespace ElrondUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void BlockchainTransactionListener(ElrondUnityTools.OperationStatus operationStatus, string message)
+        private void TransactionProcessed(OperationStatus operationStatus, string message)
         {
-            status.text = $"Transaction status: {operationStatus} message: {message}"; ;
-            if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
+            status.text = $"Transaction status: {operationStatus} message: {message}";
+            if (operationStatus == OperationStatus.Complete)
             {
-                Debug.Log(message);
-                if (message == "pending")
-                {
-                    ElrondUnityTools.Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
-                }
-                else
-                {
-                    if (message == "success")
-                    {
-                        status.text = "Success -> Refreshing tokens";
-                    }
-                    ElrondUnityTools.Manager.RefreshAccount(RefreshDone);
-                }
+                status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh account";
+                Manager.RefreshAccount(RefreshDone);
             }
         }
 
         private void RefreshDone(OperationStatus operationStatus, string message)
         {
-            status.text = $"Refresh tokens status: {operationStatus} message: {message}"; ;
+            status.text = $"Refresh account status: {operationStatus} message: {message}";
             if (operationStatus == OperationStatus.Complete)
             {
+                status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh tokens";
                 Manager.LoadAllTokens(TokensLoaded);
             }
         }

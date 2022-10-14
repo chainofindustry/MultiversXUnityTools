@@ -122,7 +122,7 @@ namespace ElrondUnityExamples
         /// </summary>
         /// <param name="collectionIdentifier"></param>
         /// <param name="nonce"></param>
-        public void RefreshNFTs(string collectionIdentifier, int nonce)
+        public void RefreshNFTs(string collectionIdentifier, ulong nonce)
         {
             //remove the NFT that was sent from this list
             allNfts = allNfts.Where(cond => cond.collection != collectionIdentifier || cond.nonce != nonce).ToArray();

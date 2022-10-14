@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Networking;
 using WalletConnectSharp.Core;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Network;
@@ -34,13 +32,6 @@ namespace ElrondUnityTools
 
         private static WalletConnect _instance;
 
-        public static WalletConnect Instance
-        {
-            get
-            {
-                return _instance;
-            }
-        }
 
         public static WalletConnectUnitySession ActiveSession
         {

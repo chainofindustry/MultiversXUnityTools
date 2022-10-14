@@ -7,7 +7,7 @@ namespace Erdcsharp.Domain
     public class Token
     {
         private readonly Regex  _nameValidation   = new Regex("^[a-zA-Z0-9]{3,20}$");
-        private readonly Regex  _tickerValidation = new Regex("^[A-Z0-9]{3,10}$");
+        //private readonly Regex  _tickerValidation = new Regex("^[A-Z0-9]{3,10}$");
         public           string Name             { get; }
         public           string Ticker           { get; }
         public           int    DecimalPrecision { get; }
@@ -18,10 +18,10 @@ namespace Erdcsharp.Domain
                 throw new ArgumentException(
                                             "Length should be between 3 and 20 characters, alphanumeric characters only", nameof(name));
 
-            if (!_tickerValidation.IsMatch(ticker))
-                throw new ArgumentException(
-                                            "Length should be between 3 and 10 characters, alphanumeric UPPERCASE characters only",
-                                            nameof(ticker));
+            //if (!_tickerValidation.IsMatch(ticker))
+            //    throw new ArgumentException(
+            //                                "Length should be between 3 and 10 characters, alphanumeric UPPERCASE characters only",
+            //                                nameof(ticker));
 
             if (decimalPrecision < 0 || decimalPrecision > 18)
                 throw new ArgumentException("Should be between 0 and 18", nameof(decimalPrecision));
