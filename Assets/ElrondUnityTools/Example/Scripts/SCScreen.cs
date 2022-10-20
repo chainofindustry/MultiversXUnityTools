@@ -39,7 +39,7 @@ namespace ElrondUnityExamples
         public void ExecuteQuery()
         {
             //call the method from scAddress with parameters
-            ElrondUnityTools.Manager.MakeSCQuery(scAddress.text, method.text, new string[] { param.text }, QueryComplete);
+            ElrondUnityTools.Manager.MakeSCQuery<NumericValue>(scAddress.text, method.text, QueryComplete, TypeValue.BigUintTypeValue);
         }
 
         //linked to a button to execute the SC call 
@@ -57,37 +57,14 @@ namespace ElrondUnityExamples
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
         /// <param name="data">deserialized returned data</param>
-        private void QueryComplete(ElrondUnityTools.OperationStatus operationStatus, string message, ElrondUnityTools.SCData data)
+        private void QueryComplete(ElrondUnityTools.OperationStatus operationStatus, string message, NumericValue data)
         {
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                scResultText.text = "Raw data: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(data);
-                if (data.returnData.Length > 0)
-                {
-                    //the returned data is an array(I do not know at this point how to create a SC that returns an Array of data instead of a single element)
-                    string encodedText = data.returnData[0];
-
-                    //convert the received data to bytes
-                    byte[] bytes = Convert.FromBase64String(encodedText);
-
-                    //convert the bytes array so hex
-                    string hexString = Erdcsharp.Domain.Helper.Converter.ToHexString(bytes);
-
-                    //convert the hex string to your data type(int, float, string, etc) 
-                    //in this case the return data is an int
-                    var result = Convert.ToInt64(hexString, 16);
-
-                    scResultText.text += "\n\n Current sum: " + result;
-                }
-                else
-                {
-                    Debug.LogError("No data returned, check the call");
-                }
-
+                scResultText.text += "Current sum: " + data;
             }
             else
             {
-                Debug.LogError(message);
                 scResultText.text = message;
             }
         }

@@ -116,9 +116,9 @@ namespace ElrondUnityTools
         /// <param name="methodName">The method to call</param>
         /// <param name="args">The list of arguments</param>
         /// <param name="QueryComplete">Callback to get the result of the query after finished</param>
-        public static void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
+        public static void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> QueryComplete, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
-            ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, args, QueryComplete);
+            ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, QueryComplete, outputType, args);
         }
 
 

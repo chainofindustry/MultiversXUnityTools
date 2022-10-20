@@ -2,6 +2,7 @@ using Erdcsharp.Configuration;
 using Erdcsharp.Domain;
 using Erdcsharp.Domain.Codec;
 using Erdcsharp.Domain.Helper;
+using Erdcsharp.Domain.SmartContracts;
 using Erdcsharp.Domain.Values;
 using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
@@ -293,7 +294,6 @@ namespace ElrondUnityTools
             }
         }
 
-
         private void ActiveSessionOnDisconnect(object sender, EventArgs e)
         {
             WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
@@ -442,63 +442,18 @@ namespace ElrondUnityTools
 
 
         #region SCs
-        internal void MakeSCQuery(string scAddress, string methodName, string[] args, UnityAction<OperationStatus, string, SCData> QueryComplete)
+        internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
-            StartCoroutine(PostSCQuery(Constants.scQueryAPI, new SCQuery(scAddress, methodName, args), QueryComplete));
-        }
-
-        IEnumerator PostSCQuery(string uri, SCQuery query, UnityAction<OperationStatus, string, SCData> QueryComplete)
-        {
-            string json = JsonUtility.ToJson(query);
-
-            using var webRequest = new UnityWebRequest();
-            webRequest.url = uri;
-            webRequest.method = "POST";
-            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("accept", "*/*");
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-
-            yield return webRequest.SendWebRequest();
-
-            switch (webRequest.result)
+            try
             {
-                case UnityWebRequest.Result.Success:
-                    string output = webRequest.downloadHandler.text;
-                    QueryResponse response;
+                var queryResult = await SmartContract.QuerySmartContract<T>(elrondAPI, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
+                completeMethod(OperationStatus.Complete, "Success", queryResult);
 
-                    try
-                    {
-                        response = JsonConvert.DeserializeObject<QueryResponse>(output);
-                    }
-                    catch (Exception e)
-                    {
-                        QueryComplete(OperationStatus.Error, "Deserialization error: " + e.Message + " " + e.Data, null);
-                        break;
-                    }
-
-
-                    if (!string.IsNullOrEmpty(response.error))
-                    {
-                        QueryComplete(OperationStatus.Error, "SC Call error: " + response.error + " " + response.code, null);
-                        break;
-                    }
-
-                    SCData data = response.data.data;
-                    if (data.returnData == null)
-                    {
-                        QueryComplete(OperationStatus.Error, "Data error: " + data.returnCode + " " + data.returnMessage, null);
-                        break;
-                    }
-
-                    QueryComplete(OperationStatus.Complete, response.code, data);
-                    break;
-
-                default:
-                    QueryComplete(OperationStatus.Error, webRequest.error, null);
-                    break;
             }
-
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", default(T));
+            }
         }
 
 

@@ -151,7 +151,7 @@ namespace ElrondUnityTools
             var raw = JsonSerializerWrapper.Serialize(queryVmRequestDto);
 
             var webRequest = new UnityWebRequest();
-            webRequest.url = baseAddress.AbsoluteUri + "vm-values1/query";
+            webRequest.url = baseAddress.AbsoluteUri + "vm-values/query";
             webRequest.method = "POST";
             webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
             webRequest.downloadHandler = new DownloadHandlerBuffer();
@@ -165,6 +165,10 @@ namespace ElrondUnityTools
                 case UnityWebRequest.Result.Success:
                     var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<QueryVmResultDataDto>>(content);
                     result.EnsureSuccessStatusCode();
+                    if(result.Data.Data.ReturnData==null)
+                    {
+                        throw new NullDataException(result.Data.Data.ReturnCode, result.Data.Data.ReturnMessage);
+                    }
                     return result.Data;
                 default:
                     throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");

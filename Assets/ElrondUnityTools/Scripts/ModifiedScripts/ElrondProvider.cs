@@ -148,13 +148,17 @@ namespace ElrondUnityTools
         {
             var raw = JsonSerializerWrapper.Serialize(queryVmRequestDto);
             var payload = new StringContent(raw, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("vm-values1/query", payload);
+            var response = await _httpClient.PostAsync("vm-values/query", payload);
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
                 var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<QueryVmResultDataDto>>(content);
                 result.EnsureSuccessStatusCode();
+                if (result.Data.Data.ReturnData == null)
+                {
+                    throw new NullDataException(result.Data.Data.ReturnCode, result.Data.Data.ReturnMessage);
+                }
                 return result.Data;
             }
             else
