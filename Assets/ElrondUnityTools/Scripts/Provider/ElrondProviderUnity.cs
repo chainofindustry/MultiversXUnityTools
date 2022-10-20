@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using Erdcsharp.Configuration;
@@ -10,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace ElrondUnityTools
 {
-    public class ElrondProviderUnity : IElrondProvider
+    public class ElrondProviderUnity : IElrondApiProvider
     {
         private System.Uri baseAddress;
 
@@ -30,7 +31,7 @@ namespace ElrondUnityTools
             var content = webRequest.downloadHandler.text;
             switch (response)
             {
-                case UnityWebRequest.Result.Success:                 
+                case UnityWebRequest.Result.Success:
                     var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<ConfigDataDto>>(content);
                     result.EnsureSuccessStatusCode();
                     return result.Data;
@@ -165,7 +166,7 @@ namespace ElrondUnityTools
                 case UnityWebRequest.Result.Success:
                     var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<QueryVmResultDataDto>>(content);
                     result.EnsureSuccessStatusCode();
-                    if(result.Data.Data.ReturnData==null)
+                    if (result.Data.Data.ReturnData == null)
                     {
                         throw new NullDataException(result.Data.Data.ReturnCode, result.Data.Data.ReturnMessage);
                     }
@@ -199,5 +200,57 @@ namespace ElrondUnityTools
                     throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
             }
         }
+        #region IElrondApiProvider 
+        public async Task<T> GetRequest<T>(string url)
+        {
+            UnityWebRequest webRequest = UnityWebRequest.Get(url);
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    return JsonSerializerWrapper.Deserialize<T>(content);
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
+        }
+
+       
+
+        public async Task<T> PostRequest<T>(string url, string jsonData)
+        {
+            var webRequest = new UnityWebRequest();
+            webRequest.url = url;
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonData));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<T>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<T> GetWalletNfts<T>(string address)
+        {
+            int totalNfts = await GetRequest<int>("https://devnet-api.elrond.com/" + $"accounts/{address}/nfts/count");
+            return await GetRequest<T>("https://devnet-api.elrond.com/" + $"accounts/{address}/nfts?from={0}&size={totalNfts}");
+        }
+
+        public async Task<T> GetWalletTokens<T>(string address)
+        {
+            int totalTokens = await GetRequest<int>("https://devnet-api.elrond.com" + $"/accounts/{address}/tokens/count");
+            return await GetRequest<T>("https://devnet-api.elrond.com/" + $"accounts/{address}/tokens?from={0}&size={totalTokens}");
+        }
+        #endregion
     }
 }

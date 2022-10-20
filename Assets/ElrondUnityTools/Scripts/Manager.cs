@@ -150,7 +150,7 @@ namespace ElrondUnityTools
         /// </summary>
         /// <param name="url">Get API url</param>
         /// <param name="CompleteMethod">Complete listener (operation status, error message, return data)</param>
-        public static void GetRequest(string url, UnityAction<OperationStatus, string, string> CompleteMethod)
+        public static void GetRequest<T>(string url, UnityAction<OperationStatus, string, T> CompleteMethod)
         {
             ConnectionManager.Instance.GetRequest(url, CompleteMethod);
         }
@@ -162,7 +162,7 @@ namespace ElrondUnityTools
         /// <param name="url">Post url</param>
         /// <param name="jsonData">json data to send</param>
         /// <param name="CompleteMethod">Complete listener (operation status, error message, return data)</param>
-        public static void PostRequest(string url, string jsonData, UnityAction<OperationStatus, string, string> CompleteMethod)
+        public static void PostRequest<T>(string url, string jsonData, UnityAction<OperationStatus, string, T> CompleteMethod)
         {
             ConnectionManager.Instance.PostRequest(url, jsonData, CompleteMethod);
         }

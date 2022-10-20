@@ -1,5 +1,7 @@
+using ElrondUnityTools;
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -55,6 +57,7 @@ namespace ElrondUnityExamples
             LoadScreen(Screens.Home);
         }
 
+        
 
         public void Connect(Image qrImage)
         {
@@ -86,6 +89,11 @@ namespace ElrondUnityExamples
             {
                 Application.Quit();
             }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                //Get();
+                Post();
+            }
         }
 
 
@@ -113,9 +121,20 @@ namespace ElrondUnityExamples
         public void Get()
         {
             string url = "https://devnet-api.elrond.com/accounts/erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
-            ElrondUnityTools.Manager.GetRequest(url, CompleteMethod);
+            ElrondUnityTools.Manager.GetRequest<AccountDto>(url, CompleteMethodGet);
         }
 
+        private void CompleteMethodGet(OperationStatus operationStatus, string message, AccountDto result)
+        {
+            if (operationStatus == OperationStatus.Complete)
+            {
+                Debug.Log(result.Address);
+            }
+            else
+            {
+                Debug.LogError(message + " " + result);
+            }
+        }
 
         public void Post()
         {
@@ -137,19 +156,19 @@ namespace ElrondUnityExamples
                           "}";
 
             //Make the Post request 
-            ElrondUnityTools.Manager.PostRequest(url, json, CompleteMethod);
+            ElrondUnityTools.Manager.PostRequest<TransactionCostDataDto>(url, json, CompleteMethodPost);
         }
 
 
-        private void CompleteMethod(ElrondUnityTools.OperationStatus operationStatus, string message, string resultJson)
+        private void CompleteMethodPost(ElrondUnityTools.OperationStatus operationStatus, string message, TransactionCostDataDto result)
         {
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                Debug.Log(resultJson);
+                Debug.Log(result.TxGasUnits);
             }
             else
             {
-                Debug.LogError(message + " " + resultJson);
+                Debug.LogError(message + " " + result.ReturnMessage);
             }
         }
         #endregion

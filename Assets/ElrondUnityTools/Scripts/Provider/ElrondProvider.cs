@@ -6,10 +6,11 @@ using Erdcsharp.Domain.Exceptions;
 using Erdcsharp.Domain.Helper;
 using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
+using UnityEngine;
 
 namespace ElrondUnityTools
 {
-    public class ElrondProvider : IElrondProvider
+    public class ElrondProvider : IElrondApiProvider
     {
         private readonly HttpClient _httpClient;
 
@@ -24,7 +25,7 @@ namespace ElrondUnityTools
 
         public async Task<ConfigDataDto> GetNetworkConfig()
         {
-            var response = await _httpClient.GetAsync("network1/config");
+            var response = await _httpClient.GetAsync("network/config");
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
@@ -41,7 +42,7 @@ namespace ElrondUnityTools
 
         public async Task<AccountDto> GetAccount(string address)
         {
-            var response = await _httpClient.GetAsync($"address1/{address}");
+            var response = await _httpClient.GetAsync($"address/{address}");
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
@@ -58,7 +59,7 @@ namespace ElrondUnityTools
 
         public async Task<EsdtTokenDataDto> GetEsdtTokens(string address)
         {
-            var response = await _httpClient.GetAsync($"address1/{address}/esdt");
+            var response = await _httpClient.GetAsync($"address/{address}/esdt");
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
@@ -75,7 +76,7 @@ namespace ElrondUnityTools
 
         public async Task<EsdtItemDto> GetEsdtNftToken(string address, string tokenIdentifier, ulong tokenId)
         {
-            var response = await _httpClient.GetAsync($"address1/{address}/nft/{tokenIdentifier}/nonce/{tokenId}");
+            var response = await _httpClient.GetAsync($"address/{address}/nft/{tokenIdentifier}/nonce/{tokenId}");
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
@@ -92,7 +93,7 @@ namespace ElrondUnityTools
 
         public async Task<EsdtTokenData> GetEsdtToken(string address, string tokenIdentifier)
         {
-            var response = await _httpClient.GetAsync($"address1/{address}/esdt/{tokenIdentifier}");
+            var response = await _httpClient.GetAsync($"address/{address}/esdt/{tokenIdentifier}");
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
@@ -111,7 +112,7 @@ namespace ElrondUnityTools
         {
             var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
             var payload = new StringContent(raw, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("transaction1/send", payload);
+            var response = await _httpClient.PostAsync("transaction/send", payload);
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
@@ -129,7 +130,7 @@ namespace ElrondUnityTools
         {
             var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
             var payload = new StringContent(raw, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("transaction1/cost", payload);
+            var response = await _httpClient.PostAsync("transaction/cost", payload);
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
@@ -169,7 +170,7 @@ namespace ElrondUnityTools
 
         public async Task<TransactionDto> GetTransactionDetail(string txHash)
         {
-            var response = await _httpClient.GetAsync($"transaction1/{txHash}?withResults=true");
+            var response = await _httpClient.GetAsync($"transaction/{txHash}?withResults=true");
 
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
@@ -182,6 +183,49 @@ namespace ElrondUnityTools
             {
                 throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
             }
+        }
+
+        public async Task<T> GetRequest<T>(string url)
+        {
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonSerializerWrapper.Deserialize<T>(content);
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<T> PostRequest<T>(string url, string jsonData)
+        {
+            var payload = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(url, payload);
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<T>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<T> GetWalletNfts<T>(string address)
+        {
+            int totalNfts = await GetRequest<int>("https://devnet-api.elrond.com/" + $"accounts/{address}/nfts/count");
+            return await GetRequest<T>("https://devnet-api.elrond.com/" + $"accounts/{address}/nfts?from={0}&size={totalNfts}");
+        }
+
+        public async Task<T> GetWalletTokens<T>(string address)
+        {
+            int totalTokens = await GetRequest<int>("https://devnet-api.elrond.com" + $"/accounts/{address}/tokens/count");
+            return await GetRequest<T>("https://devnet-api.elrond.com/" + $"accounts/{address}/tokens?from={0}&size={totalTokens}");
         }
     }
 }

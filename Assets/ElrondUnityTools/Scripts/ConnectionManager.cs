@@ -4,14 +4,11 @@ using Erdcsharp.Domain.Codec;
 using Erdcsharp.Domain.Helper;
 using Erdcsharp.Domain.SmartContracts;
 using Erdcsharp.Domain.Values;
-using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
-using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
@@ -24,13 +21,13 @@ namespace ElrondUnityTools
     public class ConnectionManager : WalletConnectActions
     {
         private Account connectedAccount;
-        private IElrondProvider elrondAPI;
+        private IElrondApiProvider elrondAPI;
         private NetworkConfig networkConfig;
         private UnityAction<Account> OnWalletConnected;
         private UnityAction OnWalletDisconnected;
         private WalletConnect walletConnect;
         private bool walletConnected;
-        BinaryCodec BinaryCoder = new BinaryCodec();
+        private BinaryCodec BinaryCoder = new BinaryCodec();
 
         private static ConnectionManager instance;
         internal static ConnectionManager Instance
@@ -76,10 +73,11 @@ namespace ElrondUnityTools
             walletConnect.ConnectedEvent.AddListener(Connected);
             AddQRImageScript(qrImage);
 
-            elrondAPI = new ElrondProviderUnity(new ElrondNetworkConfiguration(Constants.networkType));
-            //elrondAPI = new ElrondProvider(new System.Net.Http.HttpClient(), new ElrondNetworkConfiguration(Constants.networkType));
+            //elrondAPI = new ElrondProviderUnity(new ElrondNetworkConfiguration(Constants.networkType));
+            elrondAPI = new ElrondProvider(new System.Net.Http.HttpClient(), new ElrondNetworkConfiguration(Constants.networkType));
             networkConfig = await LoadNetworkConfig();
         }
+
 
         private async Task<NetworkConfig> LoadNetworkConfig(bool throwException = false)
         {
@@ -102,6 +100,7 @@ namespace ElrondUnityTools
             return null;
         }
 
+
         private async void AddQRImageScript(Image qrImage)
         {
             if (qrImage != null)
@@ -112,10 +111,12 @@ namespace ElrondUnityTools
             await walletConnect.Connect();
         }
 
+
         private void Connected()
         {
             OnConnected();
         }
+
 
         internal void DeepLinkLogin()
         {
@@ -151,6 +152,7 @@ namespace ElrondUnityTools
 
             CallSCMethod(destinationAddress, "ESDTTransfer", gas, completeMethod, TokenIdentifierValue.From(token.Ticker), NumericValue.TokenAmount(TokenAmount.ESDT(amount, token)));
         }
+
 
         internal void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> completeMethod)
         {
@@ -266,19 +268,19 @@ namespace ElrondUnityTools
         #endregion
 
 
-
         private void OnConnected()
         {
             walletConnected = true;
             WalletConnect.ActiveSession.OnSessionDisconnect += ActiveSessionOnDisconnect;
             RefreshAccount(AccountRefreshed);
-
         }
+
 
         private void AccountRefreshed(OperationStatus status, string message)
         {
             OnWalletConnected(connectedAccount);
         }
+
 
         public async void RefreshAccount(UnityAction<OperationStatus, string> completeMethod)
         {
@@ -294,6 +296,7 @@ namespace ElrondUnityTools
             }
         }
 
+
         private void ActiveSessionOnDisconnect(object sender, EventArgs e)
         {
             WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
@@ -301,127 +304,43 @@ namespace ElrondUnityTools
             OnWalletDisconnected();
         }
 
+
         #region Tokens
-        internal void LoadAllTokens(UnityAction<OperationStatus, string, TokenMetadata[]> loadTokensComplete)
+        internal async void LoadAllTokens(UnityAction<OperationStatus, string, TokenMetadata[]> completeMethod)
         {
-            StartCoroutine(GetWalletTokens(connectedAccount.Address.ToString(), loadTokensComplete));
-        }
-
-        private IEnumerator GetWalletTokens(string address, UnityAction<OperationStatus, string, TokenMetadata[]> loadTokensComplete)
-        {
-            string url = Constants.getTokensCount;
-            url = url.Replace("{address}", address);
-
-            int totalTokens = 0;
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            try
             {
-                // Request and wait for the desired page.
-                yield return webRequest.SendWebRequest();
-
-                switch (webRequest.result)
-                {
-                    case UnityWebRequest.Result.Success:
-                        totalTokens = int.Parse(webRequest.downloadHandler.text);
-                        break;
-                    default:
-                        loadTokensComplete(OperationStatus.Error, webRequest.error, null);
-                        break;
-                }
+                completeMethod?.Invoke(OperationStatus.Complete, "Success", await elrondAPI.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString()));
             }
-            if (totalTokens == 0)
-                yield break;
-
-            url = Constants.getTokensAPI;
-            url = url.Replace("{address}", address);
-            url += "?from=0&size=" + totalTokens;
-
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            catch (Exception e)
             {
-                // Request and wait for the desired page.
-                yield return webRequest.SendWebRequest();
-
-                switch (webRequest.result)
-                {
-                    case UnityWebRequest.Result.Success:
-                        try
-                        {
-                            List<TokenMetadata> allNfts = JsonConvert.DeserializeObject<List<TokenMetadata>>(webRequest.downloadHandler.text);
-                            loadTokensComplete(OperationStatus.Complete, "Success", allNfts.ToArray());
-                        }
-                        catch (Exception e)
-                        {
-                            loadTokensComplete(OperationStatus.Error, e.Message + ": " + e.Data, null);
-                        }
-                        break;
-                    default:
-                        loadTokensComplete(OperationStatus.Error, webRequest.error, null);
-                        break;
-                }
+                completeMethod?.Invoke(OperationStatus.Error, e.Message + ": " + e.Data, null);
             }
         }
         #endregion
 
         #region NFTs
-        public void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTCompletes)
+        public async void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> completeMethod)
         {
-            StartCoroutine(GetWalletNFTs(connectedAccount.Address.ToString(), LoadNFTCompletes));
-        }
-
-
-        private IEnumerator GetWalletNFTs(string address, UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTsComplete)
-        {
-            string url = Constants.getNFTCount;
-            url = url.Replace("{address}", address);
-
-            int totalNfts = 0;
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            try
             {
-                // Request and wait for the desired page.
-                yield return webRequest.SendWebRequest();
-
-                switch (webRequest.result)
+                List<NFTMetadata> allNfts = await elrondAPI.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
+                for (int i = allNfts.Count - 1; i >= 0; i--)
                 {
-                    case UnityWebRequest.Result.Success:
-                        totalNfts = int.Parse(webRequest.downloadHandler.text);
-                        break;
-                    default:
-                        LoadNFTsComplete(OperationStatus.Error, webRequest.error, null);
-                        break;
+                    //remove the LP tokens
+                    if (allNfts[i].type == "MetaESDT")
+                    {
+                        allNfts.RemoveAt(i);
+                    }
                 }
+                completeMethod?.Invoke(OperationStatus.Complete, "Success", allNfts.ToArray());
             }
-            if (totalNfts == 0)
-                yield break;
-
-            url = Constants.getNFTAPI;
-            url = url.Replace("{address}", address);
-            url += "?from=" + 0 + "&size=" + totalNfts;
-
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            catch (Exception e)
             {
-                // Request and wait for the desired page.
-                yield return webRequest.SendWebRequest();
-
-                switch (webRequest.result)
-                {
-                    case UnityWebRequest.Result.Success:
-                        List<NFTMetadata> allNfts = JsonConvert.DeserializeObject<List<NFTMetadata>>(webRequest.downloadHandler.text);
-                        for (int i = allNfts.Count - 1; i >= 0; i--)
-                        {
-                            //remove the LP tokens
-                            if (allNfts[i].type == "MetaESDT")
-                            {
-                                allNfts.RemoveAt(i);
-                            }
-                        }
-                        LoadNFTsComplete(OperationStatus.Complete, "Success", allNfts.ToArray());
-                        break;
-                    default:
-                        LoadNFTsComplete(OperationStatus.Error, webRequest.error, null);
-                        break;
-                }
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", null);
+                return;
             }
         }
-
 
         internal void SendNFT(string destinationAddress, string collectionIdentifier, ulong nonce, int quantity, UnityAction<OperationStatus, string> completeMethod)
         {
@@ -448,7 +367,6 @@ namespace ElrondUnityTools
             {
                 var queryResult = await SmartContract.QuerySmartContract<T>(elrondAPI, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
                 completeMethod(OperationStatus.Complete, "Success", queryResult);
-
             }
             catch (Exception e)
             {
@@ -471,61 +389,28 @@ namespace ElrondUnityTools
         #endregion
 
         #region GenericMethods
-        internal void GetRequest(string url, UnityAction<OperationStatus, string, string> completeMethod)
+        internal async void GetRequest<T>(string url, UnityAction<OperationStatus, string, T> completeMethod)
         {
-            StartCoroutine(MakeAPICall(url, completeMethod));
-        }
-
-
-        private IEnumerator MakeAPICall(string url, UnityAction<OperationStatus, string, string> completeMethod)
-        {
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            try
             {
-                // Request and wait for the desired page.
-                yield return webRequest.SendWebRequest();
-
-                switch (webRequest.result)
-                {
-                    case UnityWebRequest.Result.Success:
-                        completeMethod?.Invoke(OperationStatus.Complete, "Success", webRequest.downloadHandler.text);
-                        break;
-                    default:
-                        completeMethod?.Invoke(OperationStatus.Error, webRequest.error, null);
-                        break;
-                }
+                completeMethod?.Invoke(OperationStatus.Complete, "Success", await elrondAPI.GetRequest<T>(url));
+            }
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", default(T));
             }
         }
 
 
-        internal void PostRequest(string url, string jsonData, UnityAction<OperationStatus, string, string> completeMethod)
+        internal async void PostRequest<T>(string url, string jsonData, UnityAction<OperationStatus, string, T> completeMethod)
         {
-            StartCoroutine(Post(url, jsonData, completeMethod));
-        }
-
-
-        IEnumerator Post(string url, string jsonData, UnityAction<OperationStatus, string, string> completeMethod)
-        {
-            using var webRequest = new UnityWebRequest();
-            webRequest.url = url;
-            webRequest.method = "POST";
-            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonData));
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("accept", "application/json");
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-            yield return webRequest.SendWebRequest();
-
-            switch (webRequest.result)
+            try
             {
-                case UnityWebRequest.Result.Success:
-                    completeMethod?.Invoke(OperationStatus.Complete, "Success", webRequest.downloadHandler.text);
-                    break;
-                case UnityWebRequest.Result.ConnectionError:
-                case UnityWebRequest.Result.DataProcessingError:
-                    completeMethod?.Invoke(OperationStatus.Error, webRequest.error, webRequest.downloadHandler.text);
-                    break;
-                case UnityWebRequest.Result.ProtocolError:
-                    completeMethod?.Invoke(OperationStatus.Error, webRequest.error + " " + webRequest.result, webRequest.downloadHandler.text);
-                    break;
+                completeMethod?.Invoke(OperationStatus.Complete, "Success", await elrondAPI.PostRequest<T>(url, jsonData));
+            }
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", default(T));
             }
         }
 
@@ -536,7 +421,6 @@ namespace ElrondUnityTools
         #endregion
 
         #region Utils
-
         public void LoadImage(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> completeMethod)
         {
             StartCoroutine(LoadImageCoroutine(imageURL, displayComponent, completeMethod));
@@ -567,7 +451,6 @@ namespace ElrondUnityTools
                         Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
                         displayComponent.sprite = newSprite;
                         completeMethod?.Invoke(OperationStatus.Complete, "Success");
-
                     }
                     break;
                 default:

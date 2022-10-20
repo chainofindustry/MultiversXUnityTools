@@ -61,7 +61,7 @@ namespace ElrondUnityExamples
         {
             if (operationStatus == ElrondUnityTools.OperationStatus.Complete)
             {
-                scResultText.text += "Current sum: " + data;
+                scResultText.text = "Current sum: " + data;
             }
             else
             {
