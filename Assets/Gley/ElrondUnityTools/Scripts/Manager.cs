@@ -197,5 +197,7 @@ namespace ElrondUnityTools
         {
             ConnectionManager.Instance.LoadImage(imageURL, displayComponent, CompleteMethod);
         }
+
+        //query vm
     }
 }
