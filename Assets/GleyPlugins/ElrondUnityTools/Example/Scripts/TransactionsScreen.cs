@@ -1,5 +1,7 @@
 using ElrondUnityTools;
 using Erdcsharp.Domain;
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;

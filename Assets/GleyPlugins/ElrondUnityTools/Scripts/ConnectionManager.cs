@@ -30,6 +30,7 @@ namespace ElrondUnityTools
         private WalletConnect walletConnect;
         private bool walletConnected;
         private BinaryCodec BinaryCoder = new BinaryCodec();
+        private APISettings apiSettings;
 
         private static ConnectionManager instance;
         internal static ConnectionManager Instance
@@ -53,6 +54,7 @@ namespace ElrondUnityTools
             if (gameObject.GetComponent<WalletConnect>())
             {
                 AddQRImageScript(qrImage);
+                await LoadAPI();
                 return;
             }
 
@@ -75,7 +77,11 @@ namespace ElrondUnityTools
             walletConnect.ConnectedEvent.AddListener(Connected);
             AddQRImageScript(qrImage);
 
-            APISettings apiSettings = Resources.Load<APISettings>("APISettingsData");
+            await LoadAPI();
+        }
+
+        async Task LoadAPI()
+        {
             if (apiSettings == null || string.IsNullOrEmpty(apiSettings.selectedAPIName))
             {
                 Debug.LogError("No API settings file found -> Go to ... and generate one");
@@ -102,17 +108,15 @@ namespace ElrondUnityTools
                 return;
             }
 
-           
-
+            Debug.Log($"SELECTED API { selectedAPI.apiName} {selectedAPI.baseAddress}");
             elrondAPI = new ElrondProviderUnity(selectedAPI);
             //elrondAPI = new ElrondProvider(new System.Net.Http.HttpClient(), new ElrondNetworkConfiguration(Constants.networkType));
-            networkConfig = await LoadNetworkConfig();
+            networkConfig = await LoadNetworkConfig(false, true);
         }
 
-
-        private async Task<NetworkConfig> LoadNetworkConfig(bool throwException = false)
+        private async Task<NetworkConfig> LoadNetworkConfig(bool throwException = false, bool forceReload = false)
         {
-            if (networkConfig != null)
+            if (networkConfig != null && forceReload == false)
             {
                 return networkConfig;
             }
@@ -275,6 +279,15 @@ namespace ElrondUnityTools
                 completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
                 return;
             }
+        }
+
+        internal APISettings GetApiSettings()
+        {
+            if (apiSettings == null)
+            {
+                apiSettings = Resources.Load<APISettings>(Constants.ApiSettingsData);
+            }
+            return apiSettings;
         }
         #endregion
 
@@ -447,7 +460,10 @@ namespace ElrondUnityTools
 
         private void OnDestroy()
         {
-            walletConnect.ConnectedEvent.RemoveAllListeners();
+            if (walletConnect)
+            {
+                walletConnect.ConnectedEvent.RemoveAllListeners();
+            }
         }
         #endregion
 

@@ -32,15 +32,22 @@ namespace ElrondUnityTools
 
         private void OnEnable()
         {
-            apiSettings = Resources.Load<APISettings>("APISettingsData");
+            apiSettings = Resources.Load<APISettings>(Constants.ApiSettingsData);
             if (apiSettings == null)
             {
                 CreateAPISettings();
-                apiSettings = Resources.Load<APISettings>("APISettingsData");
+                apiSettings = Resources.Load<APISettings>(Constants.ApiSettingsData);
             }
 
             supportedAPIs = new List<API>();
             DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/GleyPlugins/ElrondUnityTools/Scripts/Provider/APIs");
+            if (!dir.Exists)
+            {
+                Debug.Log("No custom APIs found, loading default APIs");
+                FileUtil.CopyFileOrDirectory($"{Application.dataPath}/GleyPlugins/ElrondUnityTools/Scripts/Provider/DefaultAPIs", $"{Application.dataPath}/GleyPlugins/ElrondUnityTools/Scripts/Provider/APIs");
+                AssetDatabase.Refresh();
+                dir = new DirectoryInfo($"{Application.dataPath}/GleyPlugins/ElrondUnityTools/Scripts/Provider/APIs");
+            }
 
             foreach (FileInfo file in dir.GetFiles("*.json"))
             {
@@ -52,15 +59,23 @@ namespace ElrondUnityTools
                 }
                 reader.Close();
             }
+
             if (selectedAPI == null)
             {
-                selectedAPI = supportedAPIs[0];
+                if (supportedAPIs.Count != 0)
+                {
+                    selectedAPI = supportedAPIs[0];
+                }
             }
         }
 
         private void OnGUI()
         {
-
+            if (selectedAPI == null)
+            {
+                Debug.LogWarning("No API found, please reimport the plugin");
+                return;
+            }
             EditorGUILayout.LabelField("API configuration ", EditorStyles.boldLabel);
             EditorGUILayout.Space();
 
@@ -140,7 +155,12 @@ namespace ElrondUnityTools
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField($"API name: {supportedAPIs[i].apiName}");
                     EditorGUILayout.LabelField($"Base address: {supportedAPIs[i].baseAddress}");
-                    if (GUILayout.Button("Select"))
+                    string buttonText = "Select";
+                    if(supportedAPIs[i]==selectedAPI)
+                    {
+                        buttonText = "Selected";
+                    }
+                    if (GUILayout.Button(buttonText))
                     {
                         selectedAPI = supportedAPIs[i];
                     }
@@ -306,7 +326,7 @@ namespace ElrondUnityTools
             APISettings asset = CreateInstance<APISettings>();
             string path = "Assets/GleyPlugins/ElrondUnityTools/Resources";
             EditorUtilities.CreateFolder(path);
-            AssetDatabase.CreateAsset(asset, $"{path}/APISettingsData.asset");
+            AssetDatabase.CreateAsset(asset, $"{path}/{Constants.ApiSettingsData}.asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }

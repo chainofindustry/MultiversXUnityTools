@@ -199,5 +199,12 @@ namespace ElrondUnityTools
         }
 
         //query vm
+
+
+        //
+        public static APISettings GetApiSettings()
+        {
+            return ConnectionManager.Instance.GetApiSettings();
+        }
     }
 }

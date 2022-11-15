@@ -2,6 +2,7 @@ namespace ElrondUnityTools
 {
     public class Constants
     {
+        public const string ApiSettingsData = "APISettingsData";
         public const string ConnectionManagerObject = "ElrondConnectionManager";
         public const string customBridgeUrl = "https://f.bridge.walletconnect.org";
 
