@@ -1,0 +1,231 @@
+﻿using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Erdcsharp.Configuration;
+using Erdcsharp.Domain.Exceptions;
+using Erdcsharp.Domain.Helper;
+using Erdcsharp.Provider;
+using Erdcsharp.Provider.Dtos;
+using UnityEngine;
+
+namespace MultiversXUnityTools
+{
+    public class ElrondProvider : IElrondApiProvider
+    {
+        private readonly HttpClient _httpClient;
+
+        public ElrondProvider(HttpClient httpClient, ElrondNetworkConfiguration configuration = null)
+        {
+            _httpClient = httpClient;
+            if (configuration != null)
+            {
+                _httpClient.BaseAddress = configuration.GatewayUri;
+            }
+        }
+
+        public async Task<ConfigDataDto> GetNetworkConfig()
+        {
+            var response = await _httpClient.GetAsync("network/config");
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<ConfigDataDto>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<AccountDto> GetAccount(string address)
+        {
+            var response = await _httpClient.GetAsync($"address/{address}");
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<AccountDataDto>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data.Account;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<EsdtTokenDataDto> GetEsdtTokens(string address)
+        {
+            var response = await _httpClient.GetAsync($"address/{address}/esdt");
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtTokenDataDto>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<EsdtItemDto> GetEsdtNftToken(string address, string tokenIdentifier, ulong tokenId)
+        {
+            var response = await _httpClient.GetAsync($"address/{address}/nft/{tokenIdentifier}/nonce/{tokenId}");
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtItemDto>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<EsdtTokenData> GetEsdtToken(string address, string tokenIdentifier)
+        {
+            var response = await _httpClient.GetAsync($"address/{address}/esdt/{tokenIdentifier}");
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtTokenData>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<CreateTransactionResponseDataDto> SendTransaction(TransactionRequestDto transactionRequestDto)
+        {
+            var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
+            var payload = new StringContent(raw, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("transaction/send", payload);
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<CreateTransactionResponseDataDto>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<TransactionCostDataDto> GetTransactionCost(TransactionRequestDto transactionRequestDto)
+        {
+            var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
+            var payload = new StringContent(raw, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("transaction/cost", payload);
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<TransactionCostDataDto>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<QueryVmResultDataDto> QueryVm(QueryVmRequestDto queryVmRequestDto)
+        {
+            var raw = JsonSerializerWrapper.Serialize(queryVmRequestDto);
+            var payload = new StringContent(raw, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("vm-values/query", payload);
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<QueryVmResultDataDto>>(content);
+                result.EnsureSuccessStatusCode();
+                if (result.Data.Data.ReturnData == null)
+                {
+                    throw new NullDataException(result.Data.Data.ReturnCode, result.Data.Data.ReturnMessage);
+                }
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<TransactionDto> GetTransactionDetail(string txHash)
+        {
+            var response = await _httpClient.GetAsync($"transaction/{txHash}?withResults=true");
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<TransactionResponseData>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data.Transaction;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<T> GetRequest<T>(string url)
+        {
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonSerializerWrapper.Deserialize<T>(content);
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<T> PostRequest<T>(string url, string jsonData)
+        {
+            var payload = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(url, payload);
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<T>>(content);
+                result.EnsureSuccessStatusCode();
+                return result.Data;
+            }
+            else
+            {
+                throw new GatewayException(content, $"{response.StatusCode} url: {response.RequestMessage.RequestUri.AbsoluteUri}");
+            }
+        }
+
+        public async Task<T> GetWalletNfts<T>(string address)
+        {
+            int totalNfts = await GetRequest<int>("https://devnet-api.elrond.com/" + $"accounts/{address}/nfts/count");
+            return await GetRequest<T>("https://devnet-api.elrond.com/" + $"accounts/{address}/nfts?from={0}&size={totalNfts}");
+        }
+
+        public async Task<T> GetWalletTokens<T>(string address)
+        {
+            int totalTokens = await GetRequest<int>("https://devnet-api.elrond.com" + $"/accounts/{address}/tokens/count");
+            return await GetRequest<T>("https://devnet-api.elrond.com/" + $"accounts/{address}/tokens?from={0}&size={totalTokens}");
+        }
+    }
+}
