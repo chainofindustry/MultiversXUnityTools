@@ -1,8 +1,5 @@
 using Erdcsharp.Domain;
-using System.Collections;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace MultiversXUnityTools
 {
@@ -18,6 +15,9 @@ namespace MultiversXUnityTools
         }
     }
 
+    /// <summary>
+    /// Used to check the validity of different types of data
+    /// </summary>
     public class Utilities
     {
         public static OperationResult IsNumberValid(ref string amount)
@@ -26,13 +26,17 @@ namespace MultiversXUnityTools
             {
                 return new OperationResult(OperationStatus.Error, $"Amount cannot be null");
             }
+            //sdk requires . for decimals, input fields accept . & ,
             amount = amount.Replace(",", ".");
+
+            //check if it is number
             if (!Regex.IsMatch(amount, "^\\d*\\.?\\d*$"))
             {
                 return new OperationResult(OperationStatus.Error, $"Invalid amount: {amount}");
             }
             return new OperationResult(OperationStatus.Complete, null);
         }
+
 
         public static bool IsAddressValid(string erdAddress)
         {

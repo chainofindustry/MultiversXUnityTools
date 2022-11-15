@@ -1,6 +1,5 @@
 using Erdcsharp.Domain;
 using Erdcsharp.Domain.Values;
-using Erdcsharp.Provider.Dtos;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -30,6 +29,11 @@ namespace MultiversXUnityTools
         }
 
 
+        public static Account GetConnectedAccount()
+        {
+            return ConnectionManager.Instance.GetConnectedAccount();
+        }
+
         /// <summary>
         /// Login from the same mobile device that has the Maiar app already installed. It will automatically open the Maiar app.
         /// </summary>
@@ -52,7 +56,7 @@ namespace MultiversXUnityTools
         /// Send an EGLD transaction for signing to the Maiar wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
         /// </summary>
         /// <param name="destinationAddress">The erd address of the receiver</param>
-        /// <param name="amount">Amount of EGLD to send(in decimals)</param>
+        /// <param name="amount">Amount of EGLD to send(in decimals) as string</param>
         /// <param name="data">An optional custom message</param>
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
@@ -73,11 +77,11 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
-        /// Send an ESDT transaction for signing to the Maiar wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
+        /// Send an ESDT transaction for signing to the Maiar wallet. After it is signed the transaction will be automatically broadcasted to the blockchain 
         /// </summary>
         /// <param name="destinationAddress">The erd address of the receiver</param>
         /// <param name="token">Token to send</param>
-        /// <param name="amount">Amount of token to send(in decimals)</param>
+        /// <param name="amount">Amount of token to send(in decimals) as string</param>
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendESDTTransaction(string destinationAddress, Token token, string amount, UnityAction<OperationStatus, string> TransactionStatus)
         {
@@ -129,7 +133,7 @@ namespace MultiversXUnityTools
         /// <param name="methodName">The method to call</param>
         /// <param name="gas">The gas required to execute the called SC method</param>
         /// <param name="CallStatus">Callback to get the result of the call</param>
-        /// <param name="args">The list of arguments</param>
+        /// <param name="args">The list of arguments. Can be:</param>
         /// Address
         /// BooleanValue
         /// BytesValue
@@ -146,7 +150,7 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
-        /// Call any API method from the Elrond Network
+        /// Call any API method from the MultiversX Network
         /// </summary>
         /// <param name="url">Get API url</param>
         /// <param name="CompleteMethod">Complete listener (operation status, error message, return data)</param>
@@ -157,7 +161,7 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
-        /// Make a POST request to Elrond APIs
+        /// Make a POST request to MultiversX APIs
         /// </summary>
         /// <param name="url">Post url</param>
         /// <param name="jsonData">json data to send</param>
@@ -198,13 +202,17 @@ namespace MultiversXUnityTools
             ConnectionManager.Instance.LoadImage(imageURL, displayComponent, CompleteMethod);
         }
 
-        //query vm
-
-
-        //
+        
+        /// <summary>
+        /// Get the current config settings saved using the Settings Window
+        /// </summary>
+        /// <returns></returns>
         public static APISettings GetApiSettings()
         {
             return ConnectionManager.Instance.GetApiSettings();
         }
+
+        //query vm
+        //TODO
     }
 }

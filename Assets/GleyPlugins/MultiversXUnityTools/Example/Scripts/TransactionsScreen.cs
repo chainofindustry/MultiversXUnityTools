@@ -28,19 +28,30 @@ namespace MultiversXUnityExamples
         public override void Init(params object[] args)
         {
             base.Init(args);
+            //load default values
             destination.text = defaultAddress;
             message.text = defaultMessage;
             amount.text = egld.ToString();
+            //populate tokens available to transfer
             PopulateDropDown();
             status.text = "Start loading tokens";
+            //load all wallet tokens
             Manager.LoadAllTokens(TokensLoaded);
         }
 
+
+        /// <summary>
+        /// Callback triggered when token metadata finished loading
+        /// </summary>
+        /// <param name="operationStatus"></param>
+        /// <param name="message"></param>
+        /// <param name="allTokens"></param>
         private void TokensLoaded(OperationStatus operationStatus, string message, TokenMetadata[] allTokens)
         {
             status.text = $"Tokens Loaded status: {operationStatus} message: {message}";
             if (operationStatus == OperationStatus.Complete)
             {
+                //Add tokens to UI
                 PopulateUI(allTokens);
             }
         }
@@ -55,12 +66,14 @@ namespace MultiversXUnityExamples
             for (int i = 0; i < allTokens.Length; i++)
             {
                 TokenHolder script = Instantiate(tokenHolder, tokenParent).GetComponent<TokenHolder>();
+                //display token value
                 script.value.text = (BigInteger.Parse(allTokens[i].balance) / BigInteger.Pow(10, allTokens[i].decimals)).ToString("N2");
                 script.tokenName.text = allTokens[i].name;
                 if (allTokens[i].assets != null)
                 {
                     if (!string.IsNullOrEmpty(allTokens[i].assets.pngUrl))
                     {
+                        //load token icon
                         Manager.LoadImage(allTokens[i].assets.pngUrl, script.tokenImage, null);
                     }
                     else
@@ -75,10 +88,13 @@ namespace MultiversXUnityExamples
             }
         }
 
+
+        //linked in editor to back button
         public void BackButton()
         {
             DemoScript.Instance.LoadScreen(Screens.Connected);
         }
+
 
         //linked to the send transaction button in editor
         public void SendTransaction()
@@ -107,6 +123,10 @@ namespace MultiversXUnityExamples
             Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, SigningStatusListener);
         }
 
+
+        /// <summary>
+        /// Add dropdown options
+        /// </summary>
         void PopulateDropDown()
         {
             Debug.Log(esdtTokenDropdown);
@@ -136,6 +156,7 @@ namespace MultiversXUnityExamples
             }
         }
 
+
         /// <summary>
         /// Listener for the transaction status response
         /// </summary>
@@ -147,16 +168,26 @@ namespace MultiversXUnityExamples
             if (operationStatus == OperationStatus.Complete)
             {
                 status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh account";
+                //after a transaction is processed, refresh account balance
                 Manager.RefreshAccount(RefreshDone);
             }
         }
 
+
+        /// <summary>
+        /// Callback for the account refresh
+        /// </summary>
+        /// <param name="operationStatus"></param>
+        /// <param name="message"></param>
         private void RefreshDone(OperationStatus operationStatus, string message)
         {
             status.text = $"Refresh account status: {operationStatus} message: {message}";
             if (operationStatus == OperationStatus.Complete)
             {
                 status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh tokens";
+                //after the account is refreshed load again all tokens.
+                //this is not mandatory, you can just load the token that was sent, 
+                //or even better just update the token balance in UI with the amount send, without calling the blockchain API
                 Manager.LoadAllTokens(TokensLoaded);
             }
         }

@@ -1,12 +1,12 @@
 using Erdcsharp.Provider;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace MultiversXUnityTools
 {
-    public interface IElrondApiProvider : IElrondProvider
+    /// <summary>
+    /// Addition to the default MultiversX SDK methods 
+    /// </summary>
+    public interface IMultiversXApiProvider : IElrondProvider
     {
         Task<T> GetRequest<T>(string url);
 

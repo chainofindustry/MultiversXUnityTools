@@ -3,6 +3,7 @@ using WalletConnectSharp.Core.Models;
 
 namespace MultiversXUnityTools
 {
+    //RPC response
     public class ErdResponse : JsonRpcResponse
     {
         [JsonProperty]
@@ -11,6 +12,7 @@ namespace MultiversXUnityTools
         [JsonIgnore]
         public string Result => result.signature;
     }
+
 
     public class Result
     {
@@ -22,6 +24,7 @@ namespace MultiversXUnityTools
         public Peermeta peerMeta { get; set; }
     }
 
+
     public class Peermeta
     {
         public string description { get; set; }
@@ -29,5 +32,4 @@ namespace MultiversXUnityTools
         public string name { get; set; }
         public string url { get; set; }
     }
-
 }

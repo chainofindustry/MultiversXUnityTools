@@ -2,8 +2,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using WalletConnectSharp.Unity;
-using WalletConnectSharp.Unity.Utils;
 using QRCoder;
 using QRCoder.Unity;
 namespace MultiversXUnityTools
@@ -65,8 +63,8 @@ namespace MultiversXUnityTools
             {
                 StartCoroutine(ShowLoader());
             }
-
         }
+
 
         private IEnumerator ShowLoader()
         {
@@ -78,6 +76,8 @@ namespace MultiversXUnityTools
             _image.enabled = true;
             loader.SetActive(false);
         }
+
+
         private void GenerateQrCode()
         {
             Debug.Log(_image);
@@ -109,6 +109,7 @@ namespace MultiversXUnityTools
                 new Vector2(0.5f, 0.5f), 100f);
             _image.sprite = qrCodeSprite;
         }
+
 
         private void OnDestroy()
         {

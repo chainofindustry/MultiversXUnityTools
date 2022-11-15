@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace MultiversXUnityExamples
 {
+    /// <summary>
+    /// This class is added to NFT Holder GameObject to display an NFT
+    /// </summary>
     public class NFTHolder : MonoBehaviour
     {
         public Image image;
@@ -29,6 +32,7 @@ namespace MultiversXUnityExamples
             this.collectionIdentifier = collectionIdentifier;
             this.nonce = nonce;
         }
+
 
         //linked to the send button on screen
         public void SendNFT()

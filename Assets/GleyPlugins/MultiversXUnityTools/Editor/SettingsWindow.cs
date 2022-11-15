@@ -34,21 +34,21 @@ namespace MultiversXUnityTools
         //load settings files
         private void OnEnable()
         {
-            apiSettings = Resources.Load<APISettings>(Constants.ApiSettingsData);
+            apiSettings = Resources.Load<APISettings>(Constants.API_SETTINGS_DATA);
             if (apiSettings == null)
             {
                 CreateAPISettings();
-                apiSettings = Resources.Load<APISettings>(Constants.ApiSettingsData);
+                apiSettings = Resources.Load<APISettings>(Constants.API_SETTINGS_DATA);
             }
 
             supportedAPIs = new List<API>();
-            DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIsFolder}");
+            DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIS_FOLDER}");
             if (!dir.Exists)
             {
                 Debug.Log("No custom APIs found, loading default APIs");
-                FileUtil.CopyFileOrDirectory($"{Application.dataPath}/{Constants.DefaultAPIsFolder}", $"{Application.dataPath}/{Constants.APIsFolder}");
+                FileUtil.CopyFileOrDirectory($"{Application.dataPath}/{Constants.DEFAULT_APIS_FOLDER}", $"{Application.dataPath}/{Constants.APIS_FOLDER}");
                 AssetDatabase.Refresh();
-                dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIsFolder}");
+                dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIS_FOLDER}");
             }
 
             foreach (FileInfo file in dir.GetFiles("*.json"))
@@ -273,7 +273,7 @@ namespace MultiversXUnityTools
         /// </summary>
         private void DeleteOldAPIFiles()
         {
-            DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIsFolder}");
+            DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIS_FOLDER}");
 
             foreach (FileInfo file in dir.GetFiles())
             {
@@ -288,7 +288,7 @@ namespace MultiversXUnityTools
         private void CreateSupportedAPIEnum()
         {
             string text =
-            $"namespace {Constants.namespaceName}\n" +
+            $"namespace {Constants.NAMESPACE_NAME}\n" +
             "{\n" +
             "\tpublic enum SupportedAPIs\n" +
             "\t{\n";
@@ -298,7 +298,7 @@ namespace MultiversXUnityTools
                 SaveJson(supportedAPIs[i]);
             }
             text += "\t}\n}";
-            File.WriteAllText($"{Application.dataPath}/{Constants.providerFolder}/SupportedAPIs.cs", text);
+            File.WriteAllText($"{Application.dataPath}/{Constants.PROVIDER_FOLDER}/SupportedAPIs.cs", text);
         }
 
 
@@ -340,7 +340,7 @@ namespace MultiversXUnityTools
 
             //generate file
             string text =
-            $"namespace {Constants.namespaceName}\n" +
+            $"namespace {Constants.NAMESPACE_NAME}\n" +
             "{\n" +
             "\tpublic enum EndpointNames\n" +
             "\t{\n";
@@ -349,7 +349,7 @@ namespace MultiversXUnityTools
                 text += "\t\t" + enumElements[i] + ",\n";
             }
             text += "\t}\n}";
-            File.WriteAllText($"{Application.dataPath}/{Constants.providerFolder}/EndpointNames.cs", text);
+            File.WriteAllText($"{Application.dataPath}/{Constants.PROVIDER_FOLDER}/EndpointNames.cs", text);
         }
 
 
@@ -360,7 +360,7 @@ namespace MultiversXUnityTools
         private void SaveJson(API api)
         {
             string json = JsonConvert.SerializeObject(api);
-            File.WriteAllText($"{Application.dataPath}/{Constants.APIsFolder}/{api.apiName}.json", json);
+            File.WriteAllText($"{Application.dataPath}/{Constants.APIS_FOLDER}/{api.apiName}.json", json);
         }
 
 
@@ -370,8 +370,8 @@ namespace MultiversXUnityTools
         private void CreateAPISettings()
         {
             APISettings asset = CreateInstance<APISettings>();
-            EditorUtilities.CreateFolder(Constants.resourcesFolder);
-            AssetDatabase.CreateAsset(asset, $"{Constants.resourcesFolder}/{Constants.ApiSettingsData}.asset");
+            EditorUtilities.CreateFolder(Constants.RESOURCES_FOLDER);
+            AssetDatabase.CreateAsset(asset, $"{Constants.RESOURCES_FOLDER}/{Constants.API_SETTINGS_DATA}.asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }

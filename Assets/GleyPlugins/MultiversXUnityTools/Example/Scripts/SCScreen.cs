@@ -14,15 +14,17 @@ namespace MultiversXUnityExamples
         public InputField param;
         public InputField gasInput;
         public Text scResultText;
-        private string txHash;
-        string defaultScAddress = "erd1qqqqqqqqqqqqqpgqmm2m825y2t9nya0yqeg3nqlh2q50e7pd0eqq98uw2e";
-        string defaultFuncName = "add";
-        int valueToAdd = 10;
-        string defaultGas = "1500000";
 
+        private string txHash;
+        private string defaultScAddress = "erd1qqqqqqqqqqqqqpgqmm2m825y2t9nya0yqeg3nqlh2q50e7pd0eqq98uw2e";
+        private string defaultFuncName = "add";
+        private string defaultGas = "1500000";
+        private int valueToAdd = 10;
+       
 
         public override void Init(params object[] args)
         {
+            //set default values inside input fields
             base.Init(args);
             scAddress.text = defaultScAddress;
             method.text = defaultFuncName;

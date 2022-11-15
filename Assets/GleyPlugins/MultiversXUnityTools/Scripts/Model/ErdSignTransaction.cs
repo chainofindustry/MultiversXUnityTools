@@ -3,6 +3,7 @@ using WalletConnectSharp.Core.Models;
 
 namespace MultiversXUnityTools
 {
+    //construct single transaction for signing
     public sealed class ErdSignTransaction : JsonRpcRequest
     {
         [JsonProperty("params")]

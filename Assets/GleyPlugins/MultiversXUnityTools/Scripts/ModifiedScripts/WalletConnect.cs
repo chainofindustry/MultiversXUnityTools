@@ -13,6 +13,8 @@ using WalletConnectSharp.Unity.Utils;
 namespace MultiversXUnityTools
 {
     [RequireComponent(typeof(NativeWebSocketTransport))]
+
+    //wallet connect wrapper adapted to Maiar
     public class WalletConnect : BindableMonoBehavior
     {
         public const string SessionKey = "__WALLETCONNECT_SESSION__";
@@ -60,11 +62,8 @@ namespace MultiversXUnityTools
         public int chainId = 1;
 
         public WalletConnectEventNoSession ConnectedEvent;
-
         public WalletConnectEventWithSessionData ConnectedEventSession;
-
         public WalletConnectEventWithSession DisconnectedEvent;
-
         public WalletConnectEventWithSession ConnectionFailedEvent;
         public WalletConnectEventWithSession NewSessionConnected;
         public WalletConnectEventWithSession ResumedSessionConnected;
@@ -355,6 +354,9 @@ namespace MultiversXUnityTools
             }
         }
 
+        /// <summary>
+        /// Maiar deep link urls
+        /// </summary>
         public void OpenMobileWallet()
         {
 #if UNITY_ANDROID && !UNITY_EDITOR

@@ -1,17 +1,17 @@
-using System;
 using System.Text;
 using System.Threading.Tasks;
-using Erdcsharp.Configuration;
 using Erdcsharp.Domain.Exceptions;
 using Erdcsharp.Domain.Helper;
-using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace MultiversXUnityTools
 {
-    public class ElrondProviderUnity : IElrondApiProvider
+    /// <summary>
+    /// You can implement your own version of provider
+    /// Used to download data from API
+    /// </summary>
+    public class ElrondProviderUnity : IMultiversXApiProvider
     {
         API selectedAPI;
         public ElrondProviderUnity(API api)
@@ -19,6 +19,7 @@ namespace MultiversXUnityTools
             selectedAPI = api;
         }
 
+        #region IElrondProvider
         public async Task<ConfigDataDto> GetNetworkConfig()
         {
             UnityWebRequest webRequest = UnityWebRequest.Get(selectedAPI.GetEndpoint(EndpointNames.GetNetworkConfig));
@@ -200,7 +201,9 @@ namespace MultiversXUnityTools
                     throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
             }
         }
-        #region IElrondApiProvider 
+        #endregion
+
+        #region IMultiversXApiProvider 
         public async Task<T> GetRequest<T>(string url)
         {
             UnityWebRequest webRequest = UnityWebRequest.Get(url);

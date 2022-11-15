@@ -1,13 +1,13 @@
 using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using MultiversXUnityTools;
-using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace MultiversXUnityExamples
 {
+    //list of available UI screens
     public enum Screens
     {
         Home,
@@ -19,6 +19,7 @@ namespace MultiversXUnityExamples
     }
 
 
+    //custom class to associate the prefab with the Screens enum
     [System.Serializable]
     public struct UIScreen
     {
@@ -26,18 +27,19 @@ namespace MultiversXUnityExamples
         public GameObject screenPrefab;
     }
 
-
+    //A simple navigation script to move through different UI screens
     public class DemoScript : MonoBehaviour
     {
         public UIScreen[] allScreens;
         public Transform canvas;
 
         private GameObject loadedScreen;
-        private Account connectedAccount;
+        //private Account connectedAccount;
 
-
+        //static instance to be able to access the script from UI scripts
         public static DemoScript Instance { get; private set; }
 
+        //simple singleton pattern
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -54,29 +56,35 @@ namespace MultiversXUnityExamples
         //set default values for everything
         private void Start()
         {
+            //set default screen to Home
             LoadScreen(Screens.Home);
         }
 
-        
 
+        /// <summary>
+        /// Method called to start the connection
+        /// It needs to be on a script that it is available globally inside your app so the 
+        /// OnConnected and OnDisconnected to be available all the time in case that a disconnect event occurs
+        /// </summary>
+        /// <param name="qrImage"></param>
         public void Connect(Image qrImage)
         {
             Manager.Connect(OnConnected, OnDisconnected, qrImage);
         }
 
 
-        public Account GetConnectedAccount()
-        {
-            return connectedAccount;
-        }
-
-
+        /// <summary>
+        /// Simple UI loading method
+        /// </summary>
+        /// <param name="newScreen"></param>
+        /// <param name="args"></param>
         public void LoadScreen(Screens newScreen, params object[] args)
         {
             if (loadedScreen != null)
             {
                 Destroy(loadedScreen);
             }
+            //load the corresponding screen and automatically call the Init method
             loadedScreen = allScreens.FirstOrDefault(cond => cond.screenName == newScreen).screenPrefab;
             loadedScreen = Instantiate(loadedScreen, canvas);
             loadedScreen.GetComponent<GenericUIScreen>().Init(args);
@@ -89,6 +97,7 @@ namespace MultiversXUnityExamples
             {
                 Application.Quit();
             }
+            //test for custom Post and Get methods
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 //Get();
@@ -103,7 +112,9 @@ namespace MultiversXUnityExamples
         /// <param name="connectedAccount">A class containing informations about the connected wallet</param>
         private void OnConnected(Account connectedAccount)
         {
-            this.connectedAccount = connectedAccount;
+            //store the connected account if you need it
+            //this.connectedAccount = connectedAccount;
+            //load the connected screen
             LoadScreen(Screens.Connected, connectedAccount);
         }
 
@@ -113,17 +124,28 @@ namespace MultiversXUnityExamples
         /// </summary>
         private void OnDisconnected()
         {
+            //every time used disconnects go to home screen
             LoadScreen(Screens.Home);
         }
 
 
         #region APIUsageExamples
+        /// <summary>
+        /// An usage example for a generic Get call
+        /// </summary>
         public void Get()
         {
             string url = "https://devnet-api.elrond.com/accounts/erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
             Manager.GetRequest<AccountDto>(url, CompleteMethodGet);
         }
 
+
+        /// <summary>
+        /// Callback for Get method
+        /// </summary>
+        /// <param name="operationStatus"></param>
+        /// <param name="message"></param>
+        /// <param name="result"></param>
         private void CompleteMethodGet(OperationStatus operationStatus, string message, AccountDto result)
         {
             if (operationStatus == OperationStatus.Complete)
@@ -136,6 +158,13 @@ namespace MultiversXUnityExamples
             }
         }
 
+
+        /// <summary>
+        /// An usage example for a generic Post call
+        /// </summary>
+        /// <param name="operationStatus"></param>
+        /// <param name="message"></param>
+        /// <param name="result"></param>
         public void Post()
         {
             //construct the url
@@ -160,6 +189,12 @@ namespace MultiversXUnityExamples
         }
 
 
+        /// <summary>
+        /// Callback for Post method
+        /// </summary>
+        /// <param name="operationStatus"></param>
+        /// <param name="message"></param>
+        /// <param name="result"></param>
         private void CompleteMethodPost(OperationStatus operationStatus, string message, TransactionCostDataDto result)
         {
             if (operationStatus == OperationStatus.Complete)

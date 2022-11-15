@@ -1,9 +1,12 @@
 namespace MultiversXUnityTools
 {
+    /// <summary>
+    /// Each callback can be in one of these states
+    /// </summary>
     public enum OperationStatus
     {
-        InProgress,
-        Error,
-        Complete
+        InProgress,//still processing
+        Error,//is done but with error
+        Complete//is done successfully 
     }
 }

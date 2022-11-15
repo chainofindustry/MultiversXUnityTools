@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace MultiversXUnityTools
 {
+    // automatically generated from response JSON
     public class TokenMetadata
     {
         public string identifier { get; set; }

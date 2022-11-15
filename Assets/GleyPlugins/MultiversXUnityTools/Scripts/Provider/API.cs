@@ -1,15 +1,17 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace MultiversXUnityTools
 {
+    /// <summary>
+    /// Used to serialize the API methods for fast API change
+    /// Assigned from Settings Window
+    /// </summary>
     public class API
     {
         public string apiName;
         public string baseAddress;
-        public List<APIEndpoint> endpoints;
+        public List<APIEndpoint> endpoints; //List of all API methods supported
 
         public API()
         {

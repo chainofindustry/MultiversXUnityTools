@@ -11,14 +11,17 @@ namespace MultiversXUnityExamples
         public Text version;
         public Dropdown supportedAPIs;
         public GameObject warning;
-        SupportedAPIs selected;
-        APISettings apiSettings;
+
+        private APISettings apiSettings;
+        private SupportedAPIs selected;
+
 
         private void Start()
         {
             version.text = $"v.{Application.version}";
             apiSettings = Manager.GetApiSettings();
-            Debug.Log(apiSettings);
+
+            //load all available API and populate selection dropdown
             PopulateDropDownWithEnum(supportedAPIs, selected);
             supportedAPIs.value = (int)(SupportedAPIs)Enum.Parse(typeof(SupportedAPIs), apiSettings.selectedAPIName, true);
             selected = (SupportedAPIs)supportedAPIs.value;
@@ -26,14 +29,23 @@ namespace MultiversXUnityExamples
             {
                 DropdownValueChanged(supportedAPIs);
             });
+            //if selected API is Mainnet show a warning
             ActivateWarning();
         }
+
+
         //linked to the login options button in editor
         public void LoginOptions()
         {
             DemoScript.Instance.LoadScreen(Screens.Login);
         }
 
+
+        /// <summary>
+        /// Populate dropdown with available API enum options
+        /// </summary>
+        /// <param name="dropdown"></param>
+        /// <param name="targetEnum"></param>
         void PopulateDropDownWithEnum(Dropdown dropdown, Enum targetEnum)
         {
             Type enumType = targetEnum.GetType();
@@ -46,18 +58,23 @@ namespace MultiversXUnityExamples
 
             dropdown.ClearOptions();
             dropdown.AddOptions(newOptions);
-
-
         }
 
 
+        /// <summary>
+        /// Callback triggered when dropdown value modifies
+        /// </summary>
+        /// <param name="dropdown"></param>
         private void DropdownValueChanged(Dropdown dropdown)
         {
             selected = (SupportedAPIs)dropdown.value;
+            //select the active API according to user selection
             apiSettings.selectedAPIName = selected.ToString();
             ActivateWarning();
         }
 
+
+        //display a text if selected API is for mainnet
         void ActivateWarning()
         {
             if (selected == SupportedAPIs.MultiversXApiMainnet)

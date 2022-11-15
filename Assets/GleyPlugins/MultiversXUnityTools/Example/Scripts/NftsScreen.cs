@@ -15,7 +15,6 @@ namespace MultiversXUnityExamples
 
         private NFTMetadata[] allNfts;
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
-
         private int downloaded = 0;
         private int total = 0;
 
@@ -23,10 +22,12 @@ namespace MultiversXUnityExamples
         public override void Init(params object[] args)
         {
             base.Init(args);
+            //set default address in the input field
             nftDestination.text = defaultAddress;
         }
 
 
+        //linked to the beck button in editor
         public void NFTBackButton()
         {
             DemoScript.Instance.LoadScreen(Screens.Connected);
@@ -53,7 +54,7 @@ namespace MultiversXUnityExamples
             this.allNfts = allNfts;
             if (operationStatus == OperationStatus.Complete)
             {
-                ////after all metadata is loaded the NFTs will be displayed in a scroll view
+                //after all metadata is loaded the NFTs will be displayed in a scroll view
                 StartCoroutine(LoadNFTs(allNfts,10));
             }
             else
@@ -85,6 +86,7 @@ namespace MultiversXUnityExamples
                 yield return null;
             }
         }
+
 
         /// <summary>
         /// Populates the NFT display container on the screen with the desired NFT properties 
