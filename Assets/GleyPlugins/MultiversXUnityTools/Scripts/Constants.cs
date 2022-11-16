@@ -8,7 +8,7 @@ namespace MultiversXUnityTools
         public const string CONNECTION_MANAGER_OBJECT = "MultiversXConnectionManager";
         public const string NAMESPACE_NAME = "MultiversXUnityTools";
 
-        public const string APIS_FOLDER = "GleyPlugins/MultiversXUnityTools/Scripts/Provider/APIs";
+        public const string APIS_FOLDER = "GleyPlugins/MultiversXUnityTools/Resources/APIs";
         public const string DEFAULT_APIS_FOLDER = "GleyPlugins/MultiversXUnityTools/Scripts/Provider/DefaultAPIs";
         public const string PROVIDER_FOLDER = "GleyPlugins/MultiversXUnityTools/Scripts/Provider";
         public const string RESOURCES_FOLDER = "Assets/GleyPlugins/MultiversXUnityTools/Resources";

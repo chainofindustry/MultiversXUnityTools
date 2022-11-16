@@ -22,11 +22,11 @@ namespace MultiversXUnityTools
 {
     public class ConnectionManager : MonoBehaviour
     {
-        private Account connectedAccount;  
+        private Account connectedAccount;
         private NetworkConfig networkConfig;
         private UnityAction<Account> OnWalletConnected;
         private UnityAction OnWalletDisconnected;
-        private WalletConnect walletConnect;   
+        private WalletConnect walletConnect;
         private BinaryCodec BinaryCoder = new BinaryCodec();
         private APISettings apiSettings;
         private IMultiversXApiProvider multiversXAPI;
@@ -105,12 +105,10 @@ namespace MultiversXUnityTools
             }
 
             API selectedAPI;
-            StreamReader reader = new StreamReader($"{Application.dataPath}/{Constants.APIS_FOLDER}/{apiSettings.selectedAPIName}.json");
+            TextAsset targetFile = Resources.Load<TextAsset>($"APIs/{apiSettings.selectedAPIName}");
             try
             {
-                Debug.Log($"{Application.dataPath}/{Constants.APIS_FOLDER}/{apiSettings.selectedAPIName}.json");
-                selectedAPI = JsonConvert.DeserializeObject<API>(reader.ReadToEnd());
-                reader.Close();
+                selectedAPI = JsonConvert.DeserializeObject<API>(targetFile.text);
             }
             catch (Exception e)
             {
@@ -180,6 +178,7 @@ namespace MultiversXUnityTools
         {
             walletConnected = true;
             WalletConnect.ActiveSession.OnSessionDisconnect += ActiveSessionOnDisconnect;
+            walletConnect.ConnectedEvent.RemoveListener(Connected);
             //After wallet is connected get the account information automatically
             RefreshAccount(AccountRefreshed);
         }
@@ -193,6 +192,7 @@ namespace MultiversXUnityTools
         private void ActiveSessionOnDisconnect(object sender, EventArgs e)
         {
             WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
+            walletConnect.ConnectedEvent.AddListener(Connected);
             walletConnected = false;
             //trigger the wallet disconnect callback from Connect
             OnWalletDisconnected();
@@ -366,6 +366,7 @@ namespace MultiversXUnityTools
         /// <returns></returns>
         internal async Task<string> SignTransaction(TransactionData transaction)
         {
+            walletConnect.OpenMobileWallet();
             var results = await WalletConnect.ActiveSession.ErdSignTransaction(transaction);
 
             return results;
@@ -379,6 +380,7 @@ namespace MultiversXUnityTools
         /// <returns></returns>
         internal async Task<string> BatchSignTransaction(TransactionData transaction)
         {
+            walletConnect.OpenMobileWallet();
             var results = await WalletConnect.ActiveSession.ErdBatchSignTransaction(transaction);
 
             return results;
@@ -394,7 +396,7 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         internal async void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod)
         {
-            Transaction tx = new Transaction(txHash);
+            MultiversXTransaction tx = new MultiversXTransaction(txHash);
             try
             {
                 await tx.AwaitExecuted(multiversXAPI);

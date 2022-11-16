@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 using WalletConnectSharp.Core;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Core.Network;
@@ -232,8 +233,13 @@ namespace MultiversXUnityTools
 
 #if UNITY_ANDROID || UNITY_IOS
             //Whenever we send a request to the Wallet, we want to open the Wallet app
-            Session.OnSend += (sender, session) => OpenMobileWallet();
+            Session.OnSend += SessionOnSend; /*(sender, session) => OpenMobileWallet();*/
 #endif
+        }
+
+        private void SessionOnSend(object sender, WalletConnectSession session)
+        {
+            Debug.Log("OnSend");
         }
 
         private void TeardownEvents()

@@ -8,6 +8,8 @@ namespace MultiversXUnityTools
     /// </summary>
     public interface IMultiversXApiProvider : IElrondProvider
     {
+        Task<TransactionResponse> GetTransactionDetails(string txHash);
+
         Task<T> GetRequest<T>(string url);
 
         Task<T> PostRequest<T>(string url, string jsonData);

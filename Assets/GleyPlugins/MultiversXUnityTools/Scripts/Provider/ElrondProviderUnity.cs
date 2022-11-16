@@ -2,7 +2,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Erdcsharp.Domain.Exceptions;
 using Erdcsharp.Domain.Helper;
+using Erdcsharp.Provider;
 using Erdcsharp.Provider.Dtos;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace MultiversXUnityTools
@@ -131,7 +133,7 @@ namespace MultiversXUnityTools
             }
         }
 
-        public async Task<TransactionDto> GetTransactionDetail(string txHash)
+        public async Task<TransactionResponse> GetTransactionDetails(string txHash)
         {
             string url = selectedAPI.GetEndpoint(EndpointNames.GetTransactionDetail).Replace("{txHash}", txHash);
             UnityWebRequest webRequest = UnityWebRequest.Get(url);
@@ -140,9 +142,11 @@ namespace MultiversXUnityTools
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
-                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<TransactionResponseData>>(content);
-                    result.EnsureSuccessStatusCode();
-                    return result.Data.Transaction;
+                    Debug.Log(content);
+                    var result = JsonSerializerWrapper.Deserialize<TransactionResponse>(content);
+                    Debug.Log(result.status);
+                    //result.EnsureSuccessStatusCode();
+                    return result;
                 default:
                     throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
             }
@@ -180,9 +184,9 @@ namespace MultiversXUnityTools
         public async Task<CreateTransactionResponseDataDto> SendTransaction(TransactionRequestDto transactionRequestDto)
         {
             var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
-
             var webRequest = new UnityWebRequest();
             webRequest.url = selectedAPI.GetEndpoint(EndpointNames.SendTransaction);
+            Debug.Log("URL " + webRequest.url);
             webRequest.method = "POST";
             webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
             webRequest.downloadHandler = new DownloadHandlerBuffer();
@@ -258,6 +262,13 @@ namespace MultiversXUnityTools
             url = selectedAPI.GetEndpoint(EndpointNames.GetWalletTokens).Replace("{address}", address).Replace("{start}", "0").Replace("{totalTokens}", totalTokens.ToString());  
             return await GetRequest<T>(url);
         }
+
+        Task<TransactionDto> IElrondProvider.GetTransactionDetail(string txHash)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        
         #endregion
     }
 }
