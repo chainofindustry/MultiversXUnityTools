@@ -397,10 +397,15 @@ namespace MultiversXUnityTools
         internal async void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod)
         {
             MultiversXTransaction tx = new MultiversXTransaction(txHash);
+            string message;
             try
             {
                 await tx.AwaitExecuted(multiversXAPI);
-                tx.EnsureTransactionSuccess();
+                if(!tx.EnsureTransactionSuccess(out message))
+                {
+                    completeMethod?.Invoke(OperationStatus.Error, message);
+                    return;
+                }
             }
             catch (Exception e)
             {

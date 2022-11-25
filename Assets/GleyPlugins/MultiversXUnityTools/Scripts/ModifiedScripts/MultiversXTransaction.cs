@@ -82,10 +82,40 @@ namespace MultiversXUnityTools
             Status = transaction.status;
         }
 
-        public void EnsureTransactionSuccess()
+        public bool EnsureTransactionSuccess(out string message)
         {
+            if (!IsExecuted())
+            {
+                message = $"Cannot reach Executed status for tx : '{TxHash}'";
+                return false;
+            }
+            if (operations != null && operations.Any(s => !string.IsNullOrEmpty(s.message)))
+            {
+                var returnMessages = operations.Select(x => x.message).ToArray();
+                var aggregateMessage = string.Join(Environment.NewLine, returnMessages);
+                message = $"Transaction tx : '{TxHash}' has some error : {aggregateMessage}";
+                return false;
+            }
+
+            if (IsFailed())
+            {
+                message = $"Transaction failed for tx : '{TxHash}' Logs: {ReadLogs(logs)}";
+                return false;
+            }
+
+            if (IsInvalid())
+            {
+                message = $"Transaction is invalid for tx : '{TxHash}' Logs: {ReadLogs(logs)}";
+                return false;
+            }
+
             if (!IsSuccessful())
-                throw new TransactionException.InvalidTransactionException(TxHash);
+            {
+                message = $"Transaction is invalid for tx : '{TxHash}'";
+                return false;
+            }
+            message = "Success";
+            return true;
         }
 
         /// <summary>
@@ -105,27 +135,7 @@ namespace MultiversXUnityTools
                 await Task.Delay(1000); // 1 second
                 await Sync(provider);
                 currentIteration++;
-            } while (!IsExecuted() && currentIteration < timeout.Value.TotalSeconds);
-
-            if (!IsExecuted())
-                throw new TransactionException.TransactionStatusNotReachedException(TxHash, "Executed");
-
-            if (operations != null && operations.Any(s => !string.IsNullOrEmpty(s.message)))
-            {
-                var returnMessages = operations.Select(x => x.message).ToArray();
-                var aggregateMessage = string.Join(Environment.NewLine, returnMessages);
-                throw new TransactionException.TransactionWithSmartContractErrorException(TxHash, aggregateMessage);
-            }
-
-            if (IsFailed())
-            {               
-                throw new TransactionException.FailedTransactionException($"{TxHash} {ReadLogs(logs)}");
-            }
-
-            if (IsInvalid())
-            {
-                throw new TransactionException.InvalidTransactionException($"{TxHash} {ReadLogs(logs)}");
-            }
+            } while (!IsExecuted() && currentIteration < timeout.Value.TotalSeconds); 
         }
 
         private string ReadLogs(Logs logs)
@@ -140,7 +150,7 @@ namespace MultiversXUnityTools
                         log += logs.events[i].identifier;
                         if (logs.events[i].topics != null)
                         {
-                            for (int j = 0; j < logs.events[i].topics.Length; j++)
+                            for (int j = 1; j < logs.events[i].topics.Length; j++)
                             {
                                 log += $" {Encoding.UTF8.GetString(Convert.FromBase64String(logs.events[i].topics[j]))} ";
                             }

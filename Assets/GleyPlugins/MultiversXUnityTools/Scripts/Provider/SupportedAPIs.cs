@@ -5,6 +5,5 @@ namespace MultiversXUnityTools
 		MultiversXApiDevnet,
 		MultiversXApiMainnet,
 		MultiversXApiTestnet,
-		MultiversXGatewayDevnet,
 	}
 }

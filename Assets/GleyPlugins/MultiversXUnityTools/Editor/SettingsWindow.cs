@@ -21,7 +21,7 @@ namespace MultiversXUnityTools
        
         
         //Open Settings Window
-        [MenuItem("Tools/MultiversX Unity Tools", false, 60)]
+        [MenuItem("Tools/MultiversX Unity Tools/Settings Window", false, 50)]
         private static void Init()
         {
             SettingsWindow window = (SettingsWindow)GetWindow(typeof(SettingsWindow));

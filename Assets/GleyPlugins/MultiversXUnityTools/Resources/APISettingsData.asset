@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e479e963e7d5a9b4a98623e28858432f, type: 3}
   m_Name: APISettingsData
   m_EditorClassIdentifier: 
-  selectedAPIName: MultiversXApiTestnet
+  selectedAPIName: MultiversXApiDevnet
   appDescription: You are using Chain of Industry test login
   appIcon: https://gleygames.com/blockchain/COI-Building-Avatar-192x192.jpg
   appName: Chain of Industry

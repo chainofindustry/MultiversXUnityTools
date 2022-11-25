@@ -55,58 +55,6 @@ namespace MultiversXUnityTools
             }
         }
 
-        public async Task<EsdtItemDto> GetEsdtNftToken(string address, string tokenIdentifier, ulong tokenId)
-        {
-            string url = selectedAPI.GetEndpoint(EndpointNames.GetEsdtNftToken).Replace("{address}", address).Replace("{tokenIdentifier}", tokenIdentifier).Replace("{tokenId}", tokenId.ToString());
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtItemDto>>(content);
-                    result.EnsureSuccessStatusCode();
-                    return result.Data;
-                default:
-                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
-            }
-        }
-
-        public async Task<EsdtTokenData> GetEsdtToken(string address, string tokenIdentifier)
-        {
-            string url = selectedAPI.GetEndpoint(EndpointNames.GetEsdtToken).Replace("{address}", address).Replace("{tokenIdentifier}", tokenIdentifier);
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtTokenData>>(content);
-                    result.EnsureSuccessStatusCode();
-                    return result.Data;
-                default:
-                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
-            }
-        }
-
-        public async Task<EsdtTokenDataDto> GetEsdtTokens(string address)
-        {
-            string url = selectedAPI.GetEndpoint(EndpointNames.GetEsdtTokens).Replace("{address}", address);
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<EsdtTokenDataDto>>(content);
-                    result.EnsureSuccessStatusCode();
-                    return result.Data;
-                default:
-                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
-            }
-        }
-
-
 
         public async Task<TransactionCostDataDto> GetTransactionCost(TransactionRequestDto transactionRequestDto)
         {
@@ -144,8 +92,6 @@ namespace MultiversXUnityTools
                 case UnityWebRequest.Result.Success:
                     Debug.Log(content);
                     var result = JsonSerializerWrapper.Deserialize<TransactionResponse>(content);
-                    Debug.Log(result.status);
-                    //result.EnsureSuccessStatusCode();
                     return result;
                 default:
                     throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
@@ -205,6 +151,27 @@ namespace MultiversXUnityTools
                     throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
             }
         }
+
+
+        Task<TransactionDto> IElrondProvider.GetTransactionDetail(string txHash)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<EsdtTokenDataDto> GetEsdtTokens(string address)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<EsdtItemDto> GetEsdtNftToken(string address, string tokenIdentifier, ulong tokenId)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<EsdtTokenData> GetEsdtToken(string address, string tokenIdentifier)
+        {
+            throw new System.NotImplementedException();
+        }
         #endregion
 
         #region IMultiversXApiProvider 
@@ -262,13 +229,6 @@ namespace MultiversXUnityTools
             url = selectedAPI.GetEndpoint(EndpointNames.GetWalletTokens).Replace("{address}", address).Replace("{start}", "0").Replace("{totalTokens}", totalTokens.ToString());  
             return await GetRequest<T>(url);
         }
-
-        Task<TransactionDto> IElrondProvider.GetTransactionDetail(string txHash)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        
         #endregion
     }
 }

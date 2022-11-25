@@ -4,9 +4,6 @@ namespace MultiversXUnityTools
 	{
 		GetNetworkConfig,
 		GetAccount,
-		GetEsdtTokens,
-		GetEsdtNftToken,
-		GetEsdtToken,
 		SendTransaction,
 		GetTransactionCost,
 		QueryVm,

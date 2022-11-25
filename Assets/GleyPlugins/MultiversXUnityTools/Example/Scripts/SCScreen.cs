@@ -20,7 +20,7 @@ namespace MultiversXUnityExamples
         private string defaultFuncName = "add";
         private string defaultGas = "1500000";
         private int valueToAdd = 10;
-       
+
 
         public override void Init(params object[] args)
         {
@@ -80,16 +80,18 @@ namespace MultiversXUnityExamples
         /// <param name="message">additional message</param>
         private void CallStatus(OperationStatus operationStatus, string message)
         {
-            scResultText.text = operationStatus + " " + message;
+
             if (operationStatus == OperationStatus.Complete)
             {
                 txHash = message;
                 Debug.Log("Tx Hash: " + txHash);
+                scResultText.text = $"Pending TX: {txHash}";
                 Manager.CheckTransactionStatus(txHash, SCTransactionListener);
             }
             if (operationStatus == OperationStatus.Error)
             {
                 //do something
+                scResultText.text = operationStatus + " " + message;
             }
         }
 
