@@ -90,7 +90,6 @@ namespace MultiversXUnityTools
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
-                    Debug.Log(content);
                     var result = JsonSerializerWrapper.Deserialize<TransactionResponse>(content);
                     return result;
                 default:
@@ -117,10 +116,6 @@ namespace MultiversXUnityTools
                 case UnityWebRequest.Result.Success:
                     var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<QueryVmResultDataDto>>(content);
                     result.EnsureSuccessStatusCode();
-                    if (result.Data.Data.ReturnData == null)
-                    {
-                        throw new NullDataException(result.Data.Data.ReturnCode, result.Data.Data.ReturnMessage);
-                    }
                     return result.Data;
                 default:
                     throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");

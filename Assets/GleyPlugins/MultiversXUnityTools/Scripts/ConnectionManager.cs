@@ -192,10 +192,10 @@ namespace MultiversXUnityTools
         private void ActiveSessionOnDisconnect(object sender, EventArgs e)
         {
             WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
-            walletConnect.ConnectedEvent.AddListener(Connected);
             walletConnected = false;
             //trigger the wallet disconnect callback from Connect
             OnWalletDisconnected();
+            Destroy(walletConnect.gameObject);
         }
 
 
@@ -397,11 +397,14 @@ namespace MultiversXUnityTools
         internal async void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod)
         {
             MultiversXTransaction tx = new MultiversXTransaction(txHash);
+            Sync(tx, completeMethod);
+            return;
+
             string message;
             try
             {
                 await tx.AwaitExecuted(multiversXAPI);
-                if(!tx.EnsureTransactionSuccess(out message))
+                if (!tx.EnsureTransactionSuccess(out message))
                 {
                     completeMethod?.Invoke(OperationStatus.Error, message);
                     return;
@@ -414,6 +417,36 @@ namespace MultiversXUnityTools
             }
 
             completeMethod?.Invoke(OperationStatus.Complete, tx.Status);
+        }
+
+        void Sync(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod)
+        {
+            StartCoroutine(CheckTransaction(tx, completeMethod));
+        }
+
+        private IEnumerator CheckTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod)
+        {
+            yield return new WaitForSeconds(1);
+            SyncTransaction(tx, completeMethod);
+        }
+
+        private async void SyncTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod)
+        {
+            await tx.Sync(multiversXAPI);
+            if (tx.IsExecuted())
+            {
+                string message;
+                if (!tx.EnsureTransactionSuccess(out message))
+                {
+                    completeMethod?.Invoke(OperationStatus.Error, message);
+                }
+                else
+                {
+                    completeMethod?.Invoke(OperationStatus.Complete, tx.Status);
+                }
+                return;
+            }
+            Sync(tx, completeMethod);
         }
         #endregion
 
@@ -516,6 +549,10 @@ namespace MultiversXUnityTools
 
 
         #region SCs
+
+
+
+
         /// <summary>
         /// Make a query (check stored values)
         /// </summary>
@@ -527,14 +564,14 @@ namespace MultiversXUnityTools
         /// <param name="args"></param>
         internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
-            try
+            var queryResult = await SmartContract.QuerySmartContract<T>(multiversXAPI, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
+            if (string.IsNullOrEmpty(queryResult.Item2))
             {
-                var queryResult = await SmartContract.QuerySmartContract<T>(multiversXAPI, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
-                completeMethod(OperationStatus.Complete, "Success", queryResult);
+                completeMethod(OperationStatus.Complete, "Success", queryResult.Item1);
             }
-            catch (Exception e)
+            else
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", default(T));
+                completeMethod?.Invoke(OperationStatus.Error, queryResult.Item2, default(T));
             }
         }
 
@@ -679,6 +716,11 @@ namespace MultiversXUnityTools
         /// </summary>
         internal void Disconnect()
         {
+            if (WalletConnect.ActiveSession == null || !WalletConnect.ActiveSession.Connected)
+            {
+                Destroy(this.gameObject);
+                return;
+            }
             walletConnect.CloseSession(false);
         }
 

@@ -38,6 +38,7 @@ namespace MultiversXUnityExamples
         //linked to the back button in editor
         public void BackButton()
         {
+            Manager.Disconnect();
             DemoScript.Instance.LoadScreen(Screens.Home);
         }
     }
