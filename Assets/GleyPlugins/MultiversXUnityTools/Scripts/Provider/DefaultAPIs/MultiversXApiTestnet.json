@@ -1,0 +1,56 @@
+{
+  "apiName": "MultiversXApiTestnet",
+  "baseAddress": "https://testnet-api.elrond.com",
+  "endpoints": [
+    {
+      "name": "GetNetworkConfig",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "network/config"
+    },
+    {
+      "name": "GetAccount",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "address/{address}"
+    },
+    {
+      "name": "SendTransaction",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "transaction/send"
+    },
+    {
+      "name": "GetTransactionCost",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "transaction/cost"
+    },
+    {
+      "name": "QueryVm",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "vm-values/query"
+    },
+    {
+      "name": "GetTransactionDetail",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "transactions/{txHash}"
+    },
+    {
+      "name": "GetWalletNfts",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "accounts/{address}/nfts?from={start}&size={totalNfts}"
+    },
+    {
+      "name": "GetWalletTokens",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "accounts/{address}/tokens?from={start}&size={totalTokens}"
+    },
+    {
+      "name": "GetTokensCount",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "accounts/{address}/tokens/count"
+    },
+    {
+      "name": "GetNFTsCount",
+      "baseAddress": "https://testnet-api.elrond.com",
+      "resourceName": "accounts/{address}/nfts/count"
+    }
+  ]
+}
