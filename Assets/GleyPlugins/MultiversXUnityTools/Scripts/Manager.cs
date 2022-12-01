@@ -70,9 +70,10 @@ namespace MultiversXUnityTools
         /// </summary>
         /// <param name="txHash">The hash of the transaction obtained after signing</param>
         /// <param name="TransactionStatus">Callback to track the result</param>
-        public static void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> TransactionStatus)
+        /// <param name="refreshTime">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of the APIs</param>
+        public static void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> TransactionStatus, float refreshTime)
         {
-            ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus);
+            ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus, refreshTime);
         }
 
 
@@ -116,10 +117,12 @@ namespace MultiversXUnityTools
         /// <summary>
         /// Make a smart contract query
         /// </summary>
+        /// <typeparam name="T">Query response type</typeparam>
         /// <param name="scAddress">The address of the smart contract</param>
         /// <param name="methodName">The method to call</param>
-        /// <param name="args">The list of arguments</param>
         /// <param name="QueryComplete">Callback to get the result of the query after finished</param>
+        /// <param name="outputType">Type of expected result</param>
+        /// <param name="args">The list of arguments</param>        
         public static void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> QueryComplete, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
             ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, QueryComplete, outputType, args);
@@ -149,9 +152,11 @@ namespace MultiversXUnityTools
         }
 
 
+
         /// <summary>
         /// Call any API method from the MultiversX Network
         /// </summary>
+        /// <typeparam name="T">Return type</typeparam>
         /// <param name="url">Get API url</param>
         /// <param name="CompleteMethod">Complete listener (operation status, error message, return data)</param>
         public static void GetRequest<T>(string url, UnityAction<OperationStatus, string, T> CompleteMethod)
@@ -210,6 +215,17 @@ namespace MultiversXUnityTools
         public static APISettings GetApiSettings()
         {
             return ConnectionManager.Instance.GetApiSettings();
+        }
+
+
+        /// <summary>
+        /// Returns the URL associated with Endpoint
+        /// </summary>
+        /// <param name="endpoint">endpoint defined inside settings window</param>
+        /// <returns></returns>
+        public static string GetEndpointUrl(EndpointNames endpoint)
+        {
+            return ConnectionManager.Instance.GetEndpointUrl(endpoint);
         }
 
         //query vm

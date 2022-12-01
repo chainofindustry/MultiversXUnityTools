@@ -53,7 +53,7 @@ namespace MultiversXUnityExamples
             {
                 txHash = message;
                 Debug.Log("Tx Hash: " + txHash);
-                Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener);
+                Manager.CheckTransactionStatus(txHash, BlockchainTransactionListener, 1);
             }
             if (operationStatus == OperationStatus.Error)
             {

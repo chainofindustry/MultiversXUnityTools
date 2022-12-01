@@ -148,7 +148,7 @@ namespace MultiversXUnityExamples
             {
                 Debug.Log("Tx Hash: " + message);
                 status.text = $"Tx pending: {message}";
-                Manager.CheckTransactionStatus(message, TransactionProcessed);
+                Manager.CheckTransactionStatus(message, TransactionProcessed, 6);
             }
             if (operationStatus == OperationStatus.Error)
             {

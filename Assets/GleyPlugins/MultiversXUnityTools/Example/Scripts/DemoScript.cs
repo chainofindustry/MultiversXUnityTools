@@ -100,8 +100,8 @@ namespace MultiversXUnityExamples
             //test for custom Post and Get methods
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                //Get();
-                Post();
+                Get();
+               // Post();
             }
         }
 
@@ -136,6 +136,7 @@ namespace MultiversXUnityExamples
         public void Get()
         {
             string url = "https://devnet-api.elrond.com/accounts/erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
+            //string url = Manager.GetEndpointUrl(EndpointNames.GetAccounts).Replace("{address}", "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
             Manager.GetRequest<AccountDto>(url, CompleteMethodGet);
         }
 

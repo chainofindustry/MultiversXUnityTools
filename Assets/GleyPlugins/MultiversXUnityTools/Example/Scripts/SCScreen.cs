@@ -86,7 +86,7 @@ namespace MultiversXUnityExamples
                 txHash = message;
                 Debug.Log("Tx Hash: " + txHash);
                 scResultText.text = $"Pending TX: {txHash}";
-                Manager.CheckTransactionStatus(txHash, SCTransactionListener);
+                Manager.CheckTransactionStatus(txHash, SCTransactionListener, 1);
             }
             if (operationStatus == OperationStatus.Error)
             {

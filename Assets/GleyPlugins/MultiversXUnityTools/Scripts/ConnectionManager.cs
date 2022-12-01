@@ -29,8 +29,10 @@ namespace MultiversXUnityTools
         private WalletConnect walletConnect;
         private BinaryCodec BinaryCoder = new BinaryCodec();
         private APISettings apiSettings;
-        private IMultiversXApiProvider multiversXAPI;
+        private API selectedAPI;
+        private IMultiversXApiProvider multiversXProvider;
         private bool walletConnected;
+
 
 
         //Create a static instance for easy access
@@ -104,7 +106,7 @@ namespace MultiversXUnityTools
                 return;
             }
 
-            API selectedAPI;
+           
             TextAsset targetFile = Resources.Load<TextAsset>($"APIs/{apiSettings.selectedAPIName}");
             try
             {
@@ -123,7 +125,7 @@ namespace MultiversXUnityTools
             }
 
             Debug.Log($"SELECTED API { selectedAPI.apiName} {selectedAPI.baseAddress}");
-            multiversXAPI = new ElrondProviderUnity(selectedAPI);
+            multiversXProvider = new ElrondProviderUnity(selectedAPI);
             networkConfig = await LoadNetworkConfig(false, true);
         }
 
@@ -142,7 +144,7 @@ namespace MultiversXUnityTools
             }
             try
             {
-                networkConfig = await NetworkConfig.GetFromNetwork(multiversXAPI);
+                networkConfig = await NetworkConfig.GetFromNetwork(multiversXProvider);
                 return networkConfig;
             }
             catch (Exception e)
@@ -208,7 +210,7 @@ namespace MultiversXUnityTools
             connectedAccount = new Account(Erdcsharp.Domain.Address.From(WalletConnect.ActiveSession.Accounts[0]));
             try
             {
-                await connectedAccount.Sync(multiversXAPI);
+                await connectedAccount.Sync(multiversXProvider);
                 completeMethod?.Invoke(OperationStatus.Complete, "Success");
             }
             catch (Exception e)
@@ -295,7 +297,7 @@ namespace MultiversXUnityTools
             //refresh account nonce
             try
             {
-                await connectedAccount.Sync(multiversXAPI);
+                await connectedAccount.Sync(multiversXProvider);
             }
             catch (Exception e)
             {
@@ -348,7 +350,7 @@ namespace MultiversXUnityTools
             try
             {
                 //send the transaction hash inside complete method
-                var response = await multiversXAPI.SendTransaction(signedTransaction);
+                var response = await multiversXProvider.SendTransaction(signedTransaction);
                 completeMethod?.Invoke(OperationStatus.Complete, response.TxHash);
             }
             catch (Exception e)
@@ -356,6 +358,17 @@ namespace MultiversXUnityTools
                 completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
                 return;
             }
+        }
+
+        internal string GetEndpointUrl(EndpointNames endpoint)
+        {
+            if(selectedAPI == null)
+            {
+                Debug.LogError("Call connect method first");
+                return null;
+            }
+
+            return selectedAPI.GetEndpoint(endpoint);
         }
 
 
@@ -394,16 +407,16 @@ namespace MultiversXUnityTools
         /// </summary>
         /// <param name="txHash"></param>
         /// <param name="completeMethod"></param>
-        internal async void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod)
+        internal async void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             MultiversXTransaction tx = new MultiversXTransaction(txHash);
-            Sync(tx, completeMethod);
+            Sync(tx, completeMethod, refreshTime);
             return;
 
             string message;
             try
             {
-                await tx.AwaitExecuted(multiversXAPI);
+                await tx.AwaitExecuted(multiversXProvider);
                 if (!tx.EnsureTransactionSuccess(out message))
                 {
                     completeMethod?.Invoke(OperationStatus.Error, message);
@@ -419,20 +432,20 @@ namespace MultiversXUnityTools
             completeMethod?.Invoke(OperationStatus.Complete, tx.Status);
         }
 
-        void Sync(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod)
+        void Sync(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
-            StartCoroutine(CheckTransaction(tx, completeMethod));
+            StartCoroutine(CheckTransaction(tx, completeMethod,refreshTime));
         }
 
-        private IEnumerator CheckTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod)
+        private IEnumerator CheckTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
-            yield return new WaitForSeconds(1);
-            SyncTransaction(tx, completeMethod);
+            yield return new WaitForSeconds(refreshTime);
+            SyncTransaction(tx, completeMethod,refreshTime);
         }
 
-        private async void SyncTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod)
+        private async void SyncTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
-            await tx.Sync(multiversXAPI);
+            await tx.Sync(multiversXProvider);
             if (tx.IsExecuted())
             {
                 string message;
@@ -446,7 +459,7 @@ namespace MultiversXUnityTools
                 }
                 return;
             }
-            Sync(tx, completeMethod);
+            Sync(tx, completeMethod, refreshTime);
         }
         #endregion
 
@@ -460,7 +473,7 @@ namespace MultiversXUnityTools
         {
             try
             {
-                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXAPI.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString()));
+                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXProvider.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString()));
             }
             catch (Exception e)
             {
@@ -503,7 +516,7 @@ namespace MultiversXUnityTools
         {
             try
             {
-                List<NFTMetadata> allNfts = await multiversXAPI.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
+                List<NFTMetadata> allNfts = await multiversXProvider.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
                 for (int i = allNfts.Count - 1; i >= 0; i--)
                 {
                     //remove the LP tokens
@@ -564,7 +577,7 @@ namespace MultiversXUnityTools
         /// <param name="args"></param>
         internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
-            var queryResult = await SmartContract.QuerySmartContract<T>(multiversXAPI, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
+            var queryResult = await SmartContract.QuerySmartContract<T>(multiversXProvider, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
             if (string.IsNullOrEmpty(queryResult.Item2))
             {
                 completeMethod(OperationStatus.Complete, "Success", queryResult.Item1);
@@ -609,7 +622,7 @@ namespace MultiversXUnityTools
         {
             try
             {
-                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXAPI.GetRequest<T>(url));
+                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXProvider.GetRequest<T>(url));
             }
             catch (Exception e)
             {
@@ -629,7 +642,7 @@ namespace MultiversXUnityTools
         {
             try
             {
-                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXAPI.PostRequest<T>(url, jsonData));
+                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXProvider.PostRequest<T>(url, jsonData));
             }
             catch (Exception e)
             {
