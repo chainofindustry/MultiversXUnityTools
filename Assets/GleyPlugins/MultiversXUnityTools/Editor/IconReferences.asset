@@ -12,23 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e932a173faee8e4680f1491e48c5315, type: 3}
   m_Name: IconReferences
   m_EditorClassIdentifier: 
-  gleyCover: {fileID: 0}
-  gleyLogo: {fileID: 0}
-  achievementsIcon: {fileID: 0}
-  crossPromoIcon: {fileID: 0}
-  dailyRewardsIcon: {fileID: 0}
-  discordIcon: {fileID: 0}
-  easyIAPIcon: {fileID: 0}
-  facebookIcon: {fileID: 0}
-  instagramIcon: {fileID: 0}
-  localizationIcon: {fileID: 0}
-  mobileAdsIcon: {fileID: 0}
-  mobileToolsIcon: {fileID: 0}
-  notificationsIcon: {fileID: 0}
-  rateGameIcon: {fileID: 0}
-  saveIcon: {fileID: 0}
-  trafficSystemIcon: {fileID: 0}
-  twitterIcon: {fileID: 0}
-  vehiclesIcon: {fileID: 0}
-  websiteIcon: {fileID: 0}
-  youtubeIcon: {fileID: 0}
+  discordIcon: {fileID: 2800000, guid: f9a1a064b9b4568468b8410190b86f48, type: 3}
+  twitterIcon: {fileID: 2800000, guid: 5a0addd76b9678443bea781715c4fd89, type: 3}
+  websiteIcon: {fileID: 2800000, guid: 29326127a576d504a8eb947498294909, type: 3}
+  youtubeIcon: {fileID: 2800000, guid: 3c606e36202268b489785f0b75152541, type: 3}
