@@ -1,7 +1,7 @@
 # MultiversX Unity Tools
 
 ### Overview
-A work-in-progress set of tools to interact with Elrond Blockchain directly from a Unity app.  
+A work-in-progress set of tools to interact with MultiversX Blockchain directly from a Unity app.  
 We intend to keep our APIs as simple as possible and every action to be done with just a single line of code. 
 
 ### Demo
