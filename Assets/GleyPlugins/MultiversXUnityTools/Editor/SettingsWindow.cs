@@ -14,18 +14,33 @@ namespace MultiversXUnityTools
         private API selectedAPI;
         private APISettings apiSettings;
         private Vector2 scrollPosition = Vector2.zero;
+        private ContactButton[] contactButtons;
+        private IconReferences iconReferences;
         private string apiName;
         private string baseAddress;
         private bool addAPI;
         private bool showAvailableAPIs;
-       
-        
+
+
+        //For contact section
+        struct ContactButton
+        {
+            public GUIContent guiContent;
+            public string url;
+
+            public ContactButton(GUIContent guiContent, string url)
+            {
+                this.guiContent = guiContent;
+                this.url = url;
+            }
+        }
+
         //Open Settings Window
         [MenuItem("Tools/MultiversX Unity Tools/Settings Window", false, 50)]
         private static void Init()
         {
             SettingsWindow window = (SettingsWindow)GetWindow(typeof(SettingsWindow));
-            window.titleContent = new GUIContent("MultiversX Tools - v.0.4.0");
+            window.titleContent = new GUIContent("MultiversX Tools - v.0.5.2");
             window.minSize = new Vector2(620, 520);
             window.Show();
         }
@@ -34,6 +49,11 @@ namespace MultiversXUnityTools
         //load settings files
         private void OnEnable()
         {
+            if (iconReferences == null)
+            {
+                LoadIcons();
+            }
+
             apiSettings = Resources.Load<APISettings>(Constants.API_SETTINGS_DATA);
             if (apiSettings == null)
             {
@@ -69,9 +89,25 @@ namespace MultiversXUnityTools
                     selectedAPI = supportedAPIs[0];
                 }
             }
+
+            contactButtons = new ContactButton[]
+            {
+                new ContactButton(new GUIContent(" Documentation", iconReferences.websiteIcon),"https://github.com/chainofindustry/MultiversXUnityTools/wiki"),
+                new ContactButton(new GUIContent(" Youtube", iconReferences.youtubeIcon),"https://www.youtube.com/channel/UCmvJB1_IobMjYKCNBtuZBog"),
+                new ContactButton(new GUIContent(" Twitter", iconReferences.twitterIcon),"https://twitter.com/XUnityTools"),
+                //new ContactButton(new GUIContent(" Discord", iconReferences.discordIcon),"https://discord.gg/7eSvKKW"),            
+            };
+        }
+        
+
+        //Load Icon images
+        void LoadIcons()
+        {
+            Object assetToLoad = AssetDatabase.LoadAssetAtPath("Assets/GleyPlugins/MultiversXUnityTools/Editor/IconReferences.asset", typeof(IconReferences));
+            iconReferences = (IconReferences)assetToLoad;
         }
 
-
+        //draw the Settings Window
         private void OnGUI()
         {
             if (selectedAPI == null)
@@ -79,7 +115,7 @@ namespace MultiversXUnityTools
                 Debug.LogWarning("No API found, please reimport the plugin");
                 return;
             }
-            scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false, GUILayout.Width(position.width), GUILayout.Height(position.height - 40));
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false, GUILayout.Width(position.width), GUILayout.Height(position.height - 50));
             EditorGUILayout.Space();
 
             //input details for Maiar
@@ -229,7 +265,20 @@ namespace MultiversXUnityTools
             #endregion
 
             GUILayout.EndScrollView();
-            
+
+            //Support
+            #region Support
+            EditorGUILayout.BeginHorizontal();
+            for (int i = 0; i < contactButtons.Length; i++)
+            {
+                if (GUILayout.Button(contactButtons[i].guiContent))
+                {
+                    Application.OpenURL(contactButtons[i].url);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            #endregion
+
             //Save current settings
             if (GUILayout.Button("Save"))
             {

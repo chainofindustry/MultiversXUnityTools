@@ -29,10 +29,15 @@ namespace MultiversXUnityTools
         }
 
 
+        /// <summary>
+        /// Returns the current connected account
+        /// </summary>
+        /// <returns>Informations about current account</returns>
         public static Account GetConnectedAccount()
         {
             return ConnectionManager.Instance.GetConnectedAccount();
         }
+
 
         /// <summary>
         /// Login from the same mobile device that has the Maiar app already installed. It will automatically open the Maiar app.

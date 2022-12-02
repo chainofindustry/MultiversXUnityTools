@@ -1,14 +1,12 @@
 using Erdcsharp.Domain;
 using Erdcsharp.Domain.Codec;
 using Erdcsharp.Domain.Helper;
-using Erdcsharp.Domain.SmartContracts;
 using Erdcsharp.Domain.Values;
 using Erdcsharp.Provider.Dtos;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -32,7 +30,6 @@ namespace MultiversXUnityTools
         private API selectedAPI;
         private IMultiversXApiProvider multiversXProvider;
         private bool walletConnected;
-
 
 
         //Create a static instance for easy access
@@ -360,17 +357,6 @@ namespace MultiversXUnityTools
             }
         }
 
-        internal string GetEndpointUrl(EndpointNames endpoint)
-        {
-            if(selectedAPI == null)
-            {
-                Debug.LogError("Call connect method first");
-                return null;
-            }
-
-            return selectedAPI.GetEndpoint(endpoint);
-        }
-
 
         /// <summary>
         /// Sign a single MultiversX transaction
@@ -405,44 +391,68 @@ namespace MultiversXUnityTools
         /// <summary>
         /// Check if a broadcasted transaction was executed and if it was successful
         /// </summary>
-        /// <param name="txHash"></param>
-        /// <param name="completeMethod"></param>
-        internal async void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        /// <param name="txHash">the hash of the transaction</param>
+        /// <param name="completeMethod">callback method</param>
+        /// <param name="refreshTime">time interval to query the blockchain for the status of the transaction. Lower times means more calls to blockchain APIs</param>
+        internal void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             MultiversXTransaction tx = new MultiversXTransaction(txHash);
             Sync(tx, completeMethod, refreshTime);
             return;
 
-            string message;
-            try
-            {
-                await tx.AwaitExecuted(multiversXProvider);
-                if (!tx.EnsureTransactionSuccess(out message))
-                {
-                    completeMethod?.Invoke(OperationStatus.Error, message);
-                    return;
-                }
-            }
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-                return;
-            }
+            //old implementation, does not work on WebGL builds
+            //string message;
+            //try
+            //{
+            //    await tx.AwaitExecuted(multiversXProvider);
+            //    if (!tx.EnsureTransactionSuccess(out message))
+            //    {
+            //        completeMethod?.Invoke(OperationStatus.Error, message);
+            //        return;
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+            //    return;
+            //}
 
-            completeMethod?.Invoke(OperationStatus.Complete, tx.Status);
+            //completeMethod?.Invoke(OperationStatus.Complete, tx.Status);
         }
 
+
+        /// <summary>
+        /// Start to sync a transaction
+        /// </summary>
+        /// <param name="tx">transaction</param>
+        /// <param name="completeMethod">callback when completed</param>
+        /// <param name="refreshTime"></param>
         void Sync(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             StartCoroutine(CheckTransaction(tx, completeMethod,refreshTime));
         }
 
+
+        /// <summary>
+        /// Coroutine to wait before chacking the status
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <param name="completeMethod"></param>
+        /// <param name="refreshTime"></param>
+        /// <returns></returns>
         private IEnumerator CheckTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             yield return new WaitForSeconds(refreshTime);
             SyncTransaction(tx, completeMethod,refreshTime);
         }
 
+
+        /// <summary>
+        /// Check if the current transaction is executed or try again if not
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <param name="completeMethod"></param>
+        /// <param name="refreshTime"></param>
         private async void SyncTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             await tx.Sync(multiversXProvider);
@@ -562,19 +572,15 @@ namespace MultiversXUnityTools
 
 
         #region SCs
-
-
-
-
         /// <summary>
         /// Make a query (check stored values)
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="scAddress"></param>
-        /// <param name="methodName"></param>
-        /// <param name="completeMethod"></param>
-        /// <param name="outputType"></param>
-        /// <param name="args"></param>
+        /// <typeparam name="T">type of the expected result</typeparam>
+        /// <param name="scAddress">the address of the Smart Contract</param>
+        /// <param name="methodName">the method to call</param>
+        /// <param name="completeMethod">callback method</param>
+        /// <param name="outputType">typevalue of the output</param>
+        /// <param name="args">list of arguments if required</param>
         internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
             var queryResult = await SmartContract.QuerySmartContract<T>(multiversXProvider, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
@@ -719,10 +725,15 @@ namespace MultiversXUnityTools
         }
 
 
+        /// <summary>
+        /// Returns the connected account
+        /// </summary>
+        /// <returns></returns>
         internal Account GetConnectedAccount()
         {
             return connectedAccount;
         }
+
 
         /// <summary>
         /// Disconnect the wallet
@@ -749,6 +760,23 @@ namespace MultiversXUnityTools
                 apiSettings = Resources.Load<APISettings>(Constants.API_SETTINGS_DATA);
             }
             return apiSettings;
+        }
+
+
+        /// <summary>
+        /// Returns the complete url based on the current selected API
+        /// </summary>
+        /// <param name="endpoint">Name of the endpoint from the Settings Window</param>
+        /// <returns></returns>
+        internal string GetEndpointUrl(EndpointNames endpoint)
+        {
+            if (selectedAPI == null)
+            {
+                Debug.LogError("Call connect method first");
+                return null;
+            }
+
+            return selectedAPI.GetEndpoint(endpoint);
         }
         #endregion
 

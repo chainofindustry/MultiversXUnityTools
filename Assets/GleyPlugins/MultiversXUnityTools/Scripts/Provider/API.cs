@@ -18,6 +18,7 @@ namespace MultiversXUnityTools
 
         }
 
+
         public API(string apiName, string baseAddress)
         {
             this.apiName = apiName;
@@ -31,6 +32,11 @@ namespace MultiversXUnityTools
             }
         }
 
+        /// <summary>
+        /// Returns the endpoint URL
+        /// </summary>
+        /// <param name="endpointName">The name of the endpoint defined inside Settings Window</param>
+        /// <returns></returns>
         public string GetEndpoint(EndpointNames endpointName)
         {
             APIEndpoint endpoint = endpoints.FirstOrDefault(cond => cond.name == endpointName.ToString());
@@ -42,6 +48,10 @@ namespace MultiversXUnityTools
         }
     }
 
+
+    /// <summary>
+    /// Used for json serialization
+    /// </summary>
     [System.Serializable]
     public class APIEndpoint
     {

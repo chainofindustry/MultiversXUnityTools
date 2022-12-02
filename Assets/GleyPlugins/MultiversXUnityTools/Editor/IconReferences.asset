@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e932a173faee8e4680f1491e48c5315, type: 3}
+  m_Name: IconReferences
+  m_EditorClassIdentifier: 
+  gleyCover: {fileID: 0}
+  gleyLogo: {fileID: 0}
+  achievementsIcon: {fileID: 0}
+  crossPromoIcon: {fileID: 0}
+  dailyRewardsIcon: {fileID: 0}
+  discordIcon: {fileID: 0}
+  easyIAPIcon: {fileID: 0}
+  facebookIcon: {fileID: 0}
+  instagramIcon: {fileID: 0}
+  localizationIcon: {fileID: 0}
+  mobileAdsIcon: {fileID: 0}
+  mobileToolsIcon: {fileID: 0}
+  notificationsIcon: {fileID: 0}
+  rateGameIcon: {fileID: 0}
+  saveIcon: {fileID: 0}
+  trafficSystemIcon: {fileID: 0}
+  twitterIcon: {fileID: 0}
+  vehiclesIcon: {fileID: 0}
+  websiteIcon: {fileID: 0}
+  youtubeIcon: {fileID: 0}

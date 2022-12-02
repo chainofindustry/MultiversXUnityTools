@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Numerics;
@@ -32,11 +31,13 @@ namespace MultiversXUnityExamples
             param.text = valueToAdd.ToString();
         }
 
+
         //linked to the back button
         public void SCBack()
         {
             DemoScript.Instance.LoadScreen(Screens.Connected);
         }
+
 
         //linked to execute SC query button
         public void ExecuteQuery()
@@ -44,6 +45,7 @@ namespace MultiversXUnityExamples
             //call the method from scAddress with parameters
             Manager.MakeSCQuery<NumericValue>(scAddress.text, method.text, QueryComplete, TypeValue.BigUintTypeValue);
         }
+
 
         //linked to a button to execute the SC call 
         public void ExecuteCall()
@@ -53,6 +55,7 @@ namespace MultiversXUnityExamples
             long gas = long.Parse(gasInput.text);
             Manager.CallSCMethod(scAddress.text, method.text, gas, CallStatus, NumericValue.BigIntValue(nr));
         }
+
 
         /// <summary>
         /// Triggered when Smart contract query is complete
@@ -94,6 +97,7 @@ namespace MultiversXUnityExamples
                 scResultText.text = operationStatus + " " + message;
             }
         }
+
 
         /// <summary>
         /// Listener for the SC transaction status 

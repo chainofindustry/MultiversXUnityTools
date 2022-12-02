@@ -1,7 +1,5 @@
 using Erdcsharp.Domain;
 using MultiversXUnityTools;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,11 +17,10 @@ namespace MultiversXUnityExamples
         public Transform tokenParent;
         public GameObject tokenHolder;
 
-
-
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
         private string defaultMessage = "You see this?";
         private double egld = 0.001;
+
 
         public override void Init(params object[] args)
         {
@@ -56,6 +53,10 @@ namespace MultiversXUnityExamples
             }
         }
 
+        /// <summary>
+        /// Add token value, name and identifier to UI
+        /// </summary>
+        /// <param name="allTokens"></param>
         void PopulateUI(TokenMetadata[] allTokens)
         {
             while (tokenParent.childCount > 0)

@@ -27,6 +27,7 @@ namespace MultiversXUnityExamples
         public GameObject screenPrefab;
     }
 
+
     //A simple navigation script to move through different UI screens
     public class DemoScript : MonoBehaviour
     {
@@ -98,11 +99,11 @@ namespace MultiversXUnityExamples
                 Application.Quit();
             }
             //test for custom Post and Get methods
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Get();
-               // Post();
-            }
+            //if (Input.GetKeyDown(KeyCode.Space))
+            //{
+            //    Get();
+            //   // Post();
+            //}
         }
 
 

@@ -70,6 +70,7 @@ namespace MultiversXUnityExamples
             }
         }
 
+
         /// <summary>
         /// Callback triggered when cover load is complete
         /// </summary>
@@ -86,6 +87,7 @@ namespace MultiversXUnityExamples
                 banner.color = Color.white;
             }
         }
+
 
         /// <summary>
         /// Refresh the address and the amount of tokens of the connected wallet 
@@ -107,17 +109,20 @@ namespace MultiversXUnityExamples
             DemoScript.Instance.LoadScreen(Screens.Transactions);
         }
 
+
         //linked to the UI button to open the SC screen
         public void ShowSCScreen()
         {
             DemoScript.Instance.LoadScreen(Screens.SC);
         }
 
+
         //linked to the UI button to open the NFT screen
         public void ShowNFTScreen()
         {
             DemoScript.Instance.LoadScreen(Screens.NFT);
         }
+
 
         //linked to the disconnect button in editor
         public void Disconnect()

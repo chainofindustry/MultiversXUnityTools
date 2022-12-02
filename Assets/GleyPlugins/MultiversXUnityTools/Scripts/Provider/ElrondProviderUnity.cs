@@ -11,7 +11,7 @@ namespace MultiversXUnityTools
 {
     /// <summary>
     /// You can implement your own version of provider
-    /// Used to download data from API
+    /// Used to download data from blockchain API
     /// </summary>
     public class ElrondProviderUnity : IMultiversXApiProvider
     {
