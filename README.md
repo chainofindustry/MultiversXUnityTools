@@ -1,4 +1,4 @@
-# Elrond Unity Development Tools
+# MultiversX Unity Tools
 
 ### Overview
 A work-in-progress set of tools to interact with Elrond Blockchain directly from a Unity app.  
@@ -9,7 +9,7 @@ Android and PC demo apps are available on the [Releases tab](https://github.com/
 WebGL demo : https://chainofindustry.github.io/WebGLBuild/ 
 
 ### Video Tutorial
-https://youtu.be/reZjdcazNJI
+Soon
 
 ### External Dependencies
 We did not developed these tools but adapt them to work with our integration.
@@ -35,7 +35,7 @@ We did not developed these tools but adapt them to work with our integration.
 7. [Gas Cost](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/Gas-Cost) :white_check_mark:
 8. [API Requests (GET, POST)](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki/API-Requests-(GET,-POST)) :white_check_mark:
 9. [Demo Scene](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/releases) :white_check_mark:
-10. :wrench: Simplified API Config Tools  :hammer: 
+10. :wrench: Video tutorials :hammer: 
 
 
 **Full documentation** available on the [Wiki](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki) tab.  
