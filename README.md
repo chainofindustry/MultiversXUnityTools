@@ -7,6 +7,7 @@ We intend to keep our APIs as simple as possible and every action to be done wit
 ### Demo
 Android and PC demo apps are available on the [Releases tab](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/releases/).  
 WebGL demo : https://chainofindustry.github.io/WebGLBuild/ 
+Download Images on WebGL build is very slow because my personal server is not configured for that. Try Android or PC builds.
 
 ### Video Tutorial
 Soon
