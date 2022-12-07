@@ -10,6 +10,9 @@ namespace MultiversXUnityTools
 {
     public class SettingsWindow : EditorWindow
     {
+        private const string FOLDER_NAME = "MultiversXTools";
+        private static string rootFolder;
+
         private List<API> supportedAPIs;
         private API selectedAPI;
         private APISettings apiSettings;
@@ -39,8 +42,19 @@ namespace MultiversXUnityTools
         [MenuItem("Tools/MultiversX Unity Tools/Settings Window", false, 50)]
         private static void Init()
         {
+            rootFolder = Gley.Common.EditorUtilities.FindFolder(FOLDER_NAME);
+            if(rootFolder==null)
+            {
+                Debug.LogError("Folder Not Found " + FOLDER_NAME);
+                return;
+            }
+            string path = $"{rootFolder}/Scripts/Version.txt";
+
+            StreamReader reader = new StreamReader(path);
+            string longVersion = JsonUtility.FromJson<Gley.Common.AssetVersion>(reader.ReadToEnd()).longVersion;
+
             SettingsWindow window = (SettingsWindow)GetWindow(typeof(SettingsWindow));
-            window.titleContent = new GUIContent("MultiversX Tools - v.0.5.2");
+            window.titleContent = new GUIContent("MultiversX Tools - v." + longVersion);
             window.minSize = new Vector2(620, 520);
             window.Show();
         }

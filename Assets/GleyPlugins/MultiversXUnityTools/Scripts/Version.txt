@@ -1,0 +1,5 @@
+{
+    "folderName": "MultiversXTools",
+    "longVersion": "1.0.0",
+    "shortVersion": 1
+}
