@@ -8,10 +8,10 @@ namespace MultiversXUnityTools
         public const string CONNECTION_MANAGER_OBJECT = "MultiversXConnectionManager";
         public const string NAMESPACE_NAME = "MultiversXUnityTools";
 
-        public const string APIS_FOLDER = "GleyPlugins/MultiversXUnityTools/Resources/APIs";
-        public const string DEFAULT_APIS_FOLDER = "GleyPlugins/MultiversXUnityTools/Scripts/Provider/DefaultAPIs";
-        public const string PROVIDER_FOLDER = "GleyPlugins/MultiversXUnityTools/Scripts/Provider";
-        public const string RESOURCES_FOLDER = "Assets/GleyPlugins/MultiversXUnityTools/Resources";
+        public const string APIS_FOLDER = "Resources/APIs";
+        public const string DEFAULT_APIS_FOLDER = "Scripts/Provider/DefaultAPIs";
+        public const string PROVIDER_FOLDER = "Scripts/Provider";
+        public const string RESOURCES_FOLDER = "Resources";
 
         //Bypass the CORS error on web when downloading NFTs see docs for more details
 #if UNITY_WEBGL

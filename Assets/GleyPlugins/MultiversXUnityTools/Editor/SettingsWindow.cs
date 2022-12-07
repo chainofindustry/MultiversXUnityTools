@@ -10,8 +10,9 @@ namespace MultiversXUnityTools
 {
     public class SettingsWindow : EditorWindow
     {
-        private const string FOLDER_NAME = "MultiversXTools";
+        private const string FOLDER_NAME = "MultiversXUnityTools";
         private static string rootFolder;
+        private static string rootWithoutAssets;
 
         private List<API> supportedAPIs;
         private API selectedAPI;
@@ -42,12 +43,9 @@ namespace MultiversXUnityTools
         [MenuItem("Tools/MultiversX Unity Tools/Settings Window", false, 50)]
         private static void Init()
         {
-            rootFolder = Gley.Common.EditorUtilities.FindFolder(FOLDER_NAME);
-            if(rootFolder==null)
-            {
-                Debug.LogError("Folder Not Found " + FOLDER_NAME);
+            if (!LoadRootFolder())
                 return;
-            }
+            
             string path = $"{rootFolder}/Scripts/Version.txt";
 
             StreamReader reader = new StreamReader(path);
@@ -63,6 +61,9 @@ namespace MultiversXUnityTools
         //load settings files
         private void OnEnable()
         {
+            if (!LoadRootFolder())
+                return;
+
             if (iconReferences == null)
             {
                 LoadIcons();
@@ -76,13 +77,16 @@ namespace MultiversXUnityTools
             }
 
             supportedAPIs = new List<API>();
-            DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIS_FOLDER}");
+
+            string apisFolderPath = $"{Application.dataPath}/{rootWithoutAssets}/{Constants.APIS_FOLDER}";
+
+            DirectoryInfo dir = new DirectoryInfo(apisFolderPath);
             if (!dir.Exists)
             {
                 Debug.Log("No custom APIs found, loading default APIs");
-                FileUtil.CopyFileOrDirectory($"{Application.dataPath}/{Constants.DEFAULT_APIS_FOLDER}", $"{Application.dataPath}/{Constants.APIS_FOLDER}");
+                FileUtil.CopyFileOrDirectory($"{Application.dataPath}/{rootWithoutAssets}/{Constants.DEFAULT_APIS_FOLDER}", apisFolderPath);
                 AssetDatabase.Refresh();
-                dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIS_FOLDER}");
+                dir = new DirectoryInfo(apisFolderPath);
             }
 
             foreach (FileInfo file in dir.GetFiles("*.json"))
@@ -112,13 +116,26 @@ namespace MultiversXUnityTools
                 //new ContactButton(new GUIContent(" Discord", iconReferences.discordIcon),"https://discord.gg/7eSvKKW"),            
             };
         }
-        
+
 
         //Load Icon images
         void LoadIcons()
         {
-            Object assetToLoad = AssetDatabase.LoadAssetAtPath("Assets/GleyPlugins/MultiversXUnityTools/Editor/IconReferences.asset", typeof(IconReferences));
+            Object assetToLoad = AssetDatabase.LoadAssetAtPath($"{rootFolder}/Editor/IconReferences.asset", typeof(IconReferences));
             iconReferences = (IconReferences)assetToLoad;
+        }
+
+
+        static bool LoadRootFolder()
+        {
+            rootFolder = Gley.Common.EditorUtilities.FindFolder(FOLDER_NAME);
+            if (rootFolder == null)
+            {
+                Debug.LogError("Folder Not Found " + FOLDER_NAME);
+                return false;
+            }
+            rootWithoutAssets = rootFolder.Replace("Assets/", "");
+            return true;
         }
 
         //draw the Settings Window
@@ -336,7 +353,7 @@ namespace MultiversXUnityTools
         /// </summary>
         private void DeleteOldAPIFiles()
         {
-            DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/{Constants.APIS_FOLDER}");
+            DirectoryInfo dir = new DirectoryInfo($"{Application.dataPath}/{rootWithoutAssets}/{Constants.APIS_FOLDER}");
 
             foreach (FileInfo file in dir.GetFiles())
             {
@@ -361,7 +378,7 @@ namespace MultiversXUnityTools
                 SaveJson(supportedAPIs[i]);
             }
             text += "\t}\n}";
-            File.WriteAllText($"{Application.dataPath}/{Constants.PROVIDER_FOLDER}/SupportedAPIs.cs", text);
+            File.WriteAllText($"{Application.dataPath}/{rootWithoutAssets}/{Constants.PROVIDER_FOLDER}/SupportedAPIs.cs", text);
         }
 
 
@@ -412,7 +429,7 @@ namespace MultiversXUnityTools
                 text += "\t\t" + enumElements[i] + ",\n";
             }
             text += "\t}\n}";
-            File.WriteAllText($"{Application.dataPath}/{Constants.PROVIDER_FOLDER}/EndpointNames.cs", text);
+            File.WriteAllText($"{Application.dataPath}/{rootWithoutAssets}/{Constants.PROVIDER_FOLDER}/EndpointNames.cs", text);
         }
 
 
@@ -423,7 +440,7 @@ namespace MultiversXUnityTools
         private void SaveJson(API api)
         {
             string json = JsonConvert.SerializeObject(api);
-            File.WriteAllText($"{Application.dataPath}/{Constants.APIS_FOLDER}/{api.apiName}.json", json);
+            File.WriteAllText($"{Application.dataPath}/{rootWithoutAssets}/{Constants.APIS_FOLDER}/{api.apiName}.json", json);
         }
 
 
@@ -433,8 +450,11 @@ namespace MultiversXUnityTools
         private void CreateAPISettings()
         {
             APISettings asset = CreateInstance<APISettings>();
-            EditorUtilities.CreateFolder(Constants.RESOURCES_FOLDER);
-            AssetDatabase.CreateAsset(asset, $"{Constants.RESOURCES_FOLDER}/{Constants.API_SETTINGS_DATA}.asset");
+            string path = $"{rootFolder}/{Constants.RESOURCES_FOLDER}";
+            Debug.Log("PATH: " + path);
+
+            EditorUtilities.CreateFolder(path);
+            AssetDatabase.CreateAsset(asset, $"{path}/{Constants.API_SETTINGS_DATA}.asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
