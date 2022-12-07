@@ -43,4 +43,4 @@ We did not developed these tools but adapt them to work with our integration.
 
 **Video tutorials** available on [Youtube](https://www.youtube.com/channel/UCmvJB1_IobMjYKCNBtuZBog).
 
-**Contact & progress updates** on Twitter: [@ElrondUnityDev](https://twitter.com/ElrondUnityDev).
+**Contact & progress updates** on Twitter: [@XUnityTools](https://twitter.com/XUnityTools).
