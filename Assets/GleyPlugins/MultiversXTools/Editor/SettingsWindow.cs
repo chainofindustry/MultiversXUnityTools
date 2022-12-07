@@ -10,7 +10,7 @@ namespace MultiversXUnityTools
 {
     public class SettingsWindow : EditorWindow
     {
-        private const string FOLDER_NAME = "MultiversXUnityTools";
+        private const string FOLDER_NAME = "MultiversXTools";
         private static string rootFolder;
         private static string rootWithoutAssets;
 
@@ -131,7 +131,7 @@ namespace MultiversXUnityTools
             rootFolder = Gley.Common.EditorUtilities.FindFolder(FOLDER_NAME);
             if (rootFolder == null)
             {
-                Debug.LogError("Folder Not Found " + FOLDER_NAME);
+                Debug.LogError($"Folder Not Found: '{FOLDER_NAME}'");
                 return false;
             }
             rootWithoutAssets = rootFolder.Replace("Assets/", "");
