@@ -18,6 +18,8 @@ We did not developed these tools but adapt them to work with our integration.
 * [Wallet Connect Sharp](https://github.com/WalletConnect/WalletConnectSharp)
 * [Elrond SDK .Net](https://github.com/yann4460/elrond-sdk.dotnet)
 
+If Newtonsoft.Json is missing, import it from [here](https://github.com/jilleJr/Newtonsoft.Json-for-Unity/wiki/Install-official-via-UPM)
+
 ### Tested
 * PC :white_check_mark:
 * MAC :white_check_mark:
