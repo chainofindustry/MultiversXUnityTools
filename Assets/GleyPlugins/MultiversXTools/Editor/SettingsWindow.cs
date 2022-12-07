@@ -451,8 +451,6 @@ namespace MultiversXUnityTools
         {
             APISettings asset = CreateInstance<APISettings>();
             string path = $"{rootFolder}/{Constants.RESOURCES_FOLDER}";
-            Debug.Log("PATH: " + path);
-
             EditorUtilities.CreateFolder(path);
             AssetDatabase.CreateAsset(asset, $"{path}/{Constants.API_SETTINGS_DATA}.asset");
             AssetDatabase.SaveAssets();
