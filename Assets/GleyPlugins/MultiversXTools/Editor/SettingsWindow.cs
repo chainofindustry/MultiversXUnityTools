@@ -367,7 +367,22 @@ namespace MultiversXUnityTools
         /// </summary>
         private void CreateSupportedAPIEnum()
         {
-            string text =
+            for (int i = 0; i < supportedAPIs.Count; i++)
+            {
+                if (string.IsNullOrEmpty(supportedAPIs[i].apiName) || string.IsNullOrEmpty(supportedAPIs[i].baseAddress))
+                {
+                    Debug.LogError("Supported APIs fields cannot be empty. Your settings are not saved");
+                    return;
+                }
+                for(int j=0;j<supportedAPIs[i].endpoints.Count;j++)
+                {
+                    if(string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].name)|| string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].resourceName)|| string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].baseAddress))
+                    {
+                        Debug.LogWarning($"{supportedAPIs[i].apiName} has endpoints with empty fields: Name:'{supportedAPIs[i].endpoints[j].name}', BaseAddress: '{supportedAPIs[i].endpoints[j].baseAddress}', ResourceName:'{supportedAPIs[i].endpoints[j].resourceName}'");
+                    }
+                }
+            }
+                string text =
             $"namespace {Constants.NAMESPACE_NAME}\n" +
             "{\n" +
             "\tpublic enum SupportedAPIs\n" +
@@ -412,6 +427,11 @@ namespace MultiversXUnityTools
                     {
                         if (supportedAPIs[i].endpoints.FirstOrDefault(p => p.name == enumElements[j]) == null)
                         {
+                            if(string.IsNullOrEmpty(enumElements[j]))
+                            {
+                                Debug.LogError($"{supportedAPIs[i].apiName} has empty endpoints. Endpoint fields cannot be empty. Your settings are not saved");
+                                return;
+                            }
                             Debug.LogWarning($"Endpoint {enumElements[j]} from API {debugValues[j]} was not fount in API {supportedAPIs[i].apiName}");
                         }
                     }
