@@ -45,4 +45,6 @@ If Newtonsoft.Json is missing, import it from [here](https://github.com/jilleJr/
 
 **Video tutorials** available on [Youtube](https://www.youtube.com/channel/UCmvJB1_IobMjYKCNBtuZBog).
 
-**Contact & progress updates** on Twitter: [@XUnityTools](https://twitter.com/XUnityTools).
+**Contact** Discord server: [Chain of Industry](https://discord.gg/hQXw3rbQw7).
+
+**Progress & Updates** Twitter: [@XUnityTools](https://twitter.com/XUnityTools).
