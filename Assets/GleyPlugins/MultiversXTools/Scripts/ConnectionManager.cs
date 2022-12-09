@@ -103,7 +103,7 @@ namespace MultiversXUnityTools
                 return;
             }
 
-           
+
             TextAsset targetFile = Resources.Load<TextAsset>($"APIs/{apiSettings.selectedAPIName}");
             try
             {
@@ -429,7 +429,7 @@ namespace MultiversXUnityTools
         /// <param name="refreshTime"></param>
         void Sync(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
-            StartCoroutine(CheckTransaction(tx, completeMethod,refreshTime));
+            StartCoroutine(CheckTransaction(tx, completeMethod, refreshTime));
         }
 
 
@@ -443,7 +443,7 @@ namespace MultiversXUnityTools
         private IEnumerator CheckTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             yield return new WaitForSeconds(refreshTime);
-            SyncTransaction(tx, completeMethod,refreshTime);
+            SyncTransaction(tx, completeMethod, refreshTime);
         }
 
 
@@ -759,6 +759,12 @@ namespace MultiversXUnityTools
             {
                 apiSettings = Resources.Load<APISettings>(Constants.API_SETTINGS_DATA);
             }
+
+            if (apiSettings == null || string.IsNullOrEmpty(apiSettings.selectedAPIName))
+            {
+                Debug.LogError("No Settings found. Go to Tools->MultiversX Tools->Settings Window and save your settings first");
+            }
+
             return apiSettings;
         }
 
