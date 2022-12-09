@@ -40,7 +40,7 @@ namespace MultiversXUnityTools
         }
 
         //Open Settings Window
-        [MenuItem("Tools/MultiversX Unity Tools/Settings Window", false, 50)]
+        [MenuItem("Tools/MultiversX Tools/Settings Window", false, 50)]
         private static void Init()
         {
             if (!LoadRootFolder())
@@ -113,7 +113,7 @@ namespace MultiversXUnityTools
                 new ContactButton(new GUIContent(" Documentation", iconReferences.websiteIcon),"https://github.com/chainofindustry/MultiversXUnityTools/wiki"),
                 new ContactButton(new GUIContent(" Youtube", iconReferences.youtubeIcon),"https://www.youtube.com/channel/UCmvJB1_IobMjYKCNBtuZBog"),
                 new ContactButton(new GUIContent(" Twitter", iconReferences.twitterIcon),"https://twitter.com/XUnityTools"),
-                //new ContactButton(new GUIContent(" Discord", iconReferences.discordIcon),"https://discord.gg/7eSvKKW"),            
+                new ContactButton(new GUIContent(" Discord", iconReferences.discordIcon),"https://discord.gg/hQXw3rbQw7"),            
             };
         }
 
