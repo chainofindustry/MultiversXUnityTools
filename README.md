@@ -4,6 +4,9 @@
 A work-in-progress set of tools to interact with MultiversX Blockchain directly from a Unity app.  
 We intend to keep our APIs as simple as possible and every action to be done with just a single line of code. 
 
+### Available on Unity Asset Store:
+https://assetstore.unity.com/packages/tools/integration/multiversx-tools-240826
+
 ### Demo
 Android and PC demo apps are available on the [Releases tab](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/releases/).  
 WebGL demo : https://chainofindustry.github.io/WebGLBuild/   
