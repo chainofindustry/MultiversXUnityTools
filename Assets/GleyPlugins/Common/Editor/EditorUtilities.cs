@@ -28,13 +28,13 @@ namespace Gley.Common
         }
 
 
-        public static string FindFolder(string folderName)
+        public static string FindFolder(string folderName, string parent)
         {
             string result = null;
             var folders = AssetDatabase.GetSubFolders("Assets");
             foreach (var folder in folders)
             {
-                result = Recursive(folder, folderName);
+                result = Recursive(folder, folderName, parent);
                 if (result != null)
                 {
                     return result;
@@ -43,16 +43,16 @@ namespace Gley.Common
             return result;
         }
 
-        static string Recursive(string currentFolder, string folderToSearch)
+        static string Recursive(string currentFolder, string folderToSearch, string parent)
         {
-            if (currentFolder.EndsWith($"/{folderToSearch}"))
+            if (currentFolder.EndsWith($"{parent}/{folderToSearch}"))
             {
                 return currentFolder;
             }
             var folders = AssetDatabase.GetSubFolders(currentFolder);
             foreach (var fld in folders)
             {
-                string result = Recursive(fld, folderToSearch);
+                string result = Recursive(fld, folderToSearch, parent);
                 if (result != null)
                 {
                     return result;

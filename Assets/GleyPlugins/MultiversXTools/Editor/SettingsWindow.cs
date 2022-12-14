@@ -11,6 +11,7 @@ namespace MultiversXUnityTools
     public class SettingsWindow : EditorWindow
     {
         private const string FOLDER_NAME = "MultiversXTools";
+        private const string PARENT_FOLDER = "GleyPlugins";
         private static string rootFolder;
         private static string rootWithoutAssets;
 
@@ -128,13 +129,13 @@ namespace MultiversXUnityTools
 
         static bool LoadRootFolder()
         {
-            rootFolder = Gley.Common.EditorUtilities.FindFolder(FOLDER_NAME);
+            rootFolder = Gley.Common.EditorUtilities.FindFolder(FOLDER_NAME, PARENT_FOLDER);
             if (rootFolder == null)
             {
-                Debug.LogError($"Folder Not Found: '{FOLDER_NAME}'");
+                Debug.LogError($"Folder Not Found:'{PARENT_FOLDER}/{FOLDER_NAME}'");
                 return false;
             }
-            rootWithoutAssets = rootFolder.Replace("Assets/", "");
+            rootWithoutAssets = rootFolder.Substring(7, rootFolder.Length - 7);
             return true;
         }
 
