@@ -390,14 +390,8 @@ namespace MultiversXUnityTools
                 return;
             }
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
             string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(ConnectURL);
-            Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
-            Application.OpenURL(maiarUrl);
-
-#elif UNITY_IOS
-            string encodedConnect = WebUtility.UrlEncode(ConnectURL);
-            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + encodedConnect;
             Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
             Application.OpenURL(maiarUrl);
 #else
