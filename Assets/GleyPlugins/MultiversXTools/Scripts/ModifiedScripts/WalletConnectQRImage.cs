@@ -14,7 +14,7 @@ namespace MultiversXUnityTools
         /// <summary>
         /// The WalletConnect instance we'll work with to generate the QR code.
         /// </summary>
-        WalletConnect walletConnect;
+        //WalletConnect walletConnect;
 
         /// <summary>
         /// The image component we'll place the QR code texture into.
@@ -26,25 +26,29 @@ namespace MultiversXUnityTools
         /// </summary>
         private bool registeredOnConnectionStartEvent = false;
 
+        private string uri;
+
         /// <summary>
         /// Unity OnEnable hook.
         /// </summary>
-        public void Init(WalletConnect walletConnect)
+        public void Init(string uri)
         {
             _image = GetComponent<Image>();
-            this.walletConnect = walletConnect;
-            if (walletConnect == null)
-            {
-                Debug.LogError("WalletConnectQRImage: No WalletConnect object given, QRImage will be disabled");
-                enabled = false;
-                return;
-            }
+            this.uri = uri;
+            //this.walletConnect = walletConnect;
+            //if (walletConnect == null)
+            //{
+            //    Debug.LogError("WalletConnectQRImage: No WalletConnect object given, QRImage will be disabled");
+            //    enabled = false;
+            //    return;
+            //}
 
             // Only register the WalletConnectOnConnectionStarted handler once
             if (!registeredOnConnectionStartEvent)
             {
                 registeredOnConnectionStartEvent = true;
-                walletConnect.ConnectionStarted += WalletConnectOnConnectionStarted;
+                GenerateQrCode();
+                //walletConnect.ConnectionStarted += WalletConnectOnConnectionStarted;
             }
         }
 
@@ -86,7 +90,7 @@ namespace MultiversXUnityTools
             // be recovered on a slightly dodgy read. We'll go with the UnityWalletConnect default of Q(uality) as it's a
             // good compromise between readability and data storage capacity.
             // See: https://www.qrcode.com/en/about/version.html
-            var url = walletConnect.Session.URI;
+            var url = uri;
             Debug.Log("Connecting to: " + url);
             QRCodeGenerator qrGenerator = new QRCodeGenerator();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
@@ -113,7 +117,7 @@ namespace MultiversXUnityTools
 
         private void OnDestroy()
         {
-            walletConnect.ConnectionStarted -= WalletConnectOnConnectionStarted;
+            //walletConnect.ConnectionStarted -= WalletConnectOnConnectionStarted;
         }
     }
 }

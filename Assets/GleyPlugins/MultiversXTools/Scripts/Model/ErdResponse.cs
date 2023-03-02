@@ -1,16 +1,16 @@
 using Newtonsoft.Json;
-using WalletConnectSharp.Core.Models;
+using WalletConnectSharp.Network.Models;
 
 namespace MultiversXUnityTools
 {
     //RPC response
-    public class ErdResponse : JsonRpcResponse
+    public class ErdResponse : JsonRpcResponse<Result>
     {
-        [JsonProperty]
-        public Result result { get; set; }
+        //[JsonProperty]
+        //public Result result { get; set; }
 
-        [JsonIgnore]
-        public string Result => result.signature;
+        //[JsonIgnore]
+        //public string Result => result.signature;
     }
 
 

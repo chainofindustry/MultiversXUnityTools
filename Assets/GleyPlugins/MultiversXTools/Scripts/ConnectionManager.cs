@@ -9,11 +9,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Events;
 using UnityEngine.Networking;
+using UnityEngine.Networking.Types;
 using UnityEngine.UI;
-using WalletConnectSharp.Core.Models;
+using WalletConnectSharp.Common.Model.Errors;
+using WalletConnectSharp.Core.Models.Pairing;
+using WalletConnectSharp.Network.Models;
+using WalletConnectSharp.Sign;
+using WalletConnectSharp.Sign.Models;
+using WalletConnectSharp.Sign.Models.Engine;
+//using WalletConnectSharp.Core.Models;
 
 
 namespace MultiversXUnityTools
@@ -24,13 +33,16 @@ namespace MultiversXUnityTools
         private NetworkConfig networkConfig;
         private UnityAction<Account> OnWalletConnected;
         private UnityAction OnWalletDisconnected;
-        private WalletConnect walletConnect;
+        private WalletConnectSignClient walletConnect;
         private BinaryCodec BinaryCoder = new BinaryCodec();
         private APISettings apiSettings;
         private API selectedAPI;
         private IMultiversXApiProvider multiversXProvider;
         private bool walletConnected;
 
+        SessionStruct sessionData;
+
+        string account;
 
         //Create a static instance for easy access
         private static ConnectionManager instance;
@@ -59,35 +71,129 @@ namespace MultiversXUnityTools
         /// <param name="qrImage">image to display the QRcode if required</param>
         internal async void Connect(UnityAction<Account> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
-            //if already connected do not connect
-            if (gameObject.GetComponent<WalletConnect>())
+            var appData = new SignClientOptions()
             {
-                AddQRImageScript(qrImage);
-                await LoadAPI();
-                return;
+                ProjectId = "39f3dc0a2c604ec9885799f9fc5feb7c",
+                Metadata = new Metadata()
+                {
+                    Description = apiSettings.appDescription,
+                    Icons = new[] { apiSettings.appIcon },
+                    Name = apiSettings.appName,
+                    Url = apiSettings.appWebsite
+                },
+                // Uncomment to disable persistant storage
+                // Storage = new InMemoryStorage()
+            };
+
+            var xPortalData = new ConnectOptions()
+            {
+                RequiredNamespaces = new RequiredNamespaces()
+                {
+                    {
+                        "elrond", new RequiredNamespace()
+                        {
+                            Methods = new[]
+                            {
+                                "erd_signTransaction",
+                                "erd_signTransactions",
+                                "erd_signMessage",
+                                "erd_signLoginToken",
+                                "erd_cancelAction",
+                            },
+                            Chains = new[]
+                            {
+                                "elrond:D"
+                            },
+                            Events = new[]
+                            {
+                               "accountsChanged"
+                            }
+                        }
+                    }
+                }
+            };
+
+            Debug.Log("INIT");
+            walletConnect = await WalletConnectSignClient.Init(appData);
+            var connectData = await walletConnect.Connect(xPortalData);
+
+
+
+            AddQRImageScript(qrImage, connectData.Uri);
+
+            Debug.Log("WAITING FOR APROVAL");
+
+            try
+            {
+                sessionData = await connectData.Approval;
+                Debug.Log("Connected ");
+                Debug.Log("Acknowledged " + sessionData.Acknowledged);
+                Debug.Log("Controller " + sessionData.Controller);
+                Debug.Log("Expiry " + sessionData.Expiry);
+                Debug.Log("Key " + sessionData.Key);
+                Debug.Log("Namespaces " + sessionData.Namespaces);
+                foreach (KeyValuePair<string, Namespace> entry in sessionData.Namespaces)
+                {
+                    for (int i = 0; i < entry.Value.Accounts.Length; i++)
+                    {
+                        Debug.Log("ACCOUNTS " + entry.Value.Accounts[i]);
+                        account = entry.Value.Accounts[i].Split(":")[2];
+                    }
+                    for (int i = 0; i < entry.Value.Events.Length; i++)
+                    {
+                        Debug.Log("EVENTS " + entry.Value.Events[i]);
+                    }
+                    for (int i = 0; i < entry.Value.Methods.Length; i++)
+                    {
+                        Debug.Log("Methods " + entry.Value.Methods[i]);
+                    }
+                }
+                Debug.Log("Peer Description " + sessionData.Peer.Metadata.Description);
+                Debug.Log("Peer Url" + sessionData.Peer.Metadata.Url);
+                Debug.Log("Peer Name" + sessionData.Peer.Metadata.Name);
+                Debug.Log("Peer PublicKey" + sessionData.Peer.PublicKey);
+                Debug.Log("Relay.Data " + sessionData.Relay.Data);
+                Debug.Log("Relay.Protocol " + sessionData.Relay.Protocol);
+                Debug.Log("RequiredNamespaces " + sessionData.RequiredNamespaces);
+                Debug.Log("Self " + sessionData.Self.Metadata.Description);
+                Debug.Log("Topic " + sessionData.Topic);
             }
+            catch (WalletConnectException ex)
+            {
+                // Handle the exception
+                Debug.LogError(ex.Message);
+            }
+
+            //if already connected do not connect
+            //if (gameObject.GetComponent<WalletConnect>())
+            //{
+            //    AddQRImageScript(qrImage);
+            //    await LoadAPI();
+            //    return;
+            //}
 
             //setup events and parameters
             this.OnWalletConnected = OnWalletConnected;
             this.OnWalletDisconnected = OnWalletDisconnected;
-            walletConnect = gameObject.AddComponent<WalletConnect>();
-            walletConnect.connectOnStart = false;
-            walletConnect.connectOnAwake = false;
-            walletConnect.createNewSessionOnSessionDisconnect = false;
+            //walletConnect = gameObject.AddComponent<WalletConnect>();
+            //walletConnect.connectOnStart = false;
+            //walletConnect.connectOnAwake = false;
+            //walletConnect.createNewSessionOnSessionDisconnect = false;
             apiSettings = Manager.GetApiSettings();
-            ClientMeta appData = new ClientMeta();
-            appData.Description = apiSettings.appDescription;
-            appData.Icons = new string[1];
-            appData.Icons[0] = apiSettings.appIcon;
-            appData.Name = apiSettings.appName;
-            appData.URL = apiSettings.appWebsite;
-            walletConnect.AppData = appData;
-            walletConnect.customBridgeUrl = Constants.CUSTOM_BRIDGE_URL;
-            walletConnect.ConnectedEvent = new WalletConnect.WalletConnectEventNoSession();
-            walletConnect.ConnectedEventSession = new WalletConnect.WalletConnectEventWithSessionData();
-            walletConnect.ConnectedEvent.AddListener(Connected);
-            AddQRImageScript(qrImage);
+            //ClientMeta appData = new ClientMeta();
+            //appData.Description = apiSettings.appDescription;
+            //appData.Icons = new string[1];
+            //appData.Icons[0] = apiSettings.appIcon;
+            //appData.Name = apiSettings.appName;
+            //appData.URL = apiSettings.appWebsite;
+            //walletConnect.AppData = appData;
+            //walletConnect.customBridgeUrl = Constants.CUSTOM_BRIDGE_URL;
+            //walletConnect.ConnectedEvent = new WalletConnect.WalletConnectEventNoSession();
+            //walletConnect.ConnectedEventSession = new WalletConnect.WalletConnectEventWithSessionData();
+            //walletConnect.ConnectedEvent.AddListener(Connected);
+
             await LoadAPI();
+            Connected();
         }
 
 
@@ -121,7 +227,7 @@ namespace MultiversXUnityTools
                 return;
             }
 
-            Debug.Log($"SELECTED API { selectedAPI.apiName} {selectedAPI.baseAddress}");
+            Debug.Log($"SELECTED API {selectedAPI.apiName} {selectedAPI.baseAddress}");
             multiversXProvider = new ElrondProviderUnity(selectedAPI);
             networkConfig = await LoadNetworkConfig(false, true);
         }
@@ -159,14 +265,14 @@ namespace MultiversXUnityTools
         /// Add QR code to the image component and connect 
         /// </summary>
         /// <param name="qrImage"></param>
-        private async void AddQRImageScript(Image qrImage)
+        private async void AddQRImageScript(Image qrImage, string uri)
         {
             if (qrImage != null)
             {
-                qrImage.gameObject.AddComponent<WalletConnectQRImage>().Init(walletConnect);
+                qrImage.gameObject.AddComponent<WalletConnectQRImage>().Init(uri);
             }
 
-            await walletConnect.Connect();
+            //await walletConnect.Connect();
         }
 
 
@@ -176,8 +282,8 @@ namespace MultiversXUnityTools
         private void Connected()
         {
             walletConnected = true;
-            WalletConnect.ActiveSession.OnSessionDisconnect += ActiveSessionOnDisconnect;
-            walletConnect.ConnectedEvent.RemoveListener(Connected);
+            //WalletConnect.ActiveSession.OnSessionDisconnect += ActiveSessionOnDisconnect;
+            //walletConnect.ConnectedEvent.RemoveListener(Connected);
             //After wallet is connected get the account information automatically
             RefreshAccount(AccountRefreshed);
         }
@@ -188,14 +294,14 @@ namespace MultiversXUnityTools
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ActiveSessionOnDisconnect(object sender, EventArgs e)
-        {
-            WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
-            walletConnected = false;
-            //trigger the wallet disconnect callback from Connect
-            OnWalletDisconnected();
-            Destroy(walletConnect.gameObject);
-        }
+        //private void ActiveSessionOnDisconnect(object sender, EventArgs e)
+        ////{
+        ////    WalletConnect.ActiveSession.OnSessionDisconnect -= ActiveSessionOnDisconnect;
+        ////    walletConnected = false;
+        ////    //trigger the wallet disconnect callback from Connect
+        ////    OnWalletDisconnected();
+        ////    Destroy(walletConnect.gameObject);
+        //}
 
 
         /// <summary>
@@ -204,7 +310,7 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         public async void RefreshAccount(UnityAction<OperationStatus, string> completeMethod)
         {
-            connectedAccount = new Account(Erdcsharp.Domain.Address.From(WalletConnect.ActiveSession.Accounts[0]));
+            connectedAccount = new Account(Erdcsharp.Domain.Address.From(account));
             try
             {
                 await connectedAccount.Sync(multiversXProvider);
@@ -257,6 +363,7 @@ namespace MultiversXUnityTools
         /// <param name="destinationAddress"></param>
         /// <param name="amount"></param>
         /// <param name="data"></param>
+        /// <param name="completeMethod"></param>
         /// <param name="completeMethod"></param>
         /// <param name="requiredGas"></param>
         private async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> completeMethod, long requiredGas)
@@ -331,10 +438,18 @@ namespace MultiversXUnityTools
             completeMethod?.Invoke(OperationStatus.InProgress, "Waiting for signing");
 
             //wait for the signature from wallet
-            string signature;
+            //string signature;
             try
             {
-                signature = await SignTransaction(transaction);
+                Debug.Log("Sign");
+                await walletConnect.Ping(sessionData.Topic);
+                Debug.Log("PING DONE");
+
+                var signature = await walletConnect.Request<ErdSignTransaction, ErdResponse>(sessionData.Topic, new ErdSignTransaction(transaction));
+                Debug.Log(signature.Result.signature);
+                
+                //signature = await SignTransaction(transaction);
+                //walletConnect.Engine.Request<erd>
             }
             catch (Exception e)
             {
@@ -342,19 +457,19 @@ namespace MultiversXUnityTools
                 return;
             }
 
-            //apply the signature and broadcast the transaction
-            TransactionRequestDto signedTransaction = transaction.ToSignedTransaction(signature);
-            try
-            {
-                //send the transaction hash inside complete method
-                var response = await multiversXProvider.SendTransaction(signedTransaction);
-                completeMethod?.Invoke(OperationStatus.Complete, response.TxHash);
-            }
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-                return;
-            }
+            ////apply the signature and broadcast the transaction
+            //TransactionRequestDto signedTransaction = transaction.ToSignedTransaction(signature);
+            //try
+            //{
+            //    //send the transaction hash inside complete method
+            //    var response = await multiversXProvider.SendTransaction(signedTransaction);
+            //    completeMethod?.Invoke(OperationStatus.Complete, response.TxHash);
+            //}
+            //catch (Exception e)
+            //{
+            //    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+            //    return;
+            //}
         }
 
 
@@ -363,13 +478,13 @@ namespace MultiversXUnityTools
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        internal async Task<string> SignTransaction(TransactionData transaction)
-        {
-            walletConnect.OpenMobileWallet();
-            var results = await WalletConnect.ActiveSession.ErdSignTransaction(transaction);
+        //internal async Task<string> SignTransaction(TransactionData transaction)
+        //{
+        //    walletConnect.OpenMobileWallet();
+        //    var results = await WalletConnect.ActiveSession.ErdSignTransaction(transaction);
 
-            return results;
-        }
+        //    return results;
+        //}
 
 
         /// <summary>
@@ -377,13 +492,13 @@ namespace MultiversXUnityTools
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        internal async Task<string> BatchSignTransaction(TransactionData transaction)
-        {
-            walletConnect.OpenMobileWallet();
-            var results = await WalletConnect.ActiveSession.ErdBatchSignTransaction(transaction);
+        //internal async Task<string> BatchSignTransaction(TransactionData transaction)
+        //{
+        //    //walletConnect.OpenMobileWallet();
+        //    //var results = await WalletConnect.ActiveSession.ErdBatchSignTransaction(transaction);
 
-            return results;
-        }
+        //    //return results;
+        //}
         #endregion
 
 
@@ -711,7 +826,7 @@ namespace MultiversXUnityTools
         /// </summary>
         internal void DeepLinkLogin()
         {
-            walletConnect.OpenDeepLink();
+            //walletConnect.OpenDeepLink();
         }
 
 
@@ -738,14 +853,16 @@ namespace MultiversXUnityTools
         /// <summary>
         /// Disconnect the wallet
         /// </summary>
-        internal void Disconnect()
+        internal async void Disconnect()
         {
-            if (WalletConnect.ActiveSession == null || !WalletConnect.ActiveSession.Connected)
-            {
-                Destroy(this.gameObject);
-                return;
-            }
-            walletConnect.CloseSession(false);
+            //if (WalletConnect.ActiveSession == null || !WalletConnect.ActiveSession.Connected)
+            //{
+            //    Destroy(this.gameObject);
+            //    return;
+            //}
+            Debug.Log("DISCONECT");
+            await walletConnect.Disconnect(sessionData.Topic, new ErrorResponse());
+            Debug.Log("DONE");
         }
 
 
@@ -789,10 +906,10 @@ namespace MultiversXUnityTools
 
         private void OnDestroy()
         {
-            if (walletConnect)
-            {
-                walletConnect.ConnectedEvent.RemoveAllListeners();
-            }
+            //if (walletConnect)
+            //{
+            //    walletConnect.ConnectedEvent.RemoveAllListeners();
+            //}
         }
     }
 }

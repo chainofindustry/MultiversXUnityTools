@@ -16,7 +16,7 @@ namespace MultiversXUnityTools
         public Medium[] media { get; set; }
         public bool isWhitelistedStorage { get; set; }
         public string[] tags { get; set; }
-        public Metadata metadata { get; set; }
+        //public Metadata metadata { get; set; }
         public string ticker { get; set; }
         public object score { get; set; }
         public int rank { get; set; }
@@ -30,23 +30,23 @@ namespace MultiversXUnityTools
         public Unlockschedule[] unlockSchedule { get; set; }
     }
 
-    public class Metadata
-    {
-        public object id { get; set; }
-        public string name { get; set; }
-        public string description { get; set; }
-        public Attribute[] attributes { get; set; }
-        public object image { get; set; }
-        public string dna { get; set; }
-        public long date { get; set; }
-        public string[] tags { get; set; }
-        public string edition { get; set; }
-        public string fileName { get; set; }
-        public string fileType { get; set; }
-        public Rarityinfo rarityinfo { get; set; }
-        public string compiler { get; set; }
-        public Rarity rarity { get; set; }
-    }
+    //public class Metadata
+    //{
+    //    public object id { get; set; }
+    //    public string name { get; set; }
+    //    public string description { get; set; }
+    //    public Attribute[] attributes { get; set; }
+    //    public object image { get; set; }
+    //    public string dna { get; set; }
+    //    public long date { get; set; }
+    //    public string[] tags { get; set; }
+    //    public string edition { get; set; }
+    //    public string fileName { get; set; }
+    //    public string fileType { get; set; }
+    //    public Rarityinfo rarityinfo { get; set; }
+    //    public string compiler { get; set; }
+    //    public Rarity rarity { get; set; }
+    //}
 
     public class Rarityinfo
     {
