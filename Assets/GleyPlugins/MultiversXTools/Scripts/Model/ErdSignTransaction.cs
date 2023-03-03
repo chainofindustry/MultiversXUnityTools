@@ -1,23 +1,20 @@
+using Erdcsharp.Domain;
 using Newtonsoft.Json;
+using WalletConnectSharp.Common.Utils;
 using WalletConnectSharp.Core.Models;
 using WalletConnectSharp.Network.Models;
 
 namespace MultiversXUnityTools
 {
-    //construct single transaction for signing
-    public sealed class ErdSignTransaction : JsonRpcRequest<TransactionData>
+    [RpcMethod("multiversx_signTransaction")]
+    [RpcRequestOptions(Clock.TEN_SECONDS, true, 1108)]
+    [RpcResponseOptions(Clock.TEN_SECONDS, false, 1109)]
+    public class ErdSignTransaction
     {
-        //[JsonProperty("params")]
-        //private readonly TransactionData _parameters;
-
-        //[JsonIgnore]
-        //public TransactionData Parameters => _parameters;
-
-        public ErdSignTransaction(TransactionData transactionData) : base(
-            ValidJsonRpcRequestMethods.ErdSign, transactionData
-        )
+        public TransactionData transaction;
+        public ErdSignTransaction(TransactionData transactionData)
         {
-
+            transaction = transactionData;
         }
     }
 }

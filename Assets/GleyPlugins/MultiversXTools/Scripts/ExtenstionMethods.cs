@@ -20,13 +20,13 @@ namespace MultiversXUnityTools
             TransactionRequestDto request = new TransactionRequestDto
             {
                 Nonce = tx.nonce,
-                Sender = tx.from,
-                Receiver = tx.to,
-                Value = tx.amount,
-                GasPrice = long.Parse(tx.gasPrice),
-                GasLimit = long.Parse(tx.gasLimit),
-                Data = Convert.ToBase64String(Encoding.UTF8.GetBytes(tx.data)),
-                ChainID = tx.chainId,
+                Sender = tx.sender,
+                Receiver = tx.receiver,
+                Value = tx.value,
+                GasPrice = tx.gasPrice,
+                GasLimit = tx.gasLimit,
+                Data = tx.data,
+                ChainID = tx.chainID,
                 Version = tx.version,
                 Signature = signature
             };

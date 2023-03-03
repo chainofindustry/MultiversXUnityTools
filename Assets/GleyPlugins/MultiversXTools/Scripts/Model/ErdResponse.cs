@@ -4,13 +4,9 @@ using WalletConnectSharp.Network.Models;
 namespace MultiversXUnityTools
 {
     //RPC response
-    public class ErdResponse : JsonRpcResponse<Result>
+    public class ErdResponse
     {
-        //[JsonProperty]
-        //public Result result { get; set; }
-
-        //[JsonIgnore]
-        //public string Result => result.signature;
+            public string Signature { get; set; }
     }
 
 

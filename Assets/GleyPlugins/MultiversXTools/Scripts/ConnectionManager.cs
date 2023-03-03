@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using UnityEngine;
@@ -43,6 +44,7 @@ namespace MultiversXUnityTools
         SessionStruct sessionData;
 
         string account;
+        string chainId;
 
         //Create a static instance for easy access
         private static ConnectionManager instance;
@@ -90,19 +92,19 @@ namespace MultiversXUnityTools
                 RequiredNamespaces = new RequiredNamespaces()
                 {
                     {
-                        "elrond", new RequiredNamespace()
+                        "multiversx", new RequiredNamespace()
                         {
                             Methods = new[]
                             {
-                                "erd_signTransaction",
-                                "erd_signTransactions",
-                                "erd_signMessage",
-                                "erd_signLoginToken",
-                                "erd_cancelAction",
+                                "multiversx_signTransaction",
+                                "multiversx_signTransactions",
+                                "multiversx_signMessage",
+                                "multiversx_signLoginToken",
+                                "multiversx_cancelAction"
                             },
                             Chains = new[]
                             {
-                                "elrond:D"
+                                "multiversx:D"
                             },
                             Events = new[]
                             {
@@ -138,6 +140,7 @@ namespace MultiversXUnityTools
                     {
                         Debug.Log("ACCOUNTS " + entry.Value.Accounts[i]);
                         account = entry.Value.Accounts[i].Split(":")[2];
+                        //chainId = entry.Value.Accounts[i].Split(":")[1];
                     }
                     for (int i = 0; i < entry.Value.Events.Length; i++)
                     {
@@ -424,52 +427,71 @@ namespace MultiversXUnityTools
             var transaction = new TransactionData()
             {
                 nonce = connectedAccount.Nonce,
-                from = connectedAccount.Address.ToString(),
-                to = destinationAddress,
-                amount = TokenAmount.EGLD(amount).ToString(),
-                data = data,
-                gasPrice = networkConfig.MinGasPrice.ToString(),
-                gasLimit = requiredGas.ToString(),
-                chainId = networkConfig.ChainId,
+                sender = connectedAccount.Address.ToString(),
+                receiver = destinationAddress,
+                value = TokenAmount.EGLD(amount).ToString(),
+                data = Convert.ToBase64String(Encoding.UTF8.GetBytes(data)),
+                gasPrice = networkConfig.MinGasPrice,
+                gasLimit = requiredGas,
+                chainID = networkConfig.ChainId,
                 version = networkConfig.MinTransactionVersion
             };
+
+            Debug.Log("Transaction Properties: " + JsonUtility.ToJson(transaction, false));
+            Debug.Log("Nonce: " + transaction.nonce);
+            Debug.Log("From: " + transaction.sender);
+            Debug.Log("To: " + transaction.receiver);
+            Debug.Log("Amount: " + transaction.value);
+            Debug.Log("Data: " + transaction.data);
+            Debug.Log("Gas Price: " + transaction.gasPrice);
+            Debug.Log("Gas Limit: " + transaction.gasLimit);
+            Debug.Log("Chain ID: " + transaction.chainID);
+            Debug.Log("Transaction Version: " + transaction.version);
 
             //trigger a partial callback
             completeMethod?.Invoke(OperationStatus.InProgress, "Waiting for signing");
 
             //wait for the signature from wallet
             //string signature;
-            try
-            {
-                Debug.Log("Sign");
-                await walletConnect.Ping(sessionData.Topic);
-                Debug.Log("PING DONE");
-
-                var signature = await walletConnect.Request<ErdSignTransaction, ErdResponse>(sessionData.Topic, new ErdSignTransaction(transaction));
-                Debug.Log(signature.Result.signature);
-                
-                //signature = await SignTransaction(transaction);
-                //walletConnect.Engine.Request<erd>
-            }
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-                return;
-            }
-
-            ////apply the signature and broadcast the transaction
-            //TransactionRequestDto signedTransaction = transaction.ToSignedTransaction(signature);
             //try
             //{
-            //    //send the transaction hash inside complete method
-            //    var response = await multiversXProvider.SendTransaction(signedTransaction);
-            //    completeMethod?.Invoke(OperationStatus.Complete, response.TxHash);
+            Debug.Log("Sign");
+            await walletConnect.Ping(sessionData.Topic);
+            Debug.Log("PING DONE");
+
+
+
+            //try
+            //{
+            var signature = await walletConnect.Request<ErdSignTransaction, ErdResponse>(sessionData.Topic, new ErdSignTransaction(transaction));
+            Debug.Log(signature.Signature);
+            //}
+            //catch (WalletConnectException ex)
+            //{
+            //    Debug.Log(ex.Type + " " + ex.Message);
+            //}
+            //signature = await SignTransaction(transaction);
+            //walletConnect.Engine.Request<erd>
             //}
             //catch (Exception e)
             //{
             //    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
             //    return;
             //}
+
+            //apply the signature and broadcast the transaction
+            TransactionRequestDto signedTransaction = transaction.ToSignedTransaction(signature.Signature);
+            try
+            {
+                //send the transaction hash inside complete method
+                var response = await multiversXProvider.SendTransaction(signedTransaction);
+                completeMethod?.Invoke(OperationStatus.Complete, response.TxHash);
+            }
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+                return;
+            }
         }
 
 

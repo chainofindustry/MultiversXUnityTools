@@ -6,13 +6,13 @@ namespace MultiversXUnityTools
     public class TransactionData
     {
         public long nonce;
-        public string from;
-        public string to;
-        public string amount;
-        public string gasPrice;
-        public string gasLimit;
+        public string sender;
+        public string receiver;
+        public string value;
+        public long gasPrice;
+        public long gasLimit;
         public string data;
-        public string chainId;
+        public string chainID;
         public int version;
     }
 }
