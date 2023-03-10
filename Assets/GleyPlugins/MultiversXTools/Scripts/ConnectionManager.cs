@@ -19,10 +19,15 @@ using UnityEngine.Networking.Types;
 using UnityEngine.UI;
 using WalletConnectSharp.Common.Model.Errors;
 using WalletConnectSharp.Core.Models.Pairing;
+using WalletConnectSharp.Events.Model;
+using WalletConnectSharp.Events;
 using WalletConnectSharp.Network.Models;
 using WalletConnectSharp.Sign;
 using WalletConnectSharp.Sign.Models;
 using WalletConnectSharp.Sign.Models.Engine;
+using WalletConnectSharp.Storage;
+using WalletConnectSharp.Sign.Models.Engine.Events;
+using MultiversXUnityExamples;
 //using WalletConnectSharp.Core.Models;
 
 
@@ -48,6 +53,8 @@ namespace MultiversXUnityTools
 
         //Create a static instance for easy access
         private static ConnectionManager instance;
+        private bool disconnected;
+
         internal static ConnectionManager Instance
         {
             get
@@ -73,6 +80,12 @@ namespace MultiversXUnityTools
         /// <param name="qrImage">image to display the QRcode if required</param>
         internal async void Connect(UnityAction<Account> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
+
+            //DemoScript.onDisconnect += BBB;
+            this.OnWalletConnected = OnWalletConnected;
+            Debug.Log(OnWalletDisconnected);
+            this.OnWalletDisconnected = OnWalletDisconnected;
+
             var appData = new SignClientOptions()
             {
                 ProjectId = "39f3dc0a2c604ec9885799f9fc5feb7c",
@@ -84,8 +97,13 @@ namespace MultiversXUnityTools
                     Url = apiSettings.appWebsite
                 },
                 // Uncomment to disable persistant storage
-                // Storage = new InMemoryStorage()
+                Storage = new FileSystemStorage(Application.persistentDataPath + "/wc/sessionData.json")
             };
+
+
+            // Check if the file exists before trying to load it
+
+            //var xPortalData = new ConnectOptions();
 
             var xPortalData = new ConnectOptions()
             {
@@ -116,87 +134,61 @@ namespace MultiversXUnityTools
             };
 
             Debug.Log("INIT");
-            walletConnect = await WalletConnectSignClient.Init(appData);
-            var connectData = await walletConnect.Connect(xPortalData);
-
-
-
-            AddQRImageScript(qrImage, connectData.Uri);
-
-            Debug.Log("WAITING FOR APROVAL");
-
-            try
+            if (walletConnect == null)
             {
+                walletConnect = await WalletConnectSignClient.Init(appData);
+                walletConnect.On("session_delete", ActiveSessionOnDisconnect);
+            }
+
+
+            var sessions = walletConnect.Find(xPortalData.RequiredNamespaces);
+
+            Debug.Log(sessions.Length);
+            if (sessions.Length > 0)
+            {
+                await walletConnect.Ping(sessions[0].Topic);
+                sessionData = sessions[0];
+            }
+            else
+            {
+                ConnectedData connectData = await walletConnect.Connect(xPortalData);
+
+                AddQRImageScript(qrImage, connectData.Uri);
+
+                Debug.Log("WAITING FOR APROVAL");
                 sessionData = await connectData.Approval;
-                Debug.Log("Connected ");
-                Debug.Log("Acknowledged " + sessionData.Acknowledged);
-                Debug.Log("Controller " + sessionData.Controller);
-                Debug.Log("Expiry " + sessionData.Expiry);
-                Debug.Log("Key " + sessionData.Key);
-                Debug.Log("Namespaces " + sessionData.Namespaces);
-                foreach (KeyValuePair<string, Namespace> entry in sessionData.Namespaces)
-                {
-                    for (int i = 0; i < entry.Value.Accounts.Length; i++)
-                    {
-                        Debug.Log("ACCOUNTS " + entry.Value.Accounts[i]);
-                        account = entry.Value.Accounts[i].Split(":")[2];
-                        //chainId = entry.Value.Accounts[i].Split(":")[1];
-                    }
-                    for (int i = 0; i < entry.Value.Events.Length; i++)
-                    {
-                        Debug.Log("EVENTS " + entry.Value.Events[i]);
-                    }
-                    for (int i = 0; i < entry.Value.Methods.Length; i++)
-                    {
-                        Debug.Log("Methods " + entry.Value.Methods[i]);
-                    }
-                }
-                Debug.Log("Peer Description " + sessionData.Peer.Metadata.Description);
-                Debug.Log("Peer Url" + sessionData.Peer.Metadata.Url);
-                Debug.Log("Peer Name" + sessionData.Peer.Metadata.Name);
-                Debug.Log("Peer PublicKey" + sessionData.Peer.PublicKey);
-                Debug.Log("Relay.Data " + sessionData.Relay.Data);
-                Debug.Log("Relay.Protocol " + sessionData.Relay.Protocol);
-                Debug.Log("RequiredNamespaces " + sessionData.RequiredNamespaces);
-                Debug.Log("Self " + sessionData.Self.Metadata.Description);
-                Debug.Log("Topic " + sessionData.Topic);
             }
-            catch (WalletConnectException ex)
+            Debug.Log("Connected ");
+            foreach (KeyValuePair<string, Namespace> entry in sessionData.Namespaces)
             {
-                // Handle the exception
-                Debug.LogError(ex.Message);
+                for (int i = 0; i < entry.Value.Accounts.Length; i++)
+                {
+                    //Debug.Log("ACCOUNTS " + entry.Value.Accounts[i]);
+                    account = entry.Value.Accounts[i].Split(":")[2];
+                    //chainId = entry.Value.Accounts[i].Split(":")[1];
+                }
             }
 
-            //if already connected do not connect
-            //if (gameObject.GetComponent<WalletConnect>())
-            //{
-            //    AddQRImageScript(qrImage);
-            //    await LoadAPI();
-            //    return;
-            //}
-
-            //setup events and parameters
-            this.OnWalletConnected = OnWalletConnected;
-            this.OnWalletDisconnected = OnWalletDisconnected;
-            //walletConnect = gameObject.AddComponent<WalletConnect>();
-            //walletConnect.connectOnStart = false;
-            //walletConnect.connectOnAwake = false;
-            //walletConnect.createNewSessionOnSessionDisconnect = false;
             apiSettings = Manager.GetApiSettings();
-            //ClientMeta appData = new ClientMeta();
-            //appData.Description = apiSettings.appDescription;
-            //appData.Icons = new string[1];
-            //appData.Icons[0] = apiSettings.appIcon;
-            //appData.Name = apiSettings.appName;
-            //appData.URL = apiSettings.appWebsite;
-            //walletConnect.AppData = appData;
-            //walletConnect.customBridgeUrl = Constants.CUSTOM_BRIDGE_URL;
-            //walletConnect.ConnectedEvent = new WalletConnect.WalletConnectEventNoSession();
-            //walletConnect.ConnectedEventSession = new WalletConnect.WalletConnectEventWithSessionData();
-            //walletConnect.ConnectedEvent.AddListener(Connected);
+
 
             await LoadAPI();
             Connected();
+        }
+
+        private void ActiveSessionOnDisconnect()
+        {
+            Debug.Log("On Disconnect");
+            disconnected = true;
+        }
+
+        private void Update()
+        {
+            if (disconnected == true)
+            {
+                OnWalletDisconnected();
+                disconnected = false;
+            }
         }
 
 
@@ -884,6 +876,7 @@ namespace MultiversXUnityTools
             //}
             Debug.Log("DISCONECT");
             await walletConnect.Disconnect(sessionData.Topic, new ErrorResponse());
+            OnWalletDisconnected?.Invoke();
             Debug.Log("DONE");
         }
 
