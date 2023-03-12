@@ -33,6 +33,24 @@ using MultiversXUnityExamples;
 
 namespace MultiversXUnityTools
 {
+    public static class GenerateAuthToken
+    {
+        public static string Random()
+        {
+            const string src = "abcdefghijklmnopqrstuvwxyz0123456789";
+            int length = 32;
+            StringBuilder sb = new();
+            System.Random rand = new();
+            for (var i = 0; i < length; i++)
+            {
+                var c = src[rand.Next(0, src.Length)];
+                sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
+    }
+
     public class ConnectionManager : MonoBehaviour
     {
         private Account connectedAccount;
@@ -47,6 +65,8 @@ namespace MultiversXUnityTools
         private bool walletConnected;
 
         SessionStruct sessionData;
+        private string _authToken;
+        ConnectedData connectData;
 
         string account;
         string chainId;
@@ -54,6 +74,8 @@ namespace MultiversXUnityTools
         //Create a static instance for easy access
         private static ConnectionManager instance;
         private bool disconnected;
+
+        //public string URI { get => $"{connectData.Uri}&token={_authToken}"; }
 
         internal static ConnectionManager Instance
         {
@@ -146,12 +168,13 @@ namespace MultiversXUnityTools
             Debug.Log(sessions.Length);
             if (sessions.Length > 0)
             {
-                await walletConnect.Ping(sessions[0].Topic);
+                //await walletConnect.Ping(sessions[0].Topic);
                 sessionData = sessions[0];
             }
             else
             {
-                ConnectedData connectData = await walletConnect.Connect(xPortalData);
+                _authToken = GenerateAuthToken.Random();
+                connectData = await walletConnect.Connect(xPortalData);
 
                 AddQRImageScript(qrImage, connectData.Uri);
 
@@ -189,6 +212,47 @@ namespace MultiversXUnityTools
                 OnWalletDisconnected();
                 disconnected = false;
             }
+        }
+
+        /// <summary>
+        /// Maiar deep link urls
+        /// </summary>
+        public void OpenMobileWallet()
+        {
+#if UNITY_ANDROID
+                    //var signingURL = ConnectURL.Split('@')[0];
+                    //string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL(connectData.Uri);
+                    //Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
+            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com" + "/wc";
+            Application.OpenURL(maiarUrl);
+#elif UNITY_IOS && !UNITY_EDITOR
+                    string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com" + "/wc";
+                    Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
+                    Application.OpenURL(maiarUrl);
+#else
+            Debug.Log("Platform does not support deep linking");
+            return;
+#endif
+        }
+
+        public void OpenDeepLink()
+        {
+            //if (!ActiveSession.ReadyForUserPrompt)
+            //{
+            //    Debug.LogError("WalletConnectUnity.ActiveSession not ready for a user prompt" +
+            //                   "\nWait for ActiveSession.ReadyForUserPrompt to be true");
+
+            //    return;
+            //}
+
+#if UNITY_ANDROID || UNITY_IOS
+                    string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL($"{connectData.Uri}&token={_authToken}");
+                    Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
+                    Application.OpenURL(maiarUrl);
+#else
+            Debug.Log("Platform does not support deep linking");
+            return;
+#endif
         }
 
 
@@ -441,16 +505,17 @@ namespace MultiversXUnityTools
             Debug.Log("Transaction Version: " + transaction.version);
 
             //trigger a partial callback
-            completeMethod?.Invoke(OperationStatus.InProgress, "Waiting for signing");
+            
 
             //wait for the signature from wallet
             //string signature;
             //try
             //{
             Debug.Log("Sign");
-            await walletConnect.Ping(sessionData.Topic);
+            OpenMobileWallet();
+            //await walletConnect.Ping(sessionData.Topic);
             Debug.Log("PING DONE");
-
+            completeMethod?.Invoke(OperationStatus.InProgress, "Waiting for signing");
 
 
             //try
@@ -840,7 +905,7 @@ namespace MultiversXUnityTools
         /// </summary>
         internal void DeepLinkLogin()
         {
-            //walletConnect.OpenDeepLink();
+            OpenDeepLink();
         }
 
 
