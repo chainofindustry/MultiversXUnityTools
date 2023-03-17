@@ -12,11 +12,6 @@ namespace MultiversXUnityTools
         public GameObject loader;
 
         /// <summary>
-        /// The WalletConnect instance we'll work with to generate the QR code.
-        /// </summary>
-        //WalletConnect walletConnect;
-
-        /// <summary>
         /// The image component we'll place the QR code texture into.
         /// </summary>
         private Image _image;
@@ -35,20 +30,12 @@ namespace MultiversXUnityTools
         {
             _image = GetComponent<Image>();
             this.uri = uri;
-            //this.walletConnect = walletConnect;
-            //if (walletConnect == null)
-            //{
-            //    Debug.LogError("WalletConnectQRImage: No WalletConnect object given, QRImage will be disabled");
-            //    enabled = false;
-            //    return;
-            //}
 
             // Only register the WalletConnectOnConnectionStarted handler once
             if (!registeredOnConnectionStartEvent)
             {
                 registeredOnConnectionStartEvent = true;
                 GenerateQrCode();
-                //walletConnect.ConnectionStarted += WalletConnectOnConnectionStarted;
             }
         }
 
@@ -84,14 +71,12 @@ namespace MultiversXUnityTools
 
         private void GenerateQrCode()
         {
-            Debug.Log(_image);
             // Grab the WC URL and generate a QR code for it. Note: The ECCLevel is the "Error Correction Code" level which
             // is basically how much checksum data to add to the code - the more checksum data the more likely the code can
             // be recovered on a slightly dodgy read. We'll go with the UnityWalletConnect default of Q(uality) as it's a
             // good compromise between readability and data storage capacity.
             // See: https://www.qrcode.com/en/about/version.html
             var url = uri;
-            Debug.Log("Connecting to: " + url);
             QRCodeGenerator qrGenerator = new QRCodeGenerator();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
             UnityQRCode qrCode = new UnityQRCode(qrCodeData);
@@ -112,12 +97,6 @@ namespace MultiversXUnityTools
             var qrCodeSprite = Sprite.Create(qrCodeAsTexture2D, new Rect(0, 0, qrCodeAsTexture2D.width, qrCodeAsTexture2D.height),
                 new Vector2(0.5f, 0.5f), 100f);
             _image.sprite = qrCodeSprite;
-        }
-
-
-        private void OnDestroy()
-        {
-            //walletConnect.ConnectionStarted -= WalletConnectOnConnectionStarted;
         }
     }
 }

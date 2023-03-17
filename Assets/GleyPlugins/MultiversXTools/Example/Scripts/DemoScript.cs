@@ -63,18 +63,6 @@ namespace MultiversXUnityExamples
 
 
         /// <summary>
-        /// Method called to start the connection
-        /// It needs to be on a script that it is available globally inside your app so the 
-        /// OnConnected and OnDisconnected to be available all the time in case that a disconnect event occurs
-        /// </summary>
-        /// <param name="qrImage"></param>
-        public void Connect(Image qrImage)
-        {
-            Manager.Connect(OnConnected, OnDisconnected, qrImage);
-        }
-
-
-        /// <summary>
         /// Simple UI loading method
         /// </summary>
         /// <param name="newScreen"></param>
@@ -107,23 +95,13 @@ namespace MultiversXUnityExamples
         }
 
 
-        /// <summary>
-        /// Triggered when Maiar app connected
-        /// </summary>
-        /// <param name="connectedAccount">A class containing informations about the connected wallet</param>
-        private void OnConnected(Account connectedAccount)
-        {
-            //store the connected account if you need it
-            //this.connectedAccount = connectedAccount;
-            //load the connected screen
-            LoadScreen(Screens.Connected, connectedAccount);
-        }
+       
 
 
         /// <summary>
         /// Triggered when wallet disconnected
         /// </summary>
-        private void OnDisconnected()
+        public void OnDisconnected()
         {
             //every time used disconnects go to home screen
             LoadScreen(Screens.Home);

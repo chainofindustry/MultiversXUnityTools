@@ -13,9 +13,14 @@ namespace MultiversXUnityTools
         /// <param name="OnWalletConnected">Callback triggered when user wallet connected</param>
         /// <param name="OnWalletDisconnected">Callback triggered when user wallet disconnected</param>
         /// <param name="qrImage">The image component that will display the QR for Maiar login</param>
-        public static void Connect(UnityAction<Account> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
+        public static void Connect(UnityAction<Account, string> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
-            ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, qrImage);
+            ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, null, qrImage);
+        }
+
+        public static void Connect(UnityAction<Account, string> OnWalletConnected, UnityAction OnWalletDisconnected, UnityAction<string> OnSessionConnected, Image qrImage)
+        {
+            ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, OnSessionConnected, qrImage);
         }
 
 
@@ -212,7 +217,7 @@ namespace MultiversXUnityTools
             ConnectionManager.Instance.LoadImage(imageURL, displayComponent, CompleteMethod);
         }
 
-        
+
         /// <summary>
         /// Get the current config settings saved using the Settings Window
         /// </summary>
