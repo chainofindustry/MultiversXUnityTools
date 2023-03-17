@@ -38,11 +38,7 @@ namespace MultiversXUnityTools
         private const string PROJECT_ID = "39f3dc0a2c604ec9885799f9fc5feb7c";
         private const string SAVE_PATH = "/wc/sessionData.json";
         private const string MVX_NAMESPACE = "multiversx";
-        private const string SIGN_TRANSACTION = "{multiversx_signTransaction";
-        private const string SIGN_TRANSACTIONS = "multiversx_signTransactions";
-        private const string SIGN_MESSAGE = "multiversx_signMessage";
-        private const string SIGN_LOGIN_TOKEN = "multiversx_signLoginToken";
-        private const string CANCEL_ACTION = "multiversx_cancelAction";
+
         private const string ACCOUNTS_CHANGED = "accountsChanged";
 
         private WalletConnectSignClient client;
@@ -73,11 +69,11 @@ namespace MultiversXUnityTools
                         {
                             Methods = new[]
                             {
-                                SIGN_TRANSACTION,
-                                SIGN_TRANSACTIONS,
-                                SIGN_MESSAGE,
-                                SIGN_LOGIN_TOKEN,
-                                CANCEL_ACTION
+                                MultiversXRpcMethods.SIGN_TRANSACTION,
+                                MultiversXRpcMethods.SIGN_TRANSACTIONS,
+                                MultiversXRpcMethods.SIGN_MESSAGE,
+                                MultiversXRpcMethods.SIGN_LOGIN_TOKEN,
+                                MultiversXRpcMethods.CANCEL_ACTION
                             },
                             Chains = new[]
                             {
@@ -147,7 +143,13 @@ namespace MultiversXUnityTools
 
         public async Task<string> SignTransaction(TransactionData transaction)
         {
-            ErdResponse signature = await client.Request<ErdSignTransaction, ErdResponse>(sessionStruct.Topic, new ErdSignTransaction(transaction));
+            Response signature = await client.Request<SignTransaction, Response>(sessionStruct.Topic, new SignTransaction(transaction));
+            return signature.Signature;
+        }
+
+        public async Task<string> SignTransactions(TransactionData[] transactions)
+        {
+            Response signature = await client.Request<SignTransactions, Response>(sessionStruct.Topic, new SignTransactions(transactions));
             return signature.Signature;
         }
 
