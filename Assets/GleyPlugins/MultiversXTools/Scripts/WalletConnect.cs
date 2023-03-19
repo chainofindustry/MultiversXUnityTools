@@ -150,6 +150,7 @@ namespace MultiversXUnityTools
 
         public async Task<string[]> SignTransactions(TransactionData[] transactions)
         {
+            OpenMobileWallet();
             string[] result = new string[transactions.Length];
             SignTransactionsResponse signatures = await client.Request<SignTransactions, SignTransactionsResponse>(sessionStruct.Topic, new SignTransactions(transactions));
             Debug.Log(signatures);

@@ -151,7 +151,7 @@ namespace MultiversXUnityTools
         {
             var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
             var webRequest = new UnityWebRequest();
-            webRequest.url = selectedAPI.GetEndpoint(EndpointNames.SendTransactions);//"https://devnet-api.multiversx.com/transaction/send-multiple"
+            webRequest.url = selectedAPI.GetEndpoint(EndpointNames.SendTransactions);
             Debug.Log("URL " + webRequest.url);
             webRequest.method = "POST";
             webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));

@@ -1,8 +1,5 @@
 using Erdcsharp.Domain;
-using MultiversXUnityTools;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using Erdcsharp.Domain.Values;
 
 namespace MultiversXUnityTools
 {
@@ -19,8 +16,14 @@ namespace MultiversXUnityTools
         public string destination;
         public string value;
         public string data;
+        public string methodName;
         public Token token;
         public TransactionType type;
+        public string collectionIdentifier;
+        public ulong nftNonce;
+        public long gas;
+        public int quantity;
+        public IBinaryType[] args;
 
         public TransactionToSign(string destination, string value, string message)
         {
@@ -36,6 +39,24 @@ namespace MultiversXUnityTools
             this.value = value;
             this.token = token;
             type = TransactionType.ESDT;
+        }
+
+        public TransactionToSign(string destination, string collectionIdentifier, ulong nftNonce, int quantity)
+        {
+            this.destination = destination;
+            this.collectionIdentifier = collectionIdentifier;
+            this.nftNonce = nftNonce;
+            this.quantity = quantity;
+            type = TransactionType.NFT;
+        }
+
+        public TransactionToSign(string scAddress, string methodName, long gas, params IBinaryType[] args)
+        {
+            this.destination = scAddress;
+            this.methodName = methodName;
+            this.gas = gas;
+            this.args = args;
+            type = TransactionType.SC;
         }
     }
 }

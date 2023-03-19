@@ -71,7 +71,7 @@ namespace MultiversXUnityTools
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
-            ConnectionManager.Instance.SendEGLDTransaction(new TransactionToSign(destinationAddress, amount, data), TransactionStatus);
+            ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[]{ new TransactionToSign(destinationAddress, amount, data) }, TransactionStatus);
         }
 
 
@@ -101,7 +101,7 @@ namespace MultiversXUnityTools
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendESDTTransaction(string destinationAddress, Token token, string amount, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
-            ConnectionManager.Instance.SendESDTTransaction(new TransactionToSign(destinationAddress, token, amount), TransactionStatus);
+            ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[] { new TransactionToSign(destinationAddress, token, amount) }, TransactionStatus);
         }
 
 
@@ -125,7 +125,7 @@ namespace MultiversXUnityTools
         /// <param name="TransactionStatus">Callback to check the transaction status</param>
         public static void SendNFT(string destinationAddress, string collectionIdentifier, ulong nftNonce, int quantity, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
-            ConnectionManager.Instance.SendNFT(destinationAddress, collectionIdentifier, nftNonce, quantity, TransactionStatus);
+            ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[] { new TransactionToSign(destinationAddress, collectionIdentifier, nftNonce, quantity) }, TransactionStatus);
         }
 
 
@@ -163,7 +163,7 @@ namespace MultiversXUnityTools
         /// TokenIdentifierValue
         public static void CallSCMethod(string scAddress, string methodName, long gas, UnityAction<OperationStatus, string, string[]> CallStatus, params IBinaryType[] args)
         {
-            ConnectionManager.Instance.SetupSCMethod(scAddress, methodName, gas, CallStatus, args);
+            ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[] { new TransactionToSign(scAddress, methodName, gas, args) }, CallStatus);
         }
 
 
