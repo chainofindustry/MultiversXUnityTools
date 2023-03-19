@@ -10,11 +10,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using WalletConnectSharp.Core.Models.Pairing;
+using static UnityEditor.Progress;
 
 namespace MultiversXUnityTools
 {
@@ -46,6 +48,8 @@ namespace MultiversXUnityTools
                 return instance;
             }
         }
+
+
 
 
         #region Connect
@@ -86,7 +90,7 @@ namespace MultiversXUnityTools
                     },
                     OnWalletDisconnected
                     );
-                
+
                 Debug.Log($"Connected account: {account}");
 
                 connectedAccount = new Account(Address.From(account));
@@ -204,9 +208,10 @@ namespace MultiversXUnityTools
         /// <param name="amount"></param>
         /// <param name="data"></param>
         /// <param name="completeMethod"></param>
-        internal void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> completeMethod)
+        internal void SendEGLDTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
-            SendTransaction(destinationAddress, amount, data, completeMethod, 0);
+
+            SendTransaction(new TransactionProcessed[] { new TransactionProcessed(transaction) }, completeMethod);
         }
 
 
@@ -219,113 +224,167 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         /// <param name="completeMethod"></param>
         /// <param name="requiredGas"></param>
-        private async void SendTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> completeMethod, long requiredGas)
+        private async void SendTransaction(TransactionProcessed[] transactionsToSign, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
+            Debug.Log("SendTransaction");
             //verify the parameters first
 
-            //make sure the amount value is correct
-            OperationResult result = Utilities.IsNumberValid(ref amount);
-            if (result.status == OperationStatus.Error)
+            TransactionData[] transactions = new TransactionData[transactionsToSign.Length];
+            for (int i = 0; i < transactionsToSign.Length; i++)
             {
-                completeMethod?.Invoke(result.status, result.message);
-                return;
-            }
+                //make sure the amount value is correct
+                OperationResult result = Utilities.IsNumberValid(ref transactionsToSign[i].value);
+                if (result.status == OperationStatus.Error)
+                {
+                    completeMethod?.Invoke(result.status, result.message, null);
+                    return;
+                }
 
-            //verify the address
-            if (!Utilities.IsAddressValid(destinationAddress))
-            {
-                completeMethod?.Invoke(OperationStatus.Error, "Invalid destination address");
-                return;
-            }
+                //verify the address
+                if (!Utilities.IsAddressValid(transactionsToSign[i].destination))
+                {
+                    completeMethod?.Invoke(OperationStatus.Error, "Invalid destination address", null);
+                    return;
+                }
 
-            //check network config params
-            NetworkConfig networkConfig = null;
-            try
-            {
-                networkConfig = await LoadNetworkConfig(true);
-            }
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-                return;
-            }
+                //check network config params
+                NetworkConfig networkConfig = null;
+                try
+                {
+                    networkConfig = await LoadNetworkConfig(true);
+                }
+                catch (Exception e)
+                {
+                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", null);
+                    return;
+                }
 
-            //refresh account nonce
-            try
-            {
-                await connectedAccount.Sync(multiversXProvider);
+                //refresh account nonce
+                try
+                {
+                    await connectedAccount.Sync(multiversXProvider);
+                }
+                catch (Exception e)
+                {
+                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", null);
+                    return;
+                }
+
+
+                //check EGLD balance
+                if (TokenAmount.EGLD(transactionsToSign[i].value).Value > connectedAccount.Balance.Value)
+                {
+                    completeMethod?.Invoke(OperationStatus.Error, $"Insufficient funds, required : {TokenAmount.EGLD(transactionsToSign[i].value).ToDenominated()} and got {connectedAccount.Balance.ToDenominated()}", null);
+                    return;
+                }
+
+                //compute gas
+                transactionsToSign[i].gasRequiredForSCExecution += networkConfig.MinGasLimit + System.Text.Encoding.ASCII.GetBytes(transactionsToSign[i].data).Length * networkConfig.GasPerDataByte;
+
+                //construct the transaction
+                var transaction = new TransactionData()
+                {
+                    nonce = connectedAccount.Nonce + i,
+                    sender = connectedAccount.Address.ToString(),
+                    receiver = transactionsToSign[i].destination,
+                    value = TokenAmount.EGLD(transactionsToSign[i].value).ToString(),
+                    data = Convert.ToBase64String(Encoding.UTF8.GetBytes(transactionsToSign[i].data)),
+                    gasPrice = networkConfig.MinGasPrice,
+                    gasLimit = transactionsToSign[i].gasRequiredForSCExecution,
+                    chainID = networkConfig.ChainId,
+                    version = networkConfig.MinTransactionVersion
+                };
+                transactions[i] = transaction;
             }
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-                return;
-            }
-
-
-            //check EGLD balance
-            if (TokenAmount.EGLD(amount).Value > connectedAccount.Balance.Value)
-            {
-                completeMethod?.Invoke(OperationStatus.Error, $"Insufficient funds, required : {TokenAmount.EGLD(amount).ToDenominated()} and got {connectedAccount.Balance.ToDenominated()}");
-                return;
-            }
-
-            //compute gas
-            requiredGas += networkConfig.MinGasLimit + System.Text.Encoding.ASCII.GetBytes(data).Length * networkConfig.GasPerDataByte;
-
-            //construct the transaction
-            var transaction = new TransactionData()
-            {
-                nonce = connectedAccount.Nonce,
-                sender = connectedAccount.Address.ToString(),
-                receiver = destinationAddress,
-                value = TokenAmount.EGLD(amount).ToString(),
-                data = Convert.ToBase64String(Encoding.UTF8.GetBytes(data)),
-                gasPrice = networkConfig.MinGasPrice,
-                gasLimit = requiredGas,
-                chainID = networkConfig.ChainId,
-                version = networkConfig.MinTransactionVersion
-            };
 
             //wait for the signature from wallet
-            string signature;
-            try
+            //try
+            //{
+            if (transactions.Length == 1)
             {
-                signature = await SignTransaction(transaction);
-            }
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-                return;
-            }
-
-
-            //apply the signature and broadcast the transaction
-            TransactionRequestDto signedTransaction = transaction.ToSignedTransaction(signature);
-            try
-            {
-                //send the transaction hash inside complete method
+                string signature = await walletConnect.SignTransaction(transactions[0]);
+                TransactionRequestDto signedTransaction = transactions[0].ToSignedTransaction(signature);
                 var response = await multiversXProvider.SendTransaction(signedTransaction);
-                completeMethod?.Invoke(OperationStatus.Complete, response.TxHash);
+                completeMethod?.Invoke(OperationStatus.Complete, null, new string[] { response.TxHash });
             }
-            catch (Exception e)
+            else
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-                return;
+                Debug.Log(1);
+                string[] signatures = await walletConnect.SignTransactions(transactions);
+                Debug.Log(2);
+                TransactionRequestDto[] signedTransactions = new TransactionRequestDto[signatures.Length];
+                Debug.Log(3);
+                for (int i = 0; i < signatures.Length; i++)
+                {
+                    signedTransactions[i] = transactions[i].ToSignedTransaction(signatures[i]);
+                }
+                Debug.Log(4);
+                var response = await multiversXProvider.SendTransactions(signedTransactions);
+                Debug.Log(5);
+
+                string[] txHashes = new string[response.NumOfSentTxs];
+                foreach (var item in response.TxsHashes)
+                {
+                    Debug.Log(string.Format("Key: {0}, Value: {1}", item.Key, item.Value));
+                    txHashes[int.Parse(item.Key)] = item.Value;
+                }
+                completeMethod?.Invoke(OperationStatus.Complete, null, txHashes);
+
+
             }
+            //}
+            //catch (Exception e)
+            //{
+            //    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+            //    return;
+            //}
+
         }
 
 
-        /// <summary>
-        /// Sign a single MultiversX transaction
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        internal async Task<string> SignTransaction(TransactionData transaction)
+        internal void SendMultipleTransactions(TransactionToSign[] transactions, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
-            walletConnect.OpenMobileWallet();
-            var results = await walletConnect.SignTransaction(transaction);
+            Debug.Log("Send multiple");
+            TransactionProcessed[] processedTransactions = new TransactionProcessed[transactions.Length];
+            for (int i = 0; i < transactions.Length; i++)
+            {
+                switch (transactions[i].type)
+                {
+                    case TransactionType.EGLD:
+                        processedTransactions[i] = new TransactionProcessed(transactions[i]);
+                        break;
+                    case TransactionType.ESDT:
+                        processedTransactions[i] = SetupESDTTransaction(transactions[i], completeMethod);
+                        break;
+                }
+                if (processedTransactions[i] == null)
+                {
+                    return;
+                }
+            }
+            SendTransaction(processedTransactions, completeMethod);
+        }
 
-            return results;
+        private TransactionProcessed SetupESDTTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
+        {
+            OperationResult result = Utilities.IsNumberValid(ref transaction.value);
+            if (result.status == OperationStatus.Error)
+            {
+                completeMethod?.Invoke(result.status, result.message, null);
+                return null;
+            }
+
+            //TODO verificare token
+            if (transaction.token == null)
+            {
+                completeMethod?.Invoke(result.status, "Token not valid", null);
+                return null;
+            }
+
+            //https://docs.elrond.com/tokens/esdt-tokens/
+            //the GasLimit must be set to the value required by the protocol for ESDT transfers, namely 500000
+            long gas = 500000;
+            return SetupSCMethod(transaction.destination, "ESDTTransfer", gas, completeMethod, TokenIdentifierValue.From(transaction.token.Ticker), NumericValue.TokenAmount(TokenAmount.ESDT(transaction.value, transaction.token)));
         }
 
 
@@ -351,11 +410,25 @@ namespace MultiversXUnityTools
         /// <param name="txHash">the hash of the transaction</param>
         /// <param name="completeMethod">callback method</param>
         /// <param name="refreshTime">time interval to query the blockchain for the status of the transaction. Lower times means more calls to blockchain APIs</param>
-        internal void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        internal void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
-            MultiversXTransaction tx = new MultiversXTransaction(txHash);
-            Sync(tx, completeMethod, refreshTime);
-            return;
+            Debug.Log(txHash);
+            try
+            {
+                MultiversXTransaction[] txs = new MultiversXTransaction[txHash.Length];
+                for(int i=0;i<txHash.Length;i++)
+                {
+                    txs[i] = new MultiversXTransaction(txHash[i]);
+                }
+               
+                Sync(txs, completeMethod, refreshTime);
+            }
+
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+                return;
+            }
 
             //old implementation, does not work on WebGL builds
             //string message;
@@ -384,7 +457,7 @@ namespace MultiversXUnityTools
         /// <param name="tx">transaction</param>
         /// <param name="completeMethod">callback when completed</param>
         /// <param name="refreshTime"></param>
-        void Sync(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        void Sync(MultiversXTransaction[] tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             StartCoroutine(CheckTransaction(tx, completeMethod, refreshTime));
         }
@@ -397,7 +470,7 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
         /// <returns></returns>
-        private IEnumerator CheckTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        private IEnumerator CheckTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
             yield return new WaitForSeconds(refreshTime);
             SyncTransaction(tx, completeMethod, refreshTime);
@@ -410,23 +483,38 @@ namespace MultiversXUnityTools
         /// <param name="tx"></param>
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
-        private async void SyncTransaction(MultiversXTransaction tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        private async void SyncTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
         {
-            await tx.Sync(multiversXProvider);
-            if (tx.IsExecuted())
+            bool executed = true;
+            for (int i = 0; i < tx.Length; i++)
             {
-                string message;
-                if (!tx.EnsureTransactionSuccess(out message))
+                await tx[i].Sync(multiversXProvider);
+                if (!tx[i].IsExecuted())
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, message);
+                    Debug.Log($"tx {i} not executed");
+                    executed = false;
                 }
-                else
-                {
-                    completeMethod?.Invoke(OperationStatus.Complete, tx.Status);
-                }
-                return;
             }
-            Sync(tx, completeMethod, refreshTime);
+            if (executed)
+            {
+                for (int i = 0; i < tx.Length; i++)
+                {
+                    Debug.Log($"tx {i} status {tx[i].Status}");
+                    string message;
+                    if (!tx[i].EnsureTransactionSuccess(out message))
+                    {
+                        completeMethod?.Invoke(OperationStatus.Error,$"{tx[i].TxHash} {message}");
+                    }
+                    else
+                    {
+                        completeMethod?.Invoke(OperationStatus.Complete, $"{tx[i].TxHash} {tx[0].Status}");
+                    }
+                }
+            }
+            else
+            {
+                Sync(tx, completeMethod, refreshTime);
+            }
         }
         #endregion
 
@@ -456,20 +544,25 @@ namespace MultiversXUnityTools
         /// <param name="amount"></param>
         /// <param name="token"></param>
         /// <param name="completeMethod"></param>
-        internal void SendESDTTransaction(string destinationAddress, string amount, Token token, UnityAction<OperationStatus, string> completeMethod)
+        internal void SendESDTTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
-            OperationResult result = Utilities.IsNumberValid(ref amount);
-            if (result.status == OperationStatus.Error)
+            TransactionProcessed processedTransaction = SetupESDTTransaction(transaction, completeMethod);
+            if (processedTransaction != null)
             {
-                completeMethod?.Invoke(result.status, result.message);
-                return;
+                SendTransaction(new TransactionProcessed[] { processedTransaction }, completeMethod);
             }
+            //    OperationResult result = Utilities.IsNumberValid(ref transaction.value);
+            //    if (result.status == OperationStatus.Error)
+            //    {
+            //        completeMethod?.Invoke(result.status, result.message);
+            //        return;
+            //    }
 
-            //https://docs.elrond.com/tokens/esdt-tokens/
-            //the GasLimit must be set to the value required by the protocol for ESDT transfers, namely 500000
-            long gas = 500000;
+            //    //https://docs.elrond.com/tokens/esdt-tokens/
+            //    //the GasLimit must be set to the value required by the protocol for ESDT transfers, namely 500000
+            //    long gas = 500000;
 
-            CallSCMethod(destinationAddress, "ESDTTransfer", gas, completeMethod, TokenIdentifierValue.From(token.Ticker), NumericValue.TokenAmount(TokenAmount.ESDT(amount, token)));
+            //    CallSCMethod(transaction.destination, "ESDTTransfer", gas, completeMethod, TokenIdentifierValue.From(transaction.token.Ticker), NumericValue.TokenAmount(TokenAmount.ESDT(transaction.value, transaction.token)));
         }
         #endregion
 
@@ -510,12 +603,12 @@ namespace MultiversXUnityTools
         /// <param name="nonce"></param>
         /// <param name="quantity"></param>
         /// <param name="completeMethod"></param>
-        internal void SendNFT(string destinationAddress, string collectionIdentifier, ulong nonce, int quantity, UnityAction<OperationStatus, string> completeMethod)
+        internal void SendNFT(string destinationAddress, string collectionIdentifier, ulong nonce, int quantity, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
             //https://docs.elrond.com/tokens/nft-tokens/#tab-group-43-content-44
             long gas = 1000000;
 
-            CallSCMethod(connectedAccount.Address.ToString(),
+            SetupSCMethod(connectedAccount.Address.ToString(),
                 "ESDTNFTTransfer",
                 gas,
                 completeMethod,
@@ -560,7 +653,7 @@ namespace MultiversXUnityTools
         /// <param name="gasRequiredForSCExecution"></param>
         /// <param name="completeMethod"></param>
         /// <param name="args"></param>
-        internal void CallSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, UnityAction<OperationStatus, string> completeMethod, params IBinaryType[] args)
+        internal TransactionProcessed SetupSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, UnityAction<OperationStatus, string, string[]> completeMethod, params IBinaryType[] args)
         {
             string data = methodName;
             if (args.Any())
@@ -569,7 +662,9 @@ namespace MultiversXUnityTools
                                       (c, arg) => c + $"@{Converter.ToHexString(binaryCoder.EncodeTopLevel(arg))}");
             }
 
-            SendTransaction(scAddress, 0.ToString(), data, completeMethod, gasRequiredForSCExecution);
+            return new TransactionProcessed(scAddress, 0.ToString(), data, gasRequiredForSCExecution);
+
+            //SendTransaction(new TransactionToSign[] { new TransactionToSign(scAddress, 0.ToString(), data) }, completeMethod, gasRequiredForSCExecution);
         }
         #endregion
 
@@ -736,6 +831,8 @@ namespace MultiversXUnityTools
 
             return selectedAPI.GetEndpoint(endpoint);
         }
+
+
         #endregion
     }
 }

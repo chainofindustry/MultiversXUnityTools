@@ -147,6 +147,31 @@ namespace MultiversXUnityTools
             }
         }
 
+        public async Task<MultipleTransactionsResponseDto> SendTransactions(TransactionRequestDto[] transactionRequestDto)
+        {
+            var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
+            var webRequest = new UnityWebRequest();
+            webRequest.url = selectedAPI.GetEndpoint(EndpointNames.SendTransactions);//"https://devnet-api.multiversx.com/transaction/send-multiple"
+            Debug.Log("URL " + webRequest.url);
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            var content = webRequest.downloadHandler.text;
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    var result = JsonSerializerWrapper.Deserialize<ElrondGatewayResponseDto<MultipleTransactionsResponseDto>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
+                default:
+                    throw new GatewayException(content, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+            }
+        }
+
 
         Task<TransactionDto> IElrondProvider.GetTransactionDetail(string txHash)
         {

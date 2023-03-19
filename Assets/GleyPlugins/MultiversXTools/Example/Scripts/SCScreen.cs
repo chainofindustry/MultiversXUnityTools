@@ -81,15 +81,13 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void CallStatus(OperationStatus operationStatus, string message)
+        private void CallStatus(OperationStatus operationStatus, string message, string[] txHashes)
         {
 
             if (operationStatus == OperationStatus.Complete)
             {
-                txHash = message;
-                Debug.Log("Tx Hash: " + txHash);
-                scResultText.text = $"Pending TX: {txHash}";
-                Manager.CheckTransactionStatus(txHash, SCTransactionListener, 1);
+                scResultText.text = $"Pending TX: {txHashes[0]}";
+                Manager.CheckTransactionStatus(txHashes, SCTransactionListener, 1);
             }
             if (operationStatus == OperationStatus.Error)
             {

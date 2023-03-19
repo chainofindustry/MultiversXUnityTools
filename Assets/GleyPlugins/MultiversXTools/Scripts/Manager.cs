@@ -69,11 +69,16 @@ namespace MultiversXUnityTools
         /// <param name="amount">Amount of EGLD to send(in decimals) as string</param>
         /// <param name="data">An optional custom message</param>
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
-        public static void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string> TransactionStatus)
+        public static void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
-            ConnectionManager.Instance.SendEGLDTransaction(destinationAddress, amount, data, TransactionStatus);
+            ConnectionManager.Instance.SendEGLDTransaction(new TransactionToSign(destinationAddress, amount, data), TransactionStatus);
         }
 
+
+        public static void SendMultipleStrasactions(TransactionToSign[] transactions, UnityAction<OperationStatus, string, string[]> TransactionStatus)
+        {
+            ConnectionManager.Instance.SendMultipleTransactions(transactions,TransactionStatus);
+        }
 
         /// <summary>
         /// Check the status of a specific transaction 
@@ -81,7 +86,7 @@ namespace MultiversXUnityTools
         /// <param name="txHash">The hash of the transaction obtained after signing</param>
         /// <param name="TransactionStatus">Callback to track the result</param>
         /// <param name="refreshTime">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of the APIs</param>
-        public static void CheckTransactionStatus(string txHash, UnityAction<OperationStatus, string> TransactionStatus, float refreshTime)
+        public static void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string> TransactionStatus, float refreshTime)
         {
             ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus, refreshTime);
         }
@@ -94,9 +99,9 @@ namespace MultiversXUnityTools
         /// <param name="token">Token to send</param>
         /// <param name="amount">Amount of token to send(in decimals) as string</param>
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
-        public static void SendESDTTransaction(string destinationAddress, Token token, string amount, UnityAction<OperationStatus, string> TransactionStatus)
+        public static void SendESDTTransaction(string destinationAddress, Token token, string amount, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
-            ConnectionManager.Instance.SendESDTTransaction(destinationAddress, amount, token, TransactionStatus);
+            ConnectionManager.Instance.SendESDTTransaction(new TransactionToSign(destinationAddress, token, amount), TransactionStatus);
         }
 
 
@@ -118,7 +123,7 @@ namespace MultiversXUnityTools
         /// <param name="nftNonce">Nonce of the NFT (the characters after the last -(dash) from the NFT identifier)</param>
         /// <param name="quantity">Number of units to send</param>
         /// <param name="TransactionStatus">Callback to check the transaction status</param>
-        public static void SendNFT(string destinationAddress, string collectionIdentifier, ulong nftNonce, int quantity, UnityAction<OperationStatus, string> TransactionStatus)
+        public static void SendNFT(string destinationAddress, string collectionIdentifier, ulong nftNonce, int quantity, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
             ConnectionManager.Instance.SendNFT(destinationAddress, collectionIdentifier, nftNonce, quantity, TransactionStatus);
         }
@@ -156,9 +161,9 @@ namespace MultiversXUnityTools
         /// OptionValue
         /// StructValue
         /// TokenIdentifierValue
-        public static void CallSCMethod(string scAddress, string methodName, long gas, UnityAction<OperationStatus, string> CallStatus, params IBinaryType[] args)
+        public static void CallSCMethod(string scAddress, string methodName, long gas, UnityAction<OperationStatus, string, string[]> CallStatus, params IBinaryType[] args)
         {
-            ConnectionManager.Instance.CallSCMethod(scAddress, methodName, gas, CallStatus, args);
+            ConnectionManager.Instance.SetupSCMethod(scAddress, methodName, gas, CallStatus, args);
         }
 
 

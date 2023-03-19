@@ -12,5 +12,6 @@ namespace MultiversXUnityTools
 		GetWalletTokens,
 		GetTokensCount,
 		GetNFTsCount,
+		SendTransactions,
 	}
 }

@@ -16,11 +16,12 @@ namespace MultiversXUnityExamples
         public Dropdown esdtTokenDropdown;
         public Transform tokenParent;
         public GameObject tokenHolder;
+        Token selectedToken;
 
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
         private string defaultMessage = "You see this?";
         private double egld = 0.001;
-
+        int transactionsToProcess;
 
         public override void Init(params object[] args)
         {
@@ -111,7 +112,7 @@ namespace MultiversXUnityExamples
         public void SendESDTTransaction()
         {
             // get the drop down state and determine the ESDT token to transfer
-            Token selectedToken = SupportedESDTTokens.USDC;
+            selectedToken = SupportedESDTTokens.USDC;
             switch (esdtTokenDropdown.options[esdtTokenDropdown.value].text)
             {
                 case "USDC":
@@ -124,6 +125,28 @@ namespace MultiversXUnityExamples
             Manager.SendESDTTransaction(destination.text, selectedToken, esdtAmount.text, SigningStatusListener);
         }
 
+
+        public void SendAllTransactions()
+        {
+            selectedToken = SupportedESDTTokens.USDC;
+            switch (esdtTokenDropdown.options[esdtTokenDropdown.value].text)
+            {
+                case "USDC":
+                    selectedToken = SupportedESDTTokens.USDC;
+                    break;
+                case "WEB":
+                    selectedToken = SupportedESDTTokens.WEB;
+                    break;
+            }
+
+
+            TransactionToSign[] transactions =
+            {
+                new TransactionToSign(destination.text, amount.text, message.text),
+                new TransactionToSign(destination.text, selectedToken, esdtAmount.text)
+            };
+            Manager.SendMultipleStrasactions(transactions, SigningStatusListener);
+        }
 
         /// <summary>
         /// Add dropdown options
@@ -142,14 +165,19 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
-        private void SigningStatusListener(OperationStatus operationStatus, string message)
+        private void SigningStatusListener(OperationStatus operationStatus, string message, string[] txHashes)
         {
-            status.text = $"Signing status: {operationStatus} message: {message}";
+            status.text = $"Signing status: {operationStatus} message: {message} ";
             if (operationStatus == OperationStatus.Complete)
             {
-                Debug.Log("Tx Hash: " + message);
-                status.text = $"Tx pending: {message}";
-                Manager.CheckTransactionStatus(message, TransactionProcessed, 6);
+                string txs="";
+                foreach (string txHash in txHashes)
+                {
+                    txs += txHash + "\n";
+                }
+                status.text = $"Tx pending:\n {txs}";
+                transactionsToProcess = txHashes.Length;
+                Manager.CheckTransactionStatus(txHashes, TransactionProcessed, 6);
             }
             if (operationStatus == OperationStatus.Error)
             {
@@ -165,11 +193,20 @@ namespace MultiversXUnityExamples
         /// <param name="message">additional message</param>
         private void TransactionProcessed(OperationStatus operationStatus, string message)
         {
-            status.text = $"Transaction status: {operationStatus} message: {message}";
+            transactionsToProcess--;
+            if(status.text.Contains("Tx pending:"))
+            {
+                status.text = "";
+            }
+            status.text += $"{message} \n";
             if (operationStatus == OperationStatus.Complete)
             {
-                status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh account";
-                //after a transaction is processed, refresh account balance
+                //status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh account";
+               
+            }
+            if(transactionsToProcess==0)
+            {
+                //after all transactions are processed, refresh account balance
                 Manager.RefreshAccount(RefreshDone);
             }
         }

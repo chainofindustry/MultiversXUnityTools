@@ -1,4 +1,5 @@
 using Erdcsharp.Provider;
+using Erdcsharp.Provider.Dtos;
 using System.Threading.Tasks;
 
 namespace MultiversXUnityTools
@@ -17,5 +18,6 @@ namespace MultiversXUnityTools
         Task<T> GetWalletNfts<T>(string address);
 
         Task<T> GetWalletTokens<T>(string address);
+        Task<MultipleTransactionsResponseDto> SendTransactions(TransactionRequestDto[] transactionRequestDto);
     }
 }

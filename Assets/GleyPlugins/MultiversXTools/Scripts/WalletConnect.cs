@@ -143,18 +143,26 @@ namespace MultiversXUnityTools
 
         public async Task<string> SignTransaction(TransactionData transaction)
         {
-            Response signature = await client.Request<SignTransaction, Response>(sessionStruct.Topic, new SignTransaction(transaction));
+            OpenMobileWallet();
+            SignTransactionResponse signature = await client.Request<SignTransaction, SignTransactionResponse>(sessionStruct.Topic, new SignTransaction(transaction));
             return signature.Signature;
         }
 
-        public async Task<string> SignTransactions(TransactionData[] transactions)
+        public async Task<string[]> SignTransactions(TransactionData[] transactions)
         {
-            Response signature = await client.Request<SignTransactions, Response>(sessionStruct.Topic, new SignTransactions(transactions));
-            return signature.Signature;
+            string[] result = new string[transactions.Length];
+            SignTransactionsResponse signatures = await client.Request<SignTransactions, SignTransactionsResponse>(sessionStruct.Topic, new SignTransactions(transactions));
+            Debug.Log(signatures);
+            Debug.Log(signatures.Signatures);
+            for(int i=0;i<signatures.Signatures.Length;i++)
+            {
+                result[i] = signatures.Signatures[i].Signature;
+            }
+            return result;
         }
 
 
-        public void OpenMobileWallet()
+        void OpenMobileWallet()
         {
 #if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
             string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com" + "/wc";
