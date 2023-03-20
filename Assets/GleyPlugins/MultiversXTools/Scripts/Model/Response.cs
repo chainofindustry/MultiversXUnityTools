@@ -1,5 +1,0 @@
-namespace MultiversXUnityTools
-{
-    //RPC response
-   
-}

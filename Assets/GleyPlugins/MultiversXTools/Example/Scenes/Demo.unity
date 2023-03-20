@@ -351,6 +351,8 @@ MonoBehaviour:
     screenPrefab: {fileID: 7320147536412460574, guid: 4ff9cb100764c234e8daf89e9a621330, type: 3}
   - screenName: 5
     screenPrefab: {fileID: 5199279706393610261, guid: bf2033a8cbdd07146882792839c284f8, type: 3}
+  - screenName: 6
+    screenPrefab: {fileID: 7320147536412460574, guid: 82b30d156bc1de341a39f765202e0f5d, type: 3}
   canvas: {fileID: 1968158085}
 --- !u!4 &974110361
 Transform:

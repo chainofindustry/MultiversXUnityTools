@@ -1,9 +1,7 @@
-using Erdcsharp.Domain;
 using Erdcsharp.Provider.Dtos;
 using MultiversXUnityTools;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace MultiversXUnityExamples
 {
@@ -15,7 +13,8 @@ namespace MultiversXUnityExamples
         Connected,
         NFT,
         SC,
-        Transactions
+        Transactions,
+        SignMessage
     }
 
 
@@ -90,7 +89,7 @@ namespace MultiversXUnityExamples
             //if (Input.GetKeyDown(KeyCode.Space))
             //{
             //    Get();
-            //   // Post();
+            //    Post();
             //}
         }
 

@@ -198,6 +198,21 @@ namespace MultiversXUnityTools
         #endregion
 
 
+        internal async void SignMessage(string message, UnityAction<OperationStatus, string> completeMethod)
+        {
+            Debug.Log("Sign message");
+            try
+            {
+                string signature = await walletConnect.SignMessage(message);
+                Debug.Log(signature);
+                completeMethod?.Invoke(OperationStatus.Complete, signature);
+            }
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+            }
+        }
+
         #region Transactions
         /// <summary>
         /// Actually constructs the transaction, send it for signing, and broadcast the signed transaction to the blockchain
@@ -761,6 +776,8 @@ namespace MultiversXUnityTools
 
             return selectedAPI.GetEndpoint(endpoint);
         }
+
+      
         #endregion
     }
 }

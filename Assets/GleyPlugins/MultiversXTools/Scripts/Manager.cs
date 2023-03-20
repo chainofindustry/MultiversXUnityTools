@@ -74,6 +74,10 @@ namespace MultiversXUnityTools
             ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[]{ new TransactionToSign(destinationAddress, amount, data) }, TransactionStatus);
         }
 
+        public static void SignMessage(string message, UnityAction<OperationStatus, string> CompleteMethod)
+        {
+            ConnectionManager.Instance.SignMessage(message, CompleteMethod);
+        }
 
         public static void SendMultipleStrasactions(TransactionToSign[] transactions, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
@@ -243,6 +247,9 @@ namespace MultiversXUnityTools
             return ConnectionManager.Instance.GetEndpointUrl(endpoint);
         }
 
+
+
+       
         //query vm
         //TODO
     }

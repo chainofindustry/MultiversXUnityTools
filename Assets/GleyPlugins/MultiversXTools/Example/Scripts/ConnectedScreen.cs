@@ -1,5 +1,6 @@
 using Erdcsharp.Domain;
 using MultiversXUnityTools;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -123,6 +124,13 @@ namespace MultiversXUnityExamples
             DemoScript.Instance.LoadScreen(Screens.NFT);
         }
 
+
+        public void SignMessage()
+        {
+            DemoScript.Instance.LoadScreen(Screens.SignMessage);
+        }
+
+      
 
         //linked to the disconnect button in editor
         public void Disconnect()
