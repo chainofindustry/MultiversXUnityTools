@@ -108,6 +108,7 @@ namespace MultiversXUnityTools
             walletConnect.OpenDeepLink();
         }
 
+
         private void AddQRImageScript(Image qrImage, string uri)
         {
             if (qrImage != null)
@@ -147,7 +148,7 @@ namespace MultiversXUnityTools
             }
 
             Debug.Log($"SELECTED API {selectedAPI.apiName} {selectedAPI.baseAddress}");
-            multiversXProvider = new ElrondProviderUnity(selectedAPI);
+            multiversXProvider = new MultiversXProviderUnity(selectedAPI);
         }
 
 
@@ -308,6 +309,7 @@ namespace MultiversXUnityTools
                 //}
                 //else
                 //{
+                completeMethod?.Invoke(OperationStatus.InProgress, "Waiting to sign", null);
                 string[] signatures = await walletConnect.SignTransactions(transactions);
                 TransactionRequestDto[] signedTransactions = new TransactionRequestDto[signatures.Length];
                 for (int i = 0; i < signatures.Length; i++)
@@ -338,7 +340,6 @@ namespace MultiversXUnityTools
 
         internal void SendMultipleTransactions(TransactionToSign[] transactions, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
-            Debug.Log("Send multiple");
             TransactionProcessed[] processedTransactions = new TransactionProcessed[transactions.Length];
             for (int i = 0; i < transactions.Length; i++)
             {
@@ -365,6 +366,7 @@ namespace MultiversXUnityTools
             SendTransactions(processedTransactions, completeMethod);
         }
 
+
         private TransactionProcessed SetupESDTTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
             OperationResult result = Utilities.IsNumberValid(ref transaction.value);
@@ -387,6 +389,7 @@ namespace MultiversXUnityTools
             return SetupSCMethod(transaction.destination, "ESDTTransfer", gas, completeMethod, TokenIdentifierValue.From(transaction.token.Ticker), NumericValue.TokenAmount(TokenAmount.ESDT(transaction.value, transaction.token)));
         }
 
+
         private TransactionProcessed SetupNFTTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
             //https://docs.elrond.com/tokens/nft-tokens/#tab-group-43-content-44
@@ -402,6 +405,7 @@ namespace MultiversXUnityTools
                 Erdcsharp.Domain.Address.From(transaction.destination)
                 );
         }
+
 
         /// <summary>
         /// Perform a Smart Contract call 
@@ -776,8 +780,6 @@ namespace MultiversXUnityTools
 
             return selectedAPI.GetEndpoint(endpoint);
         }
-
-      
         #endregion
     }
 }

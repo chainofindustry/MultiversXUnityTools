@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using WalletConnectSharp.Common.Utils;
 using WalletConnectSharp.Network.Models;
 
 namespace MultiversXUnityTools

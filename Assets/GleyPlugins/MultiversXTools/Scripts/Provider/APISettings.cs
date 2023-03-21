@@ -9,7 +9,7 @@ namespace MultiversXUnityTools
     {
         public string selectedAPIName;
 
-        //Maiar display values
+        //xPortal display values
         public string appDescription = "You are using Chain of Industry test login";
         public string appIcon = "https://gleygames.com/blockchain/COI-Building-Avatar-192x192.jpg";
         public string appName = "Chain of Industry";

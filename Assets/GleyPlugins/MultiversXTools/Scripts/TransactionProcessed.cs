@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-
 namespace MultiversXUnityTools
 {
     public class TransactionProcessed
@@ -12,6 +7,7 @@ namespace MultiversXUnityTools
         public string data;
         public long gasRequiredForSCExecution;
 
+
         public TransactionProcessed(string destination, string value, string data, long gasRequiredForSCExecution)
         {
             this.destination = destination;
@@ -19,6 +15,7 @@ namespace MultiversXUnityTools
             this.data = data;
             this.gasRequiredForSCExecution = gasRequiredForSCExecution;
         }
+
 
         public TransactionProcessed(TransactionToSign transactionToSign)
         {
