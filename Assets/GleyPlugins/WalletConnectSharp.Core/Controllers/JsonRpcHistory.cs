@@ -36,6 +36,10 @@ namespace WalletConnectSharp.Core.Controllers
         {
             get
             {
+                if (typeof(T).IsGenericType)
+                {
+                    return $"{_core.Name}-history-of-type-{typeof(T).GenericTypeArguments[0]}";
+                }
                 return $"{_core.Name}-history-of-type-{typeof(T).Name}";
             }
         }
