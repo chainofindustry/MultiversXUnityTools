@@ -96,7 +96,7 @@ namespace MultiversXUnityTools
             }
             catch (Exception e)
             {
-                OnWalletConnected?.Invoke(null, $"{e.Message} {e.Data}");
+                OnWalletConnected?.Invoke(null, $"{e.Message}");
             }
         }
 
@@ -137,7 +137,7 @@ namespace MultiversXUnityTools
             }
             catch (Exception e)
             {
-                Debug.LogError($"{e.Message} {e.Data}");
+                Debug.LogError($"{e.Message}");
                 return;
             }
 
@@ -193,7 +193,7 @@ namespace MultiversXUnityTools
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}");
             }
         }
         #endregion
@@ -204,13 +204,14 @@ namespace MultiversXUnityTools
             Debug.Log("Sign message");
             try
             {
+                completeMethod?.Invoke(OperationStatus.InProgress, "Waiting to sign");
                 string signature = await walletConnect.SignMessage(message);
                 Debug.Log(signature);
                 completeMethod?.Invoke(OperationStatus.Complete, signature);
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}");
             }
         }
 
@@ -255,7 +256,7 @@ namespace MultiversXUnityTools
                 }
                 catch (Exception e)
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", null);
+                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
                     return;
                 }
 
@@ -266,7 +267,7 @@ namespace MultiversXUnityTools
                 }
                 catch (Exception e)
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", null);
+                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
                     return;
                 }
 
@@ -321,7 +322,6 @@ namespace MultiversXUnityTools
                 string[] txHashes = new string[response.NumOfSentTxs];
                 foreach (var item in response.TxsHashes)
                 {
-                    Debug.Log(string.Format("Key: {0}, Value: {1}", item.Key, item.Value));
                     txHashes[int.Parse(item.Key)] = item.Value;
                 }
                 completeMethod?.Invoke(OperationStatus.Complete, null, txHashes);
@@ -331,7 +331,7 @@ namespace MultiversXUnityTools
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", null);
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
                 return;
             }
 
@@ -436,9 +436,8 @@ namespace MultiversXUnityTools
         /// <param name="txHash">the hash of the transaction</param>
         /// <param name="completeMethod">callback method</param>
         /// <param name="refreshTime">time interval to query the blockchain for the status of the transaction. Lower times means more calls to blockchain APIs</param>
-        internal void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        internal void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
         {
-            Debug.Log(txHash);
             try
             {
                 MultiversXTransaction[] txs = new MultiversXTransaction[txHash.Length];
@@ -452,7 +451,7 @@ namespace MultiversXUnityTools
 
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
+                completeMethod?.Invoke(OperationStatus.Error,"", e.Message);
                 return;
             }
 
@@ -483,7 +482,7 @@ namespace MultiversXUnityTools
         /// <param name="tx">transaction</param>
         /// <param name="completeMethod">callback when completed</param>
         /// <param name="refreshTime"></param>
-        void Sync(MultiversXTransaction[] tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        void Sync(MultiversXTransaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
         {
             StartCoroutine(CheckTransaction(tx, completeMethod, refreshTime));
         }
@@ -496,7 +495,7 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
         /// <returns></returns>
-        private IEnumerator CheckTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        private IEnumerator CheckTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
         {
             yield return new WaitForSeconds(refreshTime);
             SyncTransaction(tx, completeMethod, refreshTime);
@@ -509,7 +508,7 @@ namespace MultiversXUnityTools
         /// <param name="tx"></param>
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
-        private async void SyncTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string> completeMethod, float refreshTime)
+        private async void SyncTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
         {
             bool executed = true;
             for (int i = 0; i < tx.Length; i++)
@@ -517,7 +516,6 @@ namespace MultiversXUnityTools
                 await tx[i].Sync(multiversXProvider);
                 if (!tx[i].IsExecuted())
                 {
-                    Debug.Log($"tx {i} not executed");
                     executed = false;
                 }
             }
@@ -529,11 +527,11 @@ namespace MultiversXUnityTools
                     string message;
                     if (!tx[i].EnsureTransactionSuccess(out message))
                     {
-                        completeMethod?.Invoke(OperationStatus.Error, $"{tx[i].TxHash} {message}");
+                        completeMethod?.Invoke(OperationStatus.Error, tx[i].TxHash, message);
                     }
                     else
                     {
-                        completeMethod?.Invoke(OperationStatus.Complete, $"{tx[i].TxHash} {tx[0].Status}");
+                        completeMethod?.Invoke(OperationStatus.Complete, tx[i].TxHash, tx[i].Status);
                     }
                 }
             }
@@ -586,7 +584,7 @@ namespace MultiversXUnityTools
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", null);
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
                 return;
             }
         }
@@ -633,7 +631,7 @@ namespace MultiversXUnityTools
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", default(T));
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", default(T));
             }
         }
 
@@ -653,7 +651,7 @@ namespace MultiversXUnityTools
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}", default(T));
+                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", default(T));
             }
         }
         #endregion

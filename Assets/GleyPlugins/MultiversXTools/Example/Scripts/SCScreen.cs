@@ -89,10 +89,10 @@ namespace MultiversXUnityExamples
                 scResultText.text = $"Pending TX: {txHashes[0]}";
                 Manager.CheckTransactionStatus(txHashes, SCTransactionListener, 1);
             }
-            if (operationStatus == OperationStatus.Error)
+            else
             {
                 //do something
-                scResultText.text = operationStatus + " " + message;
+                scResultText.text = $"Transaction status: {operationStatus}. Message: {message}";
             }
         }
 
@@ -102,9 +102,10 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void SCTransactionListener(OperationStatus operationStatus, string message)
+        private void SCTransactionListener(OperationStatus operationStatus,string tx, string txStatus)
         {
-            scResultText.text = operationStatus + " " + message;
+            Debug.Log(tx + " " + txStatus);
+            scResultText.text = tx + " " + txStatus;
             if (operationStatus == OperationStatus.Complete)
             {
                 Manager.RefreshAccount();

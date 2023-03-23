@@ -90,7 +90,7 @@ namespace MultiversXUnityTools
         /// <param name="txHash">The hash of the transaction obtained after signing</param>
         /// <param name="TransactionStatus">Callback to track the result</param>
         /// <param name="refreshTime">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of the APIs</param>
-        public static void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string> TransactionStatus, float refreshTime)
+        public static void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string, string> TransactionStatus, float refreshTime)
         {
             ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus, refreshTime);
         }

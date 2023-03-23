@@ -46,7 +46,7 @@ namespace MultiversXUnityExamples
         /// <param name="allTokens"></param>
         private void TokensLoaded(OperationStatus operationStatus, string message, TokenMetadata[] allTokens)
         {
-            status.text = $"Tokens Loaded status: {operationStatus} message: {message}";
+            status.text = $"Tokens Loaded status: {operationStatus}. Message: {message}";
             if (operationStatus == OperationStatus.Complete)
             {
                 //Add tokens to UI
@@ -167,7 +167,7 @@ namespace MultiversXUnityExamples
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
         private void SigningStatusListener(OperationStatus operationStatus, string message, string[] txHashes)
         {
-            status.text = $"Signing status: {operationStatus} message: {message} ";
+            status.text = $"Signing status: {operationStatus}. Message: {message} ";
             if (operationStatus == OperationStatus.Complete)
             {
                 string txs="";
@@ -191,7 +191,7 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void TransactionProcessed(OperationStatus operationStatus, string message)
+        private void TransactionProcessed(OperationStatus operationStatus, string tx, string txStatus)
         {
             transactionsToProcess--;
             if(status.text.Contains("Tx pending:"))
@@ -219,10 +219,10 @@ namespace MultiversXUnityExamples
         /// <param name="message"></param>
         private void RefreshDone(OperationStatus operationStatus, string message)
         {
-            status.text = $"Refresh account status: {operationStatus} message: {message}";
+            status.text = $"Refresh account status: {operationStatus}. Message: {message}";
             if (operationStatus == OperationStatus.Complete)
             {
-                status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh tokens";
+                status.text = $"Transaction status: {operationStatus}. Message: {message} -> Refresh tokens";
                 //after the account is refreshed load again all tokens.
                 //this is not mandatory, you can just load the token that was sent, 
                 //or even better just update the token balance in UI with the amount send, without calling the blockchain API

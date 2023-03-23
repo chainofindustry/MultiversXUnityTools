@@ -152,7 +152,6 @@ namespace MultiversXUnityTools
             OpenMobileWallet();
             string[] result = new string[transactions.Length];
             SignTransactionsResponse signatures = await client.Request<SignTransactions, SignTransactionsResponse>(sessionStruct.Topic, new SignTransactions(transactions));
-            Debug.Log(signatures);
             Debug.Log(signatures.Signatures);
             for(int i=0;i<signatures.Signatures.Length;i++)
             {

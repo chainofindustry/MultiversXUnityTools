@@ -152,7 +152,6 @@ namespace MultiversXUnityTools
             var raw = JsonSerializerWrapper.Serialize(transactionRequestDto);
             var webRequest = new UnityWebRequest();
             webRequest.url = selectedAPI.GetEndpoint(EndpointNames.SendTransactions);
-            Debug.Log("URL " + webRequest.url);
             webRequest.method = "POST";
             webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
             webRequest.downloadHandler = new DownloadHandlerBuffer();

@@ -48,14 +48,16 @@ namespace MultiversXUnityExamples
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
         private void CompleteListener(OperationStatus operationStatus, string message, string[] txHashes)
         {
-            demoScript.status.text = operationStatus + " " + message+" "+txHashes[0];
+
             if (operationStatus == OperationStatus.Complete)
             {
                 Manager.CheckTransactionStatus(txHashes, BlockchainTransactionListener, 1);
+                demoScript.status.text = $"Pending Tx: {txHashes[0]}";
             }
-            if (operationStatus == OperationStatus.Error)
+            else
             {
                 //do something
+                demoScript.status.text = $"Transaction status: {operationStatus}. Message: {message}";
             }
         }
 
@@ -65,9 +67,9 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void BlockchainTransactionListener(OperationStatus operationStatus, string message)
+        private void BlockchainTransactionListener(OperationStatus operationStatus,string tx, string txStatus)
         {
-            demoScript.status.text = operationStatus + " " + message;
+            demoScript.status.text = $"{tx} {txStatus}";
             if (operationStatus == OperationStatus.Complete)
             {
                 demoScript.RefreshNFTs(collectionIdentifier, nonce);

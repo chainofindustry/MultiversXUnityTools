@@ -85,32 +85,32 @@ namespace MultiversXUnityTools
         {
             if (!IsExecuted())
             {
-                message = $"Cannot reach Executed status for tx : '{TxHash}'";
+                message = $"Cannot reach Executed status";
                 return false;
             }
             if (operations != null && operations.Any(s => !string.IsNullOrEmpty(s.message)))
             {
                 var returnMessages = operations.Select(x => x.message).ToArray();
                 var aggregateMessage = string.Join(Environment.NewLine, returnMessages);
-                message = $"Transaction tx : '{TxHash}' has some error : {aggregateMessage}";
+                message = $"Has some error : {aggregateMessage}";
                 return false;
             }
 
             if (IsFailed())
             {
-                message = $"Transaction failed for tx : '{TxHash}' Logs: {ReadLogs(logs)}";
+                message = $"Transaction failed. Logs: {ReadLogs(logs)}";
                 return false;
             }
 
             if (IsInvalid())
             {
-                message = $"Transaction is invalid for tx : '{TxHash}' Logs: {ReadLogs(logs)}";
+                message = $"Transaction is invalid. Logs: {ReadLogs(logs)}";
                 return false;
             }
 
             if (!IsSuccessful())
             {
-                message = $"Transaction is invalid for tx : '{TxHash}'";
+                message = $"Transaction is invalid";
                 return false;
             }
             message = "Success";

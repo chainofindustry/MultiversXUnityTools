@@ -96,7 +96,6 @@ namespace MultiversXUnityExamples
         /// <param name="connectedAccount"></param>
         private void RefreshAccount(Account connectedAccount)
         {
-            Debug.Log("RefreshAccount " + connectedAccount.Balance);
             var amount = connectedAccount.Balance;
             address.text = connectedAccount.Address.ToString();
             egldValue.text = "EGLD: " + amount.ToDenominated();
