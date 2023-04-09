@@ -21,7 +21,7 @@ namespace MultiversXUnityExamples
             status.text = "Refresh account";
             //refresh the account balance
             Manager.RefreshAccount(AccountRefreshed);
-            //load profile picture and cover photo from Maiar
+            //load profile picture and cover photo from xPortal
             LoadProfileImages(Manager.GetConnectedAccount().Address.ToString());
         }
 
@@ -43,14 +43,14 @@ namespace MultiversXUnityExamples
 
 
         /// <summary>
-        /// Load profile and cover photos from Maiar
+        /// Load profile and cover photos from xPortal
         /// </summary>
         /// <param name="address"></param>
         private void LoadProfileImages(string address)
         {
             status.text = "Start Loading Images";
-            Manager.LoadImage($"https://id.maiar.com/users/photos/profile/{address}", profilePicture, PictureLoadComplete);
-            Manager.LoadImage($"https://id.maiar.com/users/photos/cover/{address}", banner, CoverLoadComplete);
+            Manager.LoadImage($"https://id-api.multiversx.com/users/photos/profile/{address}", profilePicture, PictureLoadComplete);
+            Manager.LoadImage($"https://id-api.multiversx.com/users/photos/cover/{address}", banner, CoverLoadComplete);
         }
 
 

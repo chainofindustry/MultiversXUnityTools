@@ -101,7 +101,7 @@ namespace MultiversXUnityTools
         }
 
         /// <summary>
-        /// Maiar deep link urls
+        /// xPortal deep link urls
         /// </summary>
         public void OpenDeepLink()
         {
@@ -383,7 +383,7 @@ namespace MultiversXUnityTools
                 return null;
             }
 
-            //https://docs.elrond.com/tokens/esdt-tokens/
+            //https://docs.multiversx.com/tokens/esdt-tokens/
             //the GasLimit must be set to the value required by the protocol for ESDT transfers, namely 500000
             long gas = 500000;
             return SetupSCMethod(transaction.destination, "ESDTTransfer", gas, completeMethod, TokenIdentifierValue.From(transaction.token.Ticker), NumericValue.TokenAmount(TokenAmount.ESDT(transaction.value, transaction.token)));
@@ -392,7 +392,7 @@ namespace MultiversXUnityTools
 
         private TransactionProcessed SetupNFTTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
-            //https://docs.elrond.com/tokens/nft-tokens/#tab-group-43-content-44
+            //https://docs.multiversx.com/tokens/nft-tokens/#tab-group-43-content-44
             long gas = 1000000;
 
             return SetupSCMethod(connectedAccount.Address.ToString(),
@@ -706,7 +706,7 @@ namespace MultiversXUnityTools
 
         #region PublicMethods
         /// <summary>
-        /// Automatically open the Maiar wallet on mobile devices
+        /// Automatically open the xPortal wallet on mobile devices
         /// </summary>
         internal void DeepLinkLogin()
         {

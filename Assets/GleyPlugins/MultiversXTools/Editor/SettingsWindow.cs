@@ -150,9 +150,9 @@ namespace MultiversXUnityTools
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false, GUILayout.Width(position.width), GUILayout.Height(position.height - 50));
             EditorGUILayout.Space();
 
-            //input details for Maiar
-            #region MaiarConfiguration
-            EditorGUILayout.LabelField("Maiar configuration ", EditorStyles.boldLabel);
+            //input details for xPortal
+            #region xPortalConfiguration
+            EditorGUILayout.LabelField("xPortal configuration ", EditorStyles.boldLabel);
             EditorGUILayout.Space();
 
             apiSettings.appDescription = EditorGUILayout.TextField("App Description", apiSettings.appDescription);

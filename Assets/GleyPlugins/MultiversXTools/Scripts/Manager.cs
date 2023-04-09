@@ -8,11 +8,11 @@ namespace MultiversXUnityTools
     public class Manager
     {
         /// <summary>
-        /// This is required before making any blockchain transaction. It is used to initialize the WalletConnect socket used for Maiar connection.
+        /// This is required before making any blockchain transaction. It is used to initialize the WalletConnect socket used for xPortal connection.
         /// </summary>
         /// <param name="OnWalletConnected">Callback triggered when user wallet connected</param>
         /// <param name="OnWalletDisconnected">Callback triggered when user wallet disconnected</param>
-        /// <param name="qrImage">The image component that will display the QR for Maiar login</param>
+        /// <param name="qrImage">The image component that will display the QR for xPortal login</param>
         public static void Connect(UnityAction<Account, string> OnWalletConnected, UnityAction OnWalletDisconnected, Image qrImage)
         {
             ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, null, qrImage);
@@ -45,7 +45,7 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
-        /// Login from the same mobile device that has the Maiar app already installed. It will automatically open the Maiar app.
+        /// Login from the same mobile device that has the xPortal app already installed. It will automatically open the xPortal app.
         /// </summary>
         public static void DeepLinkLogin()
         {
@@ -63,7 +63,7 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
-        /// Send an EGLD transaction for signing to the Maiar wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
+        /// Send an EGLD transaction for signing to the xPortal wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
         /// </summary>
         /// <param name="destinationAddress">The erd address of the receiver</param>
         /// <param name="amount">Amount of EGLD to send(in decimals) as string</param>
@@ -97,7 +97,7 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
-        /// Send an ESDT transaction for signing to the Maiar wallet. After it is signed the transaction will be automatically broadcasted to the blockchain 
+        /// Send an ESDT transaction for signing to the xPortal wallet. After it is signed the transaction will be automatically broadcasted to the blockchain 
         /// </summary>
         /// <param name="destinationAddress">The erd address of the receiver</param>
         /// <param name="token">Token to send</param>

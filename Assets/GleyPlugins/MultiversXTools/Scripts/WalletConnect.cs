@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 using WalletConnectSharp.Common.Model.Errors;
 using WalletConnectSharp.Core.Models.Pairing;
 using WalletConnectSharp.Events;
@@ -36,9 +37,7 @@ namespace MultiversXUnityTools
 
         private const string PROJECT_ID = "39f3dc0a2c604ec9885799f9fc5feb7c";
         private const string SAVE_PATH = "/wc/sessionData.json";
-        private const string MVX_NAMESPACE = "multiversx";
-
-        private const string ACCOUNTS_CHANGED = "accountsChanged";
+        
 
         private WalletConnectSignClient client;
         private SessionStruct sessionStruct;
@@ -64,7 +63,7 @@ namespace MultiversXUnityTools
                 RequiredNamespaces = new RequiredNamespaces()
                 {
                     {
-                        MVX_NAMESPACE, new RequiredNamespace()
+                         MultiversXRpcMethods.MVX_NAMESPACE, new RequiredNamespace()
                         {
                             Methods = new[]
                             {
@@ -76,11 +75,11 @@ namespace MultiversXUnityTools
                             },
                             Chains = new[]
                             {
-                                $"{MVX_NAMESPACE}:{chainId}"
+                                $"{ MultiversXRpcMethods.MVX_NAMESPACE}:{chainId}"
                             },
                             Events = new[]
                             {
-                               ACCOUNTS_CHANGED
+                               MultiversXRpcMethods.ACCOUNTS_CHANGED
                             }
                         }
                     }
@@ -122,7 +121,7 @@ namespace MultiversXUnityTools
             }
             try
             {
-                account = sessionStruct.Namespaces[MVX_NAMESPACE].Accounts[0].Split(":")[2];
+                account = sessionStruct.Namespaces[MultiversXRpcMethods.MVX_NAMESPACE].Accounts[0].Split(":")[2];
             }
             catch (Exception e)
             {
@@ -169,9 +168,9 @@ namespace MultiversXUnityTools
         void OpenMobileWallet()
         {
 #if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
-            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com" + "/wc";
-            Debug.Log($"{maiarUrl}");
-            Application.OpenURL(maiarUrl);
+            string xPortalURL = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://xportal.com" + "/wc";
+            Debug.Log($"{xPortalURL}");
+            Application.OpenURL(xPortalURL);
 #else
             Debug.Log("Platform does not support deep linking");
             return;
@@ -189,9 +188,9 @@ namespace MultiversXUnityTools
             }
 
 #if UNITY_ANDROID || UNITY_IOS
-            string maiarUrl = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL($"{connectedData.Uri}&token={authToken}");
-            Debug.Log("[WalletConnect] Opening URL: " + maiarUrl);
-            Application.OpenURL(maiarUrl);
+            string xPortal = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL($"{connectedData.Uri}&token={authToken}");
+            Debug.Log("[WalletConnect] Opening URL: " + xPortal);
+            Application.OpenURL(xPortal);
 #else
             Debug.Log("Platform does not support deep linking");
             return;

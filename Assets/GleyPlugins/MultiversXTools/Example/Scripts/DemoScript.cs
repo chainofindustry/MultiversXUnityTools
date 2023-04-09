@@ -113,8 +113,8 @@ namespace MultiversXUnityExamples
         /// </summary>
         public void Get()
         {
-            string url = "https://devnet-api.elrond.com/accounts/erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
-            //string url = Manager.GetEndpointUrl(EndpointNames.GetAccounts).Replace("{address}", "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
+
+            string url = Manager.GetEndpointUrl(EndpointNames.GetAccount).Replace("{address}", "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
             Manager.GetRequest<AccountDto>(url, CompleteMethodGet);
         }
 
@@ -147,7 +147,7 @@ namespace MultiversXUnityExamples
         public void Post()
         {
             //construct the url
-            string url = "https://devnet-gateway.elrond.com/transaction/cost";
+            string url = "https://devnet-gateway.multiversx.com/transaction/cost";
 
             //construct the params as a json string
             string json = "{" +

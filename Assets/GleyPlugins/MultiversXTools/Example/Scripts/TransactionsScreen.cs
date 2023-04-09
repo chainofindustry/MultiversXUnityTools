@@ -198,16 +198,23 @@ namespace MultiversXUnityExamples
             {
                 status.text = "";
             }
-            status.text += $"{message} \n";
+            status.text += $"{txStatus} \n";
             if (operationStatus == OperationStatus.Complete)
             {
                 //status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh account";
                
             }
-            if(transactionsToProcess==0)
+            if (transactionsToProcess == 0)
             {
                 //after all transactions are processed, refresh account balance
-                Manager.RefreshAccount(RefreshDone);
+                if (operationStatus == OperationStatus.Complete)
+                {
+                    Manager.RefreshAccount(RefreshDone);
+                }
+                else
+                {
+                    status.text = $"Transaction status: {operationStatus}. Message: {txStatus}";
+                }
             }
         }
 

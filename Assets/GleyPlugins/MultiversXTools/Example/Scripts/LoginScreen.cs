@@ -50,7 +50,7 @@ namespace MultiversXUnityExamples
         }
 
         /// <summary>
-        /// Triggered when Maiar app connected
+        /// Triggered when xPortal app connected
         /// </summary>
         /// <param name="connectedAccount">A class containing informations about the connected wallet</param>
         private void OnConnected(Account connectedAccount, string error)
