@@ -160,6 +160,7 @@ namespace MultiversXUnityTools
 
         public async Task<string> SignMessage(string message)
         {
+            OpenMobileWallet();
             SignMessageResponse signature = await client.Request<SignMessage, SignMessageResponse>(sessionStruct.Topic, new SignMessage(message));
             return signature.Signature;
         }

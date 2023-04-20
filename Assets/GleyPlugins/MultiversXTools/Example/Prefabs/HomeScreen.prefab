@@ -284,7 +284,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: You are using Mainnet, Please don`t do transactions they will be processed
+  m_Text: You are using Mainnet, Please don't do transactions they will be processed
     and your funds or NFTs transfered to destination wallet.
 --- !u!1 &1176667522522703367
 GameObject:
@@ -1219,7 +1219,7 @@ RectTransform:
   - {fileID: 3731670937345998119}
   - {fileID: 8322742850342728529}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}

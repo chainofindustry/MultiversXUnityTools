@@ -67,7 +67,7 @@ namespace MultiversXUnityTools
             LoadAPI();
             try
             {
-                networkConfig = await LoadNetworkConfig(true, false);
+                networkConfig = await LoadNetworkConfig(true, true);
 
                 if (walletConnect == null)
                 {
