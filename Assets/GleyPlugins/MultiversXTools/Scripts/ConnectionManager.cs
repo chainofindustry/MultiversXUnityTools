@@ -1,8 +1,12 @@
-using Erdcsharp.Domain;
-using Erdcsharp.Domain.Codec;
-using Erdcsharp.Domain.Helper;
-using Erdcsharp.Domain.Values;
-using Erdcsharp.Provider.Dtos;
+using Mx.NET.SDK.Core.Domain;
+using Mx.NET.SDK.Core.Domain.Codec;
+using Mx.NET.SDK.Core.Domain.Helper;
+using Mx.NET.SDK.Core.Domain.Values;
+using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Common;
+using Mx.NET.SDK.Domain.Data.Network;
+using Mx.NET.SDK.Domain.Data.Transaction;
+using Mx.NET.SDK.Provider.Dtos.API.Transactions;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -88,8 +92,6 @@ namespace MultiversXUnityTools
                     },
                     OnWalletDisconnected
                     );
-
-                Debug.Log($"Connected account: {account}");
 
                 connectedAccount = new Account(Address.From(account));
                 OnWalletConnected?.Invoke(connectedAccount, null);
@@ -227,11 +229,10 @@ namespace MultiversXUnityTools
         /// <param name="requiredGas"></param>
         private async void SendTransactions(TransactionProcessed[] transactionsToSign, UnityAction<OperationStatus, string, string[]> completeMethod)
         {
-            Debug.Log("SendTransaction");
             //verify the parameters first
 
             TransactionData[] transactions = new TransactionData[transactionsToSign.Length];
-            for (int i = 0; i < transactionsToSign.Length; i++)
+            for (uint i = 0; i < transactionsToSign.Length; i++)
             {
                 //make sure the amount value is correct
                 OperationResult result = Utilities.IsNumberValid(ref transactionsToSign[i].value);
@@ -273,9 +274,9 @@ namespace MultiversXUnityTools
 
 
                 //check EGLD balance
-                if (TokenAmount.EGLD(transactionsToSign[i].value).Value > connectedAccount.Balance.Value)
+                if (ESDTAmount.EGLD(transactionsToSign[i].value).Value > connectedAccount.Balance.Value)
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, $"Insufficient funds, required : {TokenAmount.EGLD(transactionsToSign[i].value).ToDenominated()} and got {connectedAccount.Balance.ToDenominated()}", null);
+                    completeMethod?.Invoke(OperationStatus.Error, $"Insufficient funds, required : {ESDTAmount.EGLD(transactionsToSign[i].value).ToDenominated()} and got {connectedAccount.Balance.ToDenominated()}", null);
                     return;
                 }
 
@@ -288,7 +289,7 @@ namespace MultiversXUnityTools
                     nonce = connectedAccount.Nonce + i,
                     sender = connectedAccount.Address.ToString(),
                     receiver = transactionsToSign[i].destination,
-                    value = TokenAmount.EGLD(transactionsToSign[i].value).ToString(),
+                    value = ESDTAmount.EGLD(transactionsToSign[i].value).ToString(),
                     data = Convert.ToBase64String(Encoding.UTF8.GetBytes(transactionsToSign[i].data)),
                     gasPrice = networkConfig.MinGasPrice,
                     gasLimit = transactionsToSign[i].gasRequiredForSCExecution,
@@ -386,7 +387,7 @@ namespace MultiversXUnityTools
             //https://docs.multiversx.com/tokens/esdt-tokens/
             //the GasLimit must be set to the value required by the protocol for ESDT transfers, namely 500000
             long gas = 500000;
-            return SetupSCMethod(transaction.destination, "ESDTTransfer", gas, completeMethod, TokenIdentifierValue.From(transaction.token.Ticker), NumericValue.TokenAmount(TokenAmount.ESDT(transaction.value, transaction.token)));
+            return SetupSCMethod(transaction.destination, "ESDTTransfer", gas, completeMethod, ESDTIdentifierValue.From(transaction.token.Identifier), NumericValue.TokenAmount(ESDTAmount.ESDT(transaction.value, transaction.token)));
         }
 
 
@@ -395,14 +396,20 @@ namespace MultiversXUnityTools
             //https://docs.multiversx.com/tokens/nft-tokens/#tab-group-43-content-44
             long gas = 1000000;
 
+            if (!Utilities.IsAddressValid(transaction.destination))
+            {
+                completeMethod?.Invoke(OperationStatus.Error, "Invalid destination address", null);
+                return null;
+            }
+
             return SetupSCMethod(connectedAccount.Address.ToString(),
                 "ESDTNFTTransfer",
                 gas,
                 completeMethod,
-                TokenIdentifierValue.From(transaction.collectionIdentifier),
+                ESDTIdentifierValue.From(transaction.collectionIdentifier),
                 NumericValue.BigUintValue(transaction.nftNonce),
                 NumericValue.BigUintValue(transaction.quantity),
-                Erdcsharp.Domain.Address.From(transaction.destination)
+                Address.From(transaction.destination)
                 );
         }
 
@@ -440,10 +447,10 @@ namespace MultiversXUnityTools
         {
             try
             {
-                MultiversXTransaction[] txs = new MultiversXTransaction[txHash.Length];
+                Transaction[] txs = new Transaction[txHash.Length];
                 for (int i = 0; i < txHash.Length; i++)
                 {
-                    txs[i] = new MultiversXTransaction(txHash[i]);
+                    txs[i] = new Transaction(txHash[i]);
                 }
 
                 Sync(txs, completeMethod, refreshTime);
@@ -451,7 +458,7 @@ namespace MultiversXUnityTools
 
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error,"", e.Message);
+                completeMethod?.Invoke(OperationStatus.Error, "", e.Message);
                 return;
             }
 
@@ -482,7 +489,7 @@ namespace MultiversXUnityTools
         /// <param name="tx">transaction</param>
         /// <param name="completeMethod">callback when completed</param>
         /// <param name="refreshTime"></param>
-        void Sync(MultiversXTransaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
+        void Sync(Transaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
         {
             StartCoroutine(CheckTransaction(tx, completeMethod, refreshTime));
         }
@@ -495,7 +502,7 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
         /// <returns></returns>
-        private IEnumerator CheckTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
+        private IEnumerator CheckTransaction(Transaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
         {
             yield return new WaitForSeconds(refreshTime);
             SyncTransaction(tx, completeMethod, refreshTime);
@@ -508,7 +515,7 @@ namespace MultiversXUnityTools
         /// <param name="tx"></param>
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
-        private async void SyncTransaction(MultiversXTransaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
+        private async void SyncTransaction(Transaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
         {
             bool executed = true;
             for (int i = 0; i < tx.Length; i++)
@@ -523,15 +530,34 @@ namespace MultiversXUnityTools
             {
                 for (int i = 0; i < tx.Length; i++)
                 {
-                    Debug.Log($"tx {i} status {tx[i].Status}");
-                    string message;
-                    if (!tx[i].EnsureTransactionSuccess(out message))
+                    try
                     {
-                        completeMethod?.Invoke(OperationStatus.Error, tx[i].TxHash, message);
-                    }
-                    else
-                    {
+                        tx[i].EnsureTransactionSuccess();
                         completeMethod?.Invoke(OperationStatus.Complete, tx[i].TxHash, tx[i].Status);
+                    }
+                    catch
+                    {
+                        string logs = tx[i].Status;
+
+                        if (tx[i].Logs != null)
+                        {
+                            if (tx[i].Logs.Events != null)
+                            {
+                                for (int j = 0; j < tx[i].Logs.Events.Length; j++)
+                                {
+                                    logs += " " + tx[i].Logs.Events[j].Identifier;
+                                    if (tx[i].Logs.Events[j].Topics != null)
+                                    {
+                                        for (int k = 1; k < tx[i].Logs.Events[j].Topics.Length; k++)
+                                        {
+                                            logs += $" {Encoding.UTF8.GetString(Convert.FromBase64String(tx[i].Logs.Events[j].Topics[k]))}";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Debug.LogWarning(logs);
+                        completeMethod?.Invoke(OperationStatus.Error, tx[i].TxHash, logs);
                     }
                 }
             }
@@ -603,7 +629,7 @@ namespace MultiversXUnityTools
         /// <param name="args">list of arguments if required</param>
         internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
-            var queryResult = await SmartContract.QuerySmartContract<T>(multiversXProvider, Erdcsharp.Domain.Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
+            var queryResult = await SmartContract.QuerySmartContract<T>(multiversXProvider, Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
             if (string.IsNullOrEmpty(queryResult.Item2))
             {
                 completeMethod(OperationStatus.Complete, "Success", queryResult.Item1);

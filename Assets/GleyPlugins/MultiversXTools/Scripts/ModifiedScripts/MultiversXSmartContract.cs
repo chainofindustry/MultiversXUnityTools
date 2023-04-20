@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Erdcsharp.Cryptography;
-using Erdcsharp.Domain;
-using Erdcsharp.Domain.Abi;
-using Erdcsharp.Domain.Codec;
-using Erdcsharp.Domain.Helper;
-using Erdcsharp.Domain.Values;
-using Erdcsharp.Provider;
-using Erdcsharp.Provider.Dtos;
+using Mx.NET.SDK.Core.Cryptography;
+using Mx.NET.SDK.Core.Domain.Abi;
+using Mx.NET.SDK.Core.Domain.Codec;
+using Mx.NET.SDK.Core.Domain.Helper;
+using Mx.NET.SDK.Core.Domain.Values;
+using Mx.NET.SDK.Domain;
+using Mx.NET.SDK.Provider;
+using Mx.NET.SDK.Provider.Dtos.Gateway.Query;
 using Org.BouncyCastle.Crypto.Digests;
 
 namespace MultiversXUnityTools
@@ -25,7 +25,7 @@ namespace MultiversXUnityTools
         /// <param name="ownerAddress">The owner of the Smart Contract</param>
         /// <param name="nonce">The owner nonce used for the deployment transaction</param>
         /// <returns>The smart contract address</returns>
-        public static Address ComputeAddress(Address ownerAddress, long nonce)
+        public static Address ComputeAddress(Address ownerAddress, ulong nonce)
         {
             var ownerPubKey = Converter.FromHexString(ownerAddress.Hex);
             var initialPadding = new byte[8];
@@ -37,14 +37,14 @@ namespace MultiversXUnityTools
             var hash = CalculateHash(bytesToHash);
 
             var hashBytesToTake = hash.Skip(10).Take(20).ToArray();
-            var vmTypeBytes = Converter.FromHexString(Erdcsharp.Domain.Constants.ArwenVirtualMachine);
+            var vmTypeBytes = Converter.FromHexString(Mx.NET.SDK.Core.Domain.Constants.Constants.ArwenVirtualMachine);
             var addressBytes = ConcatByteArrays(
                                                 initialPadding,
                                                 vmTypeBytes,
                                                 hashBytesToTake,
                                                 shardSelector);
 
-            var erdAddress = Bech32Engine.Encode(Erdcsharp.Domain.Constants.Hrp, addressBytes);
+            var erdAddress = Bech32Engine.Encode(Mx.NET.SDK.Core.Domain.Constants.Constants.Hrp, addressBytes);
             return Address.FromBech32(erdAddress);
         }
 
@@ -69,7 +69,7 @@ namespace MultiversXUnityTools
         /// <param name="args">The arguments of the Pure Function. Can be empty</param>
         /// <returns>The response</returns>
         public static Task<(T, string)> QuerySmartContractWithAbiDefinition<T>(
-            IElrondProvider provider,
+            IMultiversxProvider provider,
             Address address,
             AbiDefinition abiDefinition,
             string endpoint,
@@ -95,7 +95,7 @@ namespace MultiversXUnityTools
         /// <param name="args">The arguments of the Pure Function. Can be empty</param>
         /// <returns>The response</returns>
         public static async Task<(T, string)> QuerySmartContract<T>(
-            IElrondProvider provider,
+            IMultiversxProvider provider,
             Address address,
             TypeValue outputTypeValue,
             string endpoint,

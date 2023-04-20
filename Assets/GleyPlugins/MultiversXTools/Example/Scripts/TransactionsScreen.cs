@@ -1,5 +1,6 @@
-using Erdcsharp.Domain;
 using MultiversXUnityTools;
+using Mx.NET.SDK.Core.Domain;
+using Mx.NET.SDK.Domain.Data.Token;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,7 +17,7 @@ namespace MultiversXUnityExamples
         public Dropdown esdtTokenDropdown;
         public Transform tokenParent;
         public GameObject tokenHolder;
-        Token selectedToken;
+        ESDT selectedToken;
 
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
         private string defaultMessage = "You see this?";
@@ -153,7 +154,6 @@ namespace MultiversXUnityExamples
         /// </summary>
         void PopulateDropDown()
         {
-            Debug.Log(esdtTokenDropdown);
             esdtTokenDropdown.options.Clear();
             esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = SupportedESDTTokens.USDC.Name });
             esdtTokenDropdown.options.Add(new Dropdown.OptionData() { text = SupportedESDTTokens.WEB.Name });
@@ -170,7 +170,7 @@ namespace MultiversXUnityExamples
             status.text = $"Signing status: {operationStatus}. Message: {message} ";
             if (operationStatus == OperationStatus.Complete)
             {
-                string txs="";
+                string txs = "";
                 foreach (string txHash in txHashes)
                 {
                     txs += txHash + "\n";
@@ -194,16 +194,13 @@ namespace MultiversXUnityExamples
         private void TransactionProcessed(OperationStatus operationStatus, string tx, string txStatus)
         {
             transactionsToProcess--;
-            if(status.text.Contains("Tx pending:"))
+            if (status.text.Contains("Tx pending:"))
             {
                 status.text = "";
             }
-            status.text += $"{txStatus} \n";
-            if (operationStatus == OperationStatus.Complete)
-            {
-                //status.text = $"Transaction status: {operationStatus} message: {message} -> Refresh account";
-               
-            }
+
+            status.text += $"Tx: {tx} {operationStatus} {txStatus} \n";
+
             if (transactionsToProcess == 0)
             {
                 //after all transactions are processed, refresh account balance
@@ -211,10 +208,7 @@ namespace MultiversXUnityExamples
                 {
                     Manager.RefreshAccount(RefreshDone);
                 }
-                else
-                {
-                    status.text = $"Transaction status: {operationStatus}. Message: {txStatus}";
-                }
+
             }
         }
 
@@ -226,10 +220,10 @@ namespace MultiversXUnityExamples
         /// <param name="message"></param>
         private void RefreshDone(OperationStatus operationStatus, string message)
         {
-            status.text = $"Refresh account status: {operationStatus}. Message: {message}";
+            //status.text = $"Refresh account status: {operationStatus}. Message: {message}";
             if (operationStatus == OperationStatus.Complete)
             {
-                status.text = $"Transaction status: {operationStatus}. Message: {message} -> Refresh tokens";
+                //status.text = $"Transaction status: {operationStatus}. Message: {message} -> Refresh tokens";
                 //after the account is refreshed load again all tokens.
                 //this is not mandatory, you can just load the token that was sent, 
                 //or even better just update the token balance in UI with the amount send, without calling the blockchain API

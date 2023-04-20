@@ -1,6 +1,5 @@
-using Erdcsharp.Domain;
 using MultiversXUnityTools;
-using System;
+using Mx.NET.SDK.Domain.Data.Account;
 using UnityEngine;
 using UnityEngine.UI;
 

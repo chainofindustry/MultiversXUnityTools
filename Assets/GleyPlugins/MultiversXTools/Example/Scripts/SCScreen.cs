@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Numerics;
-using Erdcsharp.Domain.Values;
 using MultiversXUnityTools;
+using Mx.NET.SDK.Core.Domain.Values;
 
 namespace MultiversXUnityExamples
 {

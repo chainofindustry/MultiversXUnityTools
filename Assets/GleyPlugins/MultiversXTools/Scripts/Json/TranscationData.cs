@@ -5,7 +5,7 @@ namespace MultiversXUnityTools
     /// </summary>
     public class TransactionData
     {
-        public long nonce;
+        public ulong nonce;
         public string sender;
         public string receiver;
         public string value;

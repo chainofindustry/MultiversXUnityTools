@@ -1,5 +1,6 @@
-using Erdcsharp.Domain;
-using Erdcsharp.Domain.Values;
+using Mx.NET.SDK.Core.Domain;
+using Mx.NET.SDK.Core.Domain.Values;
+using Mx.NET.SDK.Domain.Data.Token;
 
 namespace MultiversXUnityTools
 {
@@ -17,7 +18,7 @@ namespace MultiversXUnityTools
         public string value;
         public string data;
         public string methodName;
-        public Token token;
+        public ESDT token;
         public TransactionType type;
         public string collectionIdentifier;
         public ulong nftNonce;
@@ -33,7 +34,7 @@ namespace MultiversXUnityTools
             type = TransactionType.EGLD;
         }
 
-        public TransactionToSign(string destination, Token token, string value)
+        public TransactionToSign(string destination, ESDT token, string value)
         {
             this.destination = destination;
             this.value = value;

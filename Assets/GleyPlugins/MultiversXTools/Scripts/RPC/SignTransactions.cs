@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using WalletConnectSharp.Network.Models;
 
 namespace MultiversXUnityTools
@@ -16,12 +15,5 @@ namespace MultiversXUnityTools
     public class SignTransactionsResponse
     {
         public SignTransactionResponse[] Signatures { get; set; }
-    }
-
-    public class MultipleTransactionsResponseDto
-    {
-        public int NumOfSentTxs { get; set; }
-
-        public Dictionary<string, string> TxsHashes { get; set; }
     }
 }

@@ -1,5 +1,7 @@
-using Erdcsharp.Domain;
-using Erdcsharp.Domain.Values;
+using Mx.NET.SDK.Core.Domain;
+using Mx.NET.SDK.Core.Domain.Values;
+using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Token;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -103,7 +105,7 @@ namespace MultiversXUnityTools
         /// <param name="token">Token to send</param>
         /// <param name="amount">Amount of token to send(in decimals) as string</param>
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
-        public static void SendESDTTransaction(string destinationAddress, Token token, string amount, UnityAction<OperationStatus, string, string[]> TransactionStatus)
+        public static void SendESDTTransaction(string destinationAddress, ESDT token, string amount, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
             ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[] { new TransactionToSign(destinationAddress, token, amount) }, TransactionStatus);
         }

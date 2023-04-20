@@ -1,5 +1,6 @@
-using Erdcsharp.Provider.Dtos;
 using MultiversXUnityTools;
+using Mx.NET.SDK.Provider.Dtos.API.Account;
+using Mx.NET.SDK.Provider.Dtos.Gateway.Transactions;
 using System.Linq;
 using UnityEngine;
 
@@ -164,7 +165,7 @@ namespace MultiversXUnityExamples
                           "}";
 
             //Make the Post request 
-            Manager.PostRequest<TransactionCostDataDto>(url, json, CompleteMethodPost);
+            Manager.PostRequest<TransactionCostDto>(url, json, CompleteMethodPost);
         }
 
 
@@ -174,7 +175,7 @@ namespace MultiversXUnityExamples
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
         /// <param name="result"></param>
-        private void CompleteMethodPost(OperationStatus operationStatus, string message, TransactionCostDataDto result)
+        private void CompleteMethodPost(OperationStatus operationStatus, string message, TransactionCostDto result)
         {
             if (operationStatus == OperationStatus.Complete)
             {

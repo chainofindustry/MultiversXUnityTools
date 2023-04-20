@@ -1,4 +1,4 @@
-using Erdcsharp.Provider.Dtos;
+using Mx.NET.SDK.Provider.Dtos.API.Transactions;
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;

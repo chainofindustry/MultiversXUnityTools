@@ -1,4 +1,4 @@
-using Erdcsharp.Domain;
+using Mx.NET.SDK.Core.Domain.Values;
 using System.Text.RegularExpressions;
 
 namespace MultiversXUnityTools
