@@ -134,8 +134,8 @@ namespace MultiversXUnityTools
 
         public async Task Disconnect()
         {
-            await client.Disconnect(sessionStruct.Topic, ErrorResponse.FromErrorType(ErrorType.USER_DISCONNECTED));
             WalletDisconnected();
+            await client.Disconnect(sessionStruct.Topic, ErrorResponse.FromErrorType(ErrorType.USER_DISCONNECTED));
         }
 
 

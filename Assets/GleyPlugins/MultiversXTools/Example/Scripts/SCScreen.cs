@@ -104,7 +104,6 @@ namespace MultiversXUnityExamples
         /// <param name="message">additional message</param>
         private void SCTransactionListener(OperationStatus operationStatus,string tx, string txStatus)
         {
-            Debug.Log(tx + " " + txStatus);
             scResultText.text = tx + " " + txStatus;
             if (operationStatus == OperationStatus.Complete)
             {

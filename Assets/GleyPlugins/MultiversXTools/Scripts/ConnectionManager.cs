@@ -520,7 +520,15 @@ namespace MultiversXUnityTools
             bool executed = true;
             for (int i = 0; i < tx.Length; i++)
             {
-                await tx[i].Sync(multiversXProvider);
+                try
+                {
+                    await tx[i].Sync(multiversXProvider);
+                }
+                catch (Exception e)
+                {
+                    completeMethod?.Invoke(OperationStatus.Error, tx[i].TxHash, e.Message);
+                    return;
+                }
                 if (!tx[i].IsExecuted())
                 {
                     executed = false;
@@ -548,9 +556,12 @@ namespace MultiversXUnityTools
                                     logs += " " + tx[i].Logs.Events[j].Identifier;
                                     if (tx[i].Logs.Events[j].Topics != null)
                                     {
-                                        for (int k = 1; k < tx[i].Logs.Events[j].Topics.Length; k++)
+                                        if (tx[i].Logs.Events[j].Topics.Length > 0)
                                         {
-                                            logs += $" {Encoding.UTF8.GetString(Convert.FromBase64String(tx[i].Logs.Events[j].Topics[k]))}";
+                                            for (int k = 1; k < tx[i].Logs.Events[j].Topics.Length; k++)
+                                            {
+                                                logs += $" {Encoding.UTF8.GetString(Convert.FromBase64String(tx[i].Logs.Events[j].Topics[k]))}";
+                                            }
                                         }
                                     }
                                 }
