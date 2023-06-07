@@ -1,7 +1,8 @@
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Core.Domain.Values;
+using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Domain.Data.Account;
-using Mx.NET.SDK.Domain.Data.Token;
+using Mx.NET.SDK.Domain.Data.Network;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -20,6 +21,15 @@ namespace MultiversXUnityTools
             ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, null, qrImage);
         }
 
+
+        /// <summary>
+        /// This is required before making any blockchain transaction. It is used to initialize the WalletConnect socket used for xPortal connection. 
+        /// Has an intermediary event OnSessionConnected
+        /// </summary>
+        /// <param name="OnWalletConnected">Callback triggered when user wallet connected</param>
+        /// <param name="OnWalletDisconnected">Callback triggered when user wallet disconnected</param>
+        /// <param name="OnSessionConnected">When trigger the connection is established. qr code can be displayed</param>
+        /// <param name="qrImage"></param>
         public static void Connect(UnityAction<Account, string> OnWalletConnected, UnityAction OnWalletDisconnected, UnityAction<string> OnSessionConnected, Image qrImage)
         {
             ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, OnSessionConnected, qrImage);
@@ -47,6 +57,26 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
+        /// Network config is required if direct interaction with MVX SDK is needed
+        /// </summary>
+        /// <returns></returns>
+        public static NetworkConfig GetNetworkConfig()
+        {
+            return ConnectionManager.Instance.GetNetworkConfig();
+        }
+
+
+        /// <summary>
+        /// Load network config from API
+        /// </summary>
+        /// <param name="completeMethod">called when config was loaded, use GetNetworkConfig to actually get it</param>
+        public static void LoadNetworkConfig(UnityAction<OperationStatus, string> completeMethod)
+        {
+            ConnectionManager.Instance.LoadNetworkConfig(completeMethod);
+        }
+
+
+        /// <summary>
         /// Login from the same mobile device that has the xPortal app already installed. It will automatically open the xPortal app.
         /// </summary>
         public static void DeepLinkLogin()
@@ -63,6 +93,16 @@ namespace MultiversXUnityTools
             ConnectionManager.Instance.Disconnect();
         }
 
+        /// <summary>
+        /// Generic method to sign any transaction created with MVX SDK
+        /// </summary>
+        /// <param name="transactions"></param>
+        /// <param name="TransactionStatus"></param>
+        public static void SignMultiplStrasactions(TransactionRequest[] transactions, UnityAction<OperationStatus, string, string[]> TransactionStatus)
+        {
+            ConnectionManager.Instance.SendTransactions(transactions, TransactionStatus);
+        }
+
 
         /// <summary>
         /// Send an EGLD transaction for signing to the xPortal wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
@@ -73,28 +113,7 @@ namespace MultiversXUnityTools
         /// <param name="TransactionStatus">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
-            ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[]{ new TransactionToSign(destinationAddress, amount, data) }, TransactionStatus);
-        }
-
-        public static void SignMessage(string message, UnityAction<OperationStatus, string> CompleteMethod)
-        {
-            ConnectionManager.Instance.SignMessage(message, CompleteMethod);
-        }
-
-        public static void SendMultipleStrasactions(TransactionToSign[] transactions, UnityAction<OperationStatus, string, string[]> TransactionStatus)
-        {
-            ConnectionManager.Instance.SendMultipleTransactions(transactions,TransactionStatus);
-        }
-
-        /// <summary>
-        /// Check the status of a specific transaction 
-        /// </summary>
-        /// <param name="txHash">The hash of the transaction obtained after signing</param>
-        /// <param name="TransactionStatus">Callback to track the result</param>
-        /// <param name="refreshTime">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of the APIs</param>
-        public static void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string, string> TransactionStatus, float refreshTime)
-        {
-            ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus, refreshTime);
+            ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[] { new TransactionToSign(destinationAddress, amount, data) }, TransactionStatus);
         }
 
 
@@ -112,16 +131,6 @@ namespace MultiversXUnityTools
 
 
         /// <summary>
-        /// Load metadata from all NFT properties from the connected wallet. From the metadata the media files can be downloaded  
-        /// </summary>
-        /// <param name="LoadNFTsComplete">Callback triggered on load finish</param>
-        public static void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTsComplete)
-        {
-            ConnectionManager.Instance.LoadWalletNFTs(LoadNFTsComplete);
-        }
-
-
-        /// <summary>
         /// Send an NFT to the destination address
         /// </summary>
         /// <param name="destinationAddress">The address to send the NFT to</param>
@@ -132,21 +141,6 @@ namespace MultiversXUnityTools
         public static void SendNFT(string destinationAddress, string collectionIdentifier, ulong nftNonce, int quantity, UnityAction<OperationStatus, string, string[]> TransactionStatus)
         {
             ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[] { new TransactionToSign(destinationAddress, collectionIdentifier, nftNonce, quantity) }, TransactionStatus);
-        }
-
-
-        /// <summary>
-        /// Make a smart contract query
-        /// </summary>
-        /// <typeparam name="T">Query response type</typeparam>
-        /// <param name="scAddress">The address of the smart contract</param>
-        /// <param name="methodName">The method to call</param>
-        /// <param name="QueryComplete">Callback to get the result of the query after finished</param>
-        /// <param name="outputType">Type of expected result</param>
-        /// <param name="args">The list of arguments</param>        
-        public static void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> QueryComplete, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
-        {
-            ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, QueryComplete, outputType, args);
         }
 
 
@@ -172,6 +166,54 @@ namespace MultiversXUnityTools
             ConnectionManager.Instance.SendMultipleTransactions(new TransactionToSign[] { new TransactionToSign(scAddress, methodName, gas, args) }, CallStatus);
         }
 
+
+        /// <summary>
+        /// Make a smart contract query
+        /// </summary>
+        /// <typeparam name="T">Query response type</typeparam>
+        /// <param name="scAddress">The address of the smart contract</param>
+        /// <param name="methodName">The method to call</param>
+        /// <param name="QueryComplete">Callback to get the result of the query after finished</param>
+        /// <param name="outputType">Type of expected result</param>
+        /// <param name="args">The list of arguments</param>        
+        public static void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> QueryComplete, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
+        {
+            ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, QueryComplete, outputType, args);
+        }
+
+
+        public static void SignMessage(string message, UnityAction<OperationStatus, string> CompleteMethod)
+        {
+            ConnectionManager.Instance.SignMessage(message, CompleteMethod);
+        }
+
+        public static void SendMultipletrasactions(TransactionToSign[] transactions, UnityAction<OperationStatus, string, string[]> TransactionStatus)
+        {
+            ConnectionManager.Instance.SendMultipleTransactions(transactions, TransactionStatus);
+        }
+
+       
+
+        /// <summary>
+        /// Check the status of a specific transaction 
+        /// </summary>
+        /// <param name="txHash">The hash of the transaction obtained after signing</param>
+        /// <param name="TransactionStatus">Callback to track the result</param>
+        /// <param name="refreshTime">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of the APIs</param>
+        public static void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string, string> TransactionStatus, float refreshTime)
+        {
+            ConnectionManager.Instance.CheckTransactionStatus(txHash, TransactionStatus, refreshTime);
+        }
+
+
+        /// <summary>
+        /// Load metadata from all NFT properties from the connected wallet. From the metadata the media files can be downloaded  
+        /// </summary>
+        /// <param name="LoadNFTsComplete">Callback triggered on load finish</param>
+        public static void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> LoadNFTsComplete)
+        {
+            ConnectionManager.Instance.LoadWalletNFTs(LoadNFTsComplete);
+        }
 
 
         /// <summary>
@@ -248,11 +290,5 @@ namespace MultiversXUnityTools
         {
             return ConnectionManager.Instance.GetEndpointUrl(endpoint);
         }
-
-
-
-       
-        //query vm
-        //TODO
     }
 }

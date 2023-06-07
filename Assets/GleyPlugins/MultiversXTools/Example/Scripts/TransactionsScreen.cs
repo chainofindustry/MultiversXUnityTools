@@ -1,6 +1,7 @@
 using MultiversXUnityTools;
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Domain.Data.Token;
+using Mx.NET.SDK.Provider.Dtos.API.Account;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -146,7 +147,7 @@ namespace MultiversXUnityExamples
                 new TransactionToSign(destination.text, amount.text, message.text),
                 new TransactionToSign(destination.text, selectedToken, esdtAmount.text)
             };
-            Manager.SendMultipleStrasactions(transactions, SigningStatusListener);
+            Manager.SendMultipletrasactions(transactions, SigningStatusListener);
         }
 
         /// <summary>

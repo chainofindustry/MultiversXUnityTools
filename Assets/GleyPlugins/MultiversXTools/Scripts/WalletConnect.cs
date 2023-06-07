@@ -1,6 +1,13 @@
+using Mx.NET.SDK.Domain;
+using Mx.NET.SDK.Provider.Dtos.API.Transactions;
+using Mx.NET.SDK.WalletConnectV2.Data;
+using Mx.NET.SDK.WalletConnectV2.Helper;
+using Mx.NET.SDK.WalletConnectV2.Models;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
@@ -37,7 +44,7 @@ namespace MultiversXUnityTools
 
         private const string PROJECT_ID = "39f3dc0a2c604ec9885799f9fc5feb7c";
         private const string SAVE_PATH = "/wc/sessionData.json";
-        
+
 
         private WalletConnectSignClient client;
         private SessionStruct sessionStruct;
@@ -48,7 +55,7 @@ namespace MultiversXUnityTools
         private bool connected;
         private bool disconnected;
 
-        public async Task<string> Connect(Metadata appMetadata, string chainId, UnityAction<string> OnSessionConnected, UnityAction OnWalletDisconnected)
+        public async Task<string> Connect(WalletConnectSharp.Core.Models.Pairing.Metadata appMetadata, string chainId, UnityAction<string> OnSessionConnected, UnityAction OnWalletDisconnected)
         {
             this.OnWalletDisconnected = OnWalletDisconnected;
             var appData = new SignClientOptions()
@@ -139,23 +146,30 @@ namespace MultiversXUnityTools
         }
 
 
-        public async Task<string> SignTransaction(TransactionData transaction)
+        public async Task<TransactionRequestDto> Sign(RequestData transaction)
         {
             OpenMobileWallet();
-            SignTransactionResponse signature = await client.Request<SignTransaction, SignTransactionResponse>(sessionStruct.Topic, new SignTransaction(transaction));
-            return signature.Signature;
+            SignTransactionRequest request = new SignTransactionRequest() { transaction = transaction };
+            SignTransactionResponse response = await client.Request<SignTransactionRequest, SignTransactionResponse>(sessionStruct.Topic, request);
+            return transaction.ToSignedTransaction(response.Signature);
         }
 
-        public async Task<string[]> SignTransactions(TransactionData[] transactions)
+        public async Task<TransactionRequestDto[]> MultiSign(TransactionRequest[] transactionsRequest)
         {
             OpenMobileWallet();
-            string[] result = new string[transactions.Length];
-            SignTransactionsResponse signatures = await client.Request<SignTransactions, SignTransactionsResponse>(sessionStruct.Topic, new SignTransactions(transactions));
-            for(int i=0;i<signatures.Signatures.Length;i++)
+
+            var request = transactionsRequest.GetSignTransactionsRequest();
+            var response = await client.Request<SignTransactionsRequest, SignTransactionsResponse>(sessionStruct.Topic, request);
+
+            var transactions = new List<TransactionRequestDto>();
+            for (var i = 0; i < response.Signatures.Length; i++)
             {
-                result[i] = signatures.Signatures[i].Signature;
+                var transactionRequestDto = transactionsRequest[i].GetTransactionRequest();
+                transactionRequestDto.Signature = response.Signatures[i].Signature;
+                transactions.Add(transactionRequestDto);
             }
-            return result;
+
+            return transactions.ToArray();
         }
 
         public async Task<string> SignMessage(string message)

@@ -1,6 +1,5 @@
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Domain.Exceptions;
-using Mx.NET.SDK.Provider;
 using Mx.NET.SDK.Provider.Dtos.API.Account;
 using Mx.NET.SDK.Provider.Dtos.API.Collection;
 using Mx.NET.SDK.Provider.Dtos.API.Common;
@@ -100,14 +99,19 @@ namespace MultiversXUnityTools
 
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
             var content = webRequest.downloadHandler.text;
+
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
                     var result = JsonWrapper.Deserialize<GatewayResponseDto<QueryVmResponseDto>>(content);
                     result.EnsureSuccessStatusCode();
+                    if (result.Data.Data.ReturnData is null || result.Data.Data.ReturnData.Length == 0)
+                    {
+                        throw new APIException(new APIExceptionResponse() { Error = result.Data.Data.ReturnCode, Message = result.Data.Data.ReturnMessage });
+                    }
                     return result.Data;
                 default:
-                    throw new APIException($"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
             }
         }
 
@@ -176,7 +180,7 @@ namespace MultiversXUnityTools
             }
         }
 
-       
+
 
         public async Task<T> PostRequest<T>(string url, string jsonData)
         {
@@ -212,11 +216,11 @@ namespace MultiversXUnityTools
         {
             string url = selectedAPI.GetEndpoint(EndpointNames.GetTokensCount).Replace("{address}", address);
             int totalTokens = await GetRequest<int>(url);
-            url = selectedAPI.GetEndpoint(EndpointNames.GetWalletTokens).Replace("{address}", address).Replace("{start}", "0").Replace("{totalTokens}", totalTokens.ToString());  
+            url = selectedAPI.GetEndpoint(EndpointNames.GetWalletTokens).Replace("{address}", address).Replace("{start}", "0").Replace("{totalTokens}", totalTokens.ToString());
             return await GetRequest<T>(url);
         }
 
-       
+
 
         public Task<TR> Get<TR>(string requestUri)
         {
@@ -393,7 +397,7 @@ namespace MultiversXUnityTools
             throw new System.NotImplementedException();
         }
 
-       
+
 
         public Task<GatewayNetworkEconomicsDataDto> GetGatewayNetworkEconomics()
         {
@@ -525,14 +529,14 @@ namespace MultiversXUnityTools
             throw new System.NotImplementedException();
         }
 
-        
+
 
         public Task<string> GetTransactionsCount(Dictionary<string, string> parameters = null)
         {
             throw new System.NotImplementedException();
         }
 
-       
+
 
         public Task<AccountDto> GetAccountByUsername(string username)
         {
@@ -544,7 +548,7 @@ namespace MultiversXUnityTools
             throw new System.NotImplementedException();
         }
 
-      
+
         #endregion
     }
 }

@@ -1,7 +1,6 @@
 using Mx.NET.SDK.Provider.Dtos.API.Transactions;
-using System;
+using Mx.NET.SDK.WalletConnectV2.Data;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.Networking;
 
@@ -15,7 +14,7 @@ namespace MultiversXUnityTools
         /// <param name="tx"></param>
         /// <param name="signature"></param>
         /// <returns></returns>
-        public static TransactionRequestDto ToSignedTransaction(this TransactionData tx, string signature)
+        public static TransactionRequestDto ToSignedTransaction(this RequestData tx, string signature)
         {
             TransactionRequestDto request = new TransactionRequestDto
             {

@@ -1,6 +1,5 @@
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Domain.Data.Token;
 
 namespace MultiversXUnityTools
 {
