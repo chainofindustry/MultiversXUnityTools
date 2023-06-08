@@ -1,5 +1,4 @@
 using Mx.NET.SDK.Core.Domain;
-using Mx.NET.SDK.Core.Domain.Codec;
 using Mx.NET.SDK.Core.Domain.Values;
 using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Domain.Data.Account;
@@ -26,12 +25,14 @@ namespace MultiversXUnityTools
     {
         private Account connectedAccount;
         private NetworkConfig networkConfig;
-        private BinaryCodec binaryCoder = new BinaryCodec();
         private APISettings apiSettings;
         private API selectedAPI;
-        private WalletConnect walletConnect;
+        private WalletConnectUnity walletConnect;
         private IMultiversXApiProvider multiversXProvider;
         private string account;
+
+        private const string PROJECT_ID = "39f3dc0a2c604ec9885799f9fc5feb7c";
+        private const string SAVE_PATH = "/wc/sessionData.json";
 
 
         //Create a static instance for easy access
@@ -44,7 +45,6 @@ namespace MultiversXUnityTools
                 {
                     GameObject go = new GameObject(Constants.CONNECTION_MANAGER_OBJECT);
                     instance = go.AddComponent<ConnectionManager>();
-
                     DontDestroyOnLoad(go);
                 }
                 return instance;
@@ -66,11 +66,6 @@ namespace MultiversXUnityTools
             {
                 networkConfig = await LoadNetworkConfig(true, true);
 
-                if (walletConnect == null)
-                {
-                    walletConnect = gameObject.AddComponent<WalletConnect>();
-                }
-
                 WalletConnectSharp.Core.Models.Pairing.Metadata metadata = new WalletConnectSharp.Core.Models.Pairing.Metadata()
                 {
                     Description = apiSettings.appDescription,
@@ -79,9 +74,13 @@ namespace MultiversXUnityTools
                     Url = apiSettings.appWebsite
                 };
 
+
+                if (walletConnect == null)
+                {
+                    walletConnect = await gameObject.AddComponent<WalletConnectUnity>().Initialize(metadata, PROJECT_ID, networkConfig.ChainId, SAVE_PATH);
+                }
+
                 account = await walletConnect.Connect(
-                    metadata,
-                    networkConfig.ChainId,
                     (uri) =>
                     {
                         OnSessionConnected?.Invoke(uri);
@@ -205,9 +204,9 @@ namespace MultiversXUnityTools
             try
             {
                 completeMethod?.Invoke(OperationStatus.InProgress, "Waiting to sign");
-                string signature = await walletConnect.SignMessage(message);
+                SignableMessage signature = await walletConnect.SignMessage(message);
                 Debug.Log(signature);
-                completeMethod?.Invoke(OperationStatus.Complete, signature);
+                completeMethod?.Invoke(OperationStatus.Complete, signature.Signature);
             }
             catch (Exception e)
             {

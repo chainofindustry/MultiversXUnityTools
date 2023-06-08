@@ -1,5 +1,6 @@
+
 using Mx.NET.SDK.Provider.Dtos.API.Transactions;
-using Mx.NET.SDK.WalletConnectV2.Data;
+using Mx.NET.SDK.WalletConnect.Data;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine.Networking;

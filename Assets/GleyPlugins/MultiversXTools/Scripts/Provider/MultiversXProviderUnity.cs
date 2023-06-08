@@ -1,6 +1,7 @@
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Domain.Exceptions;
 using Mx.NET.SDK.Provider.Dtos.API.Account;
+using Mx.NET.SDK.Provider.Dtos.API.Block;
 using Mx.NET.SDK.Provider.Dtos.API.Collection;
 using Mx.NET.SDK.Provider.Dtos.API.Common;
 using Mx.NET.SDK.Provider.Dtos.API.Exchange;
@@ -544,6 +545,31 @@ namespace MultiversXUnityTools
         }
 
         public Task<MexEconomicsDto> GetMexEconomics()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<BlocksDto[]> GetBlocks(int size = 25, int from = 0, Dictionary<string, string> parameters = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<Blocks[]> GetBlocksCustom<Blocks>(int size = 25, int from = 0, Dictionary<string, string> parameters = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<string> GetBlocksCount(Dictionary<string, string> parameters = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<BlockDto> GetBlock(string blockHash)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<Block> GetBlockCustom<Block>(string blockHash)
         {
             throw new System.NotImplementedException();
         }
