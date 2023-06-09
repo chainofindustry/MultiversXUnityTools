@@ -3,6 +3,7 @@ using Mx.NET.SDK.Core.Domain.Values;
 using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Domain.Data.Account;
 using Mx.NET.SDK.Domain.Data.Network;
+using Mx.NET.SDK.Domain.Data.Transaction;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -123,9 +124,9 @@ namespace MultiversXUnityTools
         /// <param name="txHash">The hash of the transaction obtained after signing</param>
         /// <param name="completeMethod">Callback to track the result</param>
         /// <param name="refreshTime">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of the APIs</param>
-        public static void CheckTransactionStatus(string[] txHash, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
+        public static void CheckTransactionStatus(string[] txHash, UnityAction<CompleteCallback<Transaction[]>> completeMethod, float refreshTime)
         {
-            ConnectionManager.Instance.CheckTransactionStatus(txHash, completeMethod, refreshTime);
+            ConnectionManager.Instance.CheckTransactionsStatus(txHash, completeMethod, refreshTime);
         }
 
 

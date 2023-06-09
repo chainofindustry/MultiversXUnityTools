@@ -1,4 +1,5 @@
 using MultiversXUnityTools;
+using Mx.NET.SDK.Domain.Data.Transaction;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -67,7 +68,7 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void BlockchainTransactionListener(CompleteCallback<string> result)
+        private void BlockchainTransactionListener(CompleteCallback<Transaction[]> result)
         {
             demoScript.status.text = $"{result.data} {result.errorMessage}";
             if (result.status == OperationStatus.Success)

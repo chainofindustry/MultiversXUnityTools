@@ -1,7 +1,9 @@
 using MultiversXUnityTools;
 using Mx.NET.SDK.Core.Domain;
+using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Domain.Data.Account;
 using Mx.NET.SDK.Domain.Data.Token;
+using Mx.NET.SDK.Domain.Data.Transaction;
 using Mx.NET.SDK.Provider.Dtos.API.Account;
 using System.Numerics;
 using UnityEngine;
@@ -177,9 +179,9 @@ namespace MultiversXUnityExamples
                 {
                     txs += txHash + "\n";
                 }
-                status.text = $"Tx pending:\n {txs}";
+                status.text += $" processing...";
                 transactionsToProcess = result.data.Length;
-                Manager.CheckTransactionStatus(result.data, TransactionProcessed, 6);
+                Manager.CheckTransactionStatus(result.data, TransactionProcessed, 1);
             }
             if (result.status == OperationStatus.Error)
             {
@@ -193,25 +195,48 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void TransactionProcessed(CompleteCallback<string> result)
+        private void TransactionProcessed(CompleteCallback<Transaction[]> result)
         {
-            transactionsToProcess--;
-            if (status.text.Contains("Tx pending:"))
+            if (result.status == OperationStatus.Success)
+            {
+                Manager.RefreshAccount(RefreshDone);
+            }
+
+            if (result.status == OperationStatus.Error)
+            {
+                status.text = $"{result.status} {result.errorMessage}\n";
+                for (int i = 0; i < result.data.Length; i++)
+                {
+                    status.text += $"Tx: {result.data[i].TxHash} : {result.data[i].Status} {result.data[i].GetLogs()}\n";
+                }
+            }
+
+            if (result.status == OperationStatus.InProgress)
             {
                 status.text = "";
-            }
-
-            status.text += $"Tx: {result.data} {result.status} {result.errorMessage} \n";
-
-            if (transactionsToProcess == 0)
-            {
-                //after all transactions are processed, refresh account balance
-                if (result.status == OperationStatus.Success)
+                for (int i = 0; i < result.data.Length; i++)
                 {
-                    Manager.RefreshAccount(RefreshDone);
+                    status.text += $"Tx: {result.data[i].TxHash} : {result.data[i].Status}\n";
                 }
-
             }
+
+            //transactionsToProcess--;
+            //if (status.text.Contains("Tx pending:"))
+            //{
+            //    status.text = "";
+            //}
+
+
+
+            //if (transactionsToProcess == 0)
+            //{
+            //    //after all transactions are processed, refresh account balance
+            //    if (result.status == OperationStatus.Success)
+            //    {
+            //        Manager.RefreshAccount(RefreshDone);
+            //    }
+
+            //}
         }
 
 

@@ -1,4 +1,5 @@
 using Mx.NET.SDK.Core.Domain;
+using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
 using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Domain.Data.Account;
@@ -246,6 +247,29 @@ namespace MultiversXUnityTools
 
         internal async void SendMultipleTransactions(TransactionToSign[] transactions, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
+            //check network config params
+            NetworkConfig networkConfig = null;
+            try
+            {
+                networkConfig = await LoadNetworkConfig(true);
+            }
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
+                return;
+            }
+
+            try
+            {
+                await connectedAccount.Sync(multiversXProvider);
+            }
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
+                return;
+            }
+
+
             TransactionRequest[] processedTransactions = new TransactionRequest[transactions.Length];
             for (int i = 0; i < transactions.Length; i++)
             {
@@ -255,29 +279,6 @@ namespace MultiversXUnityTools
                     completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, "Invalid destination address", null));
                     return;
                 }
-
-                //check network config params
-                NetworkConfig networkConfig = null;
-                try
-                {
-                    networkConfig = await LoadNetworkConfig(true);
-                }
-                catch (Exception e)
-                {
-                    completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
-                    return;
-                }
-
-                try
-                {
-                    await connectedAccount.Sync(multiversXProvider);
-                }
-                catch (Exception e)
-                {
-                    completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
-                    return;
-                }
-
 
                 switch (transactions[i].type)
                 {
@@ -298,6 +299,7 @@ namespace MultiversXUnityTools
                 {
                     return;
                 }
+                connectedAccount.IncrementNonce();
             }
             SendTransactions(processedTransactions, completeMethod);
         }
@@ -380,43 +382,9 @@ namespace MultiversXUnityTools
         /// <param name="txHash">the hash of the transaction</param>
         /// <param name="completeMethod">callback method</param>
         /// <param name="refreshTime">time interval to query the blockchain for the status of the transaction. Lower times means more calls to blockchain APIs</param>
-        internal void CheckTransactionStatus(string[] txHash, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
+        internal void CheckTransactionsStatus(string[] txHash, UnityAction<CompleteCallback<Transaction[]>> completeMethod, float refreshTime)
         {
-            try
-            {
-                Transaction[] txs = new Transaction[txHash.Length];
-                for (int i = 0; i < txHash.Length; i++)
-                {
-                    txs[i] = new Transaction(txHash[i]);
-                }
-
-                Sync(txs, completeMethod, refreshTime);
-            }
-
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, e.Message, null));
-                return;
-            }
-
-            //old implementation, does not work on WebGL builds
-            //string message;
-            //try
-            //{
-            //    await tx.AwaitExecuted(multiversXProvider);
-            //    if (!tx.EnsureTransactionSuccess(out message))
-            //    {
-            //        completeMethod?.Invoke(OperationStatus.Error, message);
-            //        return;
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    completeMethod?.Invoke(OperationStatus.Error, $"{e.Data} {e.Message}");
-            //    return;
-            //}
-
-            //completeMethod?.Invoke(OperationStatus.Complete, tx.Status);
+            Sync(Transaction.From(txHash), completeMethod, refreshTime);
         }
 
 
@@ -426,9 +394,10 @@ namespace MultiversXUnityTools
         /// <param name="tx">transaction</param>
         /// <param name="completeMethod">callback when completed</param>
         /// <param name="refreshTime"></param>
-        private void Sync(Transaction[] tx, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
+        private void Sync(Transaction[] txs, UnityAction<CompleteCallback<Transaction[]>> completeMethod, float refreshTime)
         {
-            StartCoroutine(CheckTransaction(tx, completeMethod, refreshTime));
+            completeMethod?.Invoke(new CompleteCallback<Transaction[]>(OperationStatus.InProgress, "", txs));
+            StartCoroutine(Wait(txs, completeMethod, refreshTime));
         }
 
 
@@ -439,79 +408,57 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
         /// <returns></returns>
-        private IEnumerator CheckTransaction(Transaction[] tx, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
+        private IEnumerator Wait(Transaction[] tx, UnityAction<CompleteCallback<Transaction[]>> completeMethod, float refreshTime)
         {
             yield return new WaitForSeconds(refreshTime);
-            SyncTransaction(tx, completeMethod, refreshTime);
+            CheckIfProcessed(tx, completeMethod, refreshTime);
         }
 
 
         /// <summary>
         /// Check if the current transaction is executed or try again if not
         /// </summary>
-        /// <param name="tx"></param>
+        /// <param name="txs"></param>
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
-        private async void SyncTransaction(Transaction[] tx, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
+        private async void CheckIfProcessed(Transaction[] txs, UnityAction<CompleteCallback<Transaction[]>> completeMethod, float refreshTime)
         {
             bool executed = true;
-            for (int i = 0; i < tx.Length; i++)
+            for (int i = 0; i < txs.Length; i++)
             {
                 try
                 {
-                    await tx[i].Sync(multiversXProvider);
+                    await txs[i].Sync(multiversXProvider);
                 }
                 catch (Exception e)
                 {
-                    completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, e.Message, tx[i].TxHash));
+                    completeMethod?.Invoke(new CompleteCallback<Transaction[]>(OperationStatus.Error, $"{txs[i].TxHash} : {e.Message}", txs));
                     return;
                 }
-                if (!tx[i].IsExecuted())
+                if (!txs[i].IsExecuted())
                 {
                     executed = false;
                 }
             }
             if (executed)
             {
-                for (int i = 0; i < tx.Length; i++)
+                for (int i = 0; i < txs.Length; i++)
                 {
                     try
                     {
-                        tx[i].EnsureTransactionSuccess();
-                        completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Success, tx[i].Status, tx[i].TxHash));
+                        txs[i].EnsureTransactionSuccess();
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        string logs = tx[i].Status;
-
-                        if (tx[i].Logs != null)
-                        {
-                            if (tx[i].Logs.Events != null)
-                            {
-                                for (int j = 0; j < tx[i].Logs.Events.Length; j++)
-                                {
-                                    logs += " " + tx[i].Logs.Events[j].Identifier;
-                                    if (tx[i].Logs.Events[j].Topics != null)
-                                    {
-                                        if (tx[i].Logs.Events[j].Topics.Length > 0)
-                                        {
-                                            for (int k = 1; k < tx[i].Logs.Events[j].Topics.Length; k++)
-                                            {
-                                                logs += $" {Encoding.UTF8.GetString(Convert.FromBase64String(tx[i].Logs.Events[j].Topics[k]))}";
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Debug.LogWarning(logs);
-                        completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, logs, tx[i].TxHash));
+                        completeMethod?.Invoke(new CompleteCallback<Transaction[]>(OperationStatus.Error, e.Message, txs));
+                        return;
                     }
                 }
+                completeMethod?.Invoke(new CompleteCallback<Transaction[]>(OperationStatus.Success, "", txs));
             }
             else
             {
-                Sync(tx, completeMethod, refreshTime);
+                Sync(txs, completeMethod, refreshTime);
             }
         }
         #endregion

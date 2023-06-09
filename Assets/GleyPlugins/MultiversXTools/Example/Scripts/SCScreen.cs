@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Numerics;
 using MultiversXUnityTools;
 using Mx.NET.SDK.Core.Domain.Values;
+using Mx.NET.SDK.Domain.Data.Transaction;
 
 namespace MultiversXUnityExamples
 {
@@ -102,9 +103,19 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void SCTransactionListener(CompleteCallback<string> result)
+        private void SCTransactionListener(CompleteCallback<Transaction[]> result)
         {
-            scResultText.text = result.data + " " + result.errorMessage;
+            scResultText.text = "";
+            if (result.status == OperationStatus.Error)
+            {
+                scResultText.text =  result.errorMessage;
+            }
+
+            for (int i = 0; i < result.data.Length; i++)
+            {
+                scResultText.text += $"\nTx: {result.data[i].TxHash} : {result.data[i].Status} {result.data[i].GetLogs()}";
+            }
+
             if (result.status == OperationStatus.Success)
             {
                 Manager.RefreshAccount();
