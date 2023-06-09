@@ -114,7 +114,6 @@ namespace MultiversXUnityExamples
         /// </summary>
         public void Get()
         {
-
             string url = Manager.GetEndpointUrl(EndpointNames.GetAccount).Replace("{address}", "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
             Manager.GetRequest<AccountDto>(url, CompleteMethodGet);
         }
@@ -126,15 +125,15 @@ namespace MultiversXUnityExamples
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
         /// <param name="result"></param>
-        private void CompleteMethodGet(OperationStatus operationStatus, string message, AccountDto result)
+        private void CompleteMethodGet(CompleteCallback<AccountDto> result)
         {
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
-                Debug.Log(result.Address);
+                Debug.Log(result.data.Address);
             }
             else
             {
-                Debug.LogError(message + " " + result);
+                Debug.LogError(result.errorMessage);
             }
         }
 
@@ -175,15 +174,15 @@ namespace MultiversXUnityExamples
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
         /// <param name="result"></param>
-        private void CompleteMethodPost(OperationStatus operationStatus, string message, TransactionCostDto result)
+        private void CompleteMethodPost(CompleteCallback<TransactionCostDto> result)
         {
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
-                Debug.Log(result.TxGasUnits);
+                Debug.Log(result.data.TxGasUnits);
             }
             else
             {
-                Debug.LogError(message + " " + result.ReturnMessage);
+                Debug.LogError(result.errorMessage);
             }
         }
         #endregion

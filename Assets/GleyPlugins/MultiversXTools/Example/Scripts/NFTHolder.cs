@@ -46,18 +46,18 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
-        private void CompleteListener(OperationStatus operationStatus, string message, string[] txHashes)
+        private void CompleteListener(CompleteCallback<string[]> result)
         {
 
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
-                Manager.CheckTransactionStatus(txHashes, BlockchainTransactionListener, 1);
-                demoScript.status.text = $"Pending Tx: {txHashes[0]}";
+                Manager.CheckTransactionStatus(result.data, BlockchainTransactionListener, 1);
+                demoScript.status.text = $"Pending Tx: {result.data[0]}";
             }
             else
             {
                 //do something
-                demoScript.status.text = $"Transaction status: {operationStatus}. Message: {message}";
+                demoScript.status.text = $"Transaction status: {result.status}. Message: {result.errorMessage}";
             }
         }
 
@@ -67,10 +67,10 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void BlockchainTransactionListener(OperationStatus operationStatus,string tx, string txStatus)
+        private void BlockchainTransactionListener(CompleteCallback<string> result)
         {
-            demoScript.status.text = $"{tx} {txStatus}";
-            if (operationStatus == OperationStatus.Complete)
+            demoScript.status.text = $"{result.data} {result.errorMessage}";
+            if (result.status == OperationStatus.Success)
             {
                 demoScript.RefreshNFTs(collectionIdentifier, nonce);
                 Destroy(gameObject);

@@ -27,12 +27,8 @@ namespace MultiversXUnityTools
         private NetworkConfig networkConfig;
         private APISettings apiSettings;
         private API selectedAPI;
-        private WalletConnectUnity walletConnect;
+        private WalletConnectUnity walletConnectUnity;
         private IMultiversXApiProvider multiversXProvider;
-        private string account;
-
-        private const string PROJECT_ID = "39f3dc0a2c604ec9885799f9fc5feb7c";
-        private const string SAVE_PATH = "/wc/sessionData.json";
 
 
         //Create a static instance for easy access
@@ -58,7 +54,7 @@ namespace MultiversXUnityTools
         /// <param name="OnWalletConnected">connected callback</param>
         /// <param name="OnWalletDisconnected">disconnected callback</param>
         /// <param name="qrImage">image to display the QRcode if required</param>
-        internal async void Connect(UnityAction<Account, string> OnWalletConnected, UnityAction OnWalletDisconnected, UnityAction<string> OnSessionConnected, Image qrImage)
+        internal async void Connect(UnityAction<CompleteCallback<Account>> OnWalletConnected, UnityAction OnWalletDisconnected, UnityAction<string> OnSessionConnected, Image qrImage)
         {
             apiSettings = GetApiSettings();
             LoadAPI();
@@ -75,12 +71,12 @@ namespace MultiversXUnityTools
                 };
 
 
-                if (walletConnect == null)
+                if (walletConnectUnity == null)
                 {
-                    walletConnect = await gameObject.AddComponent<WalletConnectUnity>().Initialize(metadata, PROJECT_ID, networkConfig.ChainId, SAVE_PATH);
+                    walletConnectUnity = await gameObject.AddComponent<WalletConnectUnity>().Initialize(metadata, apiSettings.projectID, networkConfig.ChainId, apiSettings.savePath);
                 }
 
-                account = await walletConnect.Connect(
+                string account = await walletConnectUnity.Connect(
                     (uri) =>
                     {
                         OnSessionConnected?.Invoke(uri);
@@ -90,11 +86,11 @@ namespace MultiversXUnityTools
                     );
 
                 connectedAccount = new Account(Address.From(account));
-                OnWalletConnected?.Invoke(connectedAccount, null);
+                OnWalletConnected?.Invoke(new CompleteCallback<Account>(OperationStatus.Success, "", connectedAccount));
             }
             catch (Exception e)
             {
-                OnWalletConnected?.Invoke(null, $"{e.Message}");
+                OnWalletConnected?.Invoke(new CompleteCallback<Account>(OperationStatus.Error, $"{e.Message}", null));
             }
         }
 
@@ -102,9 +98,9 @@ namespace MultiversXUnityTools
         /// <summary>
         /// xPortal deep link urls
         /// </summary>
-        public void OpenDeepLink()
+        internal void OpenDeepLink()
         {
-            walletConnect.OpenDeepLink();
+            walletConnectUnity.OpenDeepLink();
         }
 
 
@@ -121,7 +117,7 @@ namespace MultiversXUnityTools
         /// Load required API json file
         /// </summary>
         /// <returns></returns>
-        void LoadAPI()
+        private void LoadAPI()
         {
             if (apiSettings == null || string.IsNullOrEmpty(apiSettings.selectedAPIName))
             {
@@ -183,34 +179,34 @@ namespace MultiversXUnityTools
         /// Save the connected account and get the wallet information
         /// </summary>
         /// <param name="completeMethod"></param>
-        public async void RefreshAccount(UnityAction<OperationStatus, string> completeMethod)
+        internal async void RefreshAccount(UnityAction<CompleteCallback<Account>> completeMethod)
         {
             try
             {
                 await connectedAccount.Sync(multiversXProvider);
-                completeMethod?.Invoke(OperationStatus.Complete, "Success");
+                completeMethod?.Invoke(new CompleteCallback<Account>(OperationStatus.Success, "", connectedAccount));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}");
+                completeMethod?.Invoke(new CompleteCallback<Account>(OperationStatus.Error, $"{e.Message}", null));
             }
         }
         #endregion
 
 
-        internal async void SignMessage(string message, UnityAction<OperationStatus, string> completeMethod)
+        internal async void SignMessage(string message, UnityAction<CompleteCallback<string>> completeMethod)
         {
             Debug.Log("Sign message");
             try
             {
-                completeMethod?.Invoke(OperationStatus.InProgress, "Waiting to sign");
-                SignableMessage signature = await walletConnect.SignMessage(message);
+                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.InProgress, "Waiting to sign", null));
+                SignableMessage signature = await walletConnectUnity.SignMessage(message);
                 Debug.Log(signature);
-                completeMethod?.Invoke(OperationStatus.Complete, signature.Signature);
+                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Success, "", signature.Signature));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}");
+                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, $"{e.Message}", null));
             }
         }
 
@@ -224,13 +220,13 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         /// <param name="completeMethod"></param>
         /// <param name="requiredGas"></param>
-        internal async void SendTransactions(TransactionRequest[] transactionsToSign, UnityAction<OperationStatus, string, string[]> completeMethod)
+        internal async void SendTransactions(TransactionRequest[] transactionsToSign, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             //wait for the signature from wallet
             try
             {
-                completeMethod?.Invoke(OperationStatus.InProgress, "Waiting to sign", null);
-                TransactionRequestDto[] signedTransactions = await walletConnect.MultiSign(transactionsToSign);
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.InProgress, "Waiting to sign", null));
+                TransactionRequestDto[] signedTransactions = await walletConnectUnity.MultiSign(transactionsToSign);
                 MultipleTransactionsResponseDto response = await multiversXProvider.SendTransactions(signedTransactions);
 
                 string[] txHashes = new string[response.NumOfSentTxs];
@@ -238,18 +234,17 @@ namespace MultiversXUnityTools
                 {
                     txHashes[int.Parse(item.Key)] = item.Value;
                 }
-                completeMethod?.Invoke(OperationStatus.Complete, null, txHashes);
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Success, "", txHashes));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
                 return;
             }
-
         }
 
 
-        internal async void SendMultipleTransactions(TransactionToSign[] transactions, UnityAction<OperationStatus, string, string[]> completeMethod)
+        internal async void SendMultipleTransactions(TransactionToSign[] transactions, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             TransactionRequest[] processedTransactions = new TransactionRequest[transactions.Length];
             for (int i = 0; i < transactions.Length; i++)
@@ -257,7 +252,7 @@ namespace MultiversXUnityTools
                 //verify the address
                 if (!Utilities.IsAddressValid(transactions[i].destination))
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, "Invalid destination address", null);
+                    completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, "Invalid destination address", null));
                     return;
                 }
 
@@ -269,7 +264,7 @@ namespace MultiversXUnityTools
                 }
                 catch (Exception e)
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
+                    completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
                     return;
                 }
 
@@ -279,7 +274,7 @@ namespace MultiversXUnityTools
                 }
                 catch (Exception e)
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
+                    completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
                     return;
                 }
 
@@ -307,12 +302,12 @@ namespace MultiversXUnityTools
             SendTransactions(processedTransactions, completeMethod);
         }
 
-        private TransactionRequest SetupEgldTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
+        private TransactionRequest SetupEgldTransaction(TransactionToSign transaction, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             //check EGLD balance
             if (ESDTAmount.EGLD(transaction.value).Value > connectedAccount.Balance.Value)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"Insufficient funds, required : {ESDTAmount.EGLD(transaction.value).ToDenominated()} and got {connectedAccount.Balance.ToDenominated()}", null);
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"Insufficient funds, required : {ESDTAmount.EGLD(transaction.value).ToDenominated()} and got {connectedAccount.Balance.ToDenominated()}", null));
                 return null;
             }
 
@@ -320,7 +315,7 @@ namespace MultiversXUnityTools
             OperationResult result = Utilities.IsNumberValid(ref transaction.value);
             if (result.status == OperationStatus.Error)
             {
-                completeMethod?.Invoke(result.status, result.message, null);
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, result.message, null));
                 return null;
             }
 
@@ -328,19 +323,19 @@ namespace MultiversXUnityTools
         }
 
 
-        private TransactionRequest SetupESDTTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
+        private TransactionRequest SetupESDTTransaction(TransactionToSign transaction, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             OperationResult result = Utilities.IsNumberValid(ref transaction.value);
             if (result.status == OperationStatus.Error)
             {
-                completeMethod?.Invoke(result.status, result.message, null);
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, result.message, null));
                 return null;
             }
 
             //TODO verificare token
             if (transaction.token == null)
             {
-                completeMethod?.Invoke(result.status, "Token not valid", null);
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, "Token not valid", null));
                 return null;
             }
 
@@ -348,8 +343,9 @@ namespace MultiversXUnityTools
         }
 
 
-        private TransactionRequest SetupNFTTransaction(TransactionToSign transaction, UnityAction<OperationStatus, string, string[]> completeMethod)
+        private TransactionRequest SetupNFTTransaction(TransactionToSign transaction, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
+            //TODO do some checks on params
             return ESDTTransactionRequest.NFTTransfer(
                 networkConfig,
                 connectedAccount,
@@ -368,7 +364,7 @@ namespace MultiversXUnityTools
         /// <param name="gasRequiredForSCExecution"></param>
         /// <param name="completeMethod"></param>
         /// <param name="args"></param>
-        internal TransactionRequest SetupSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, params IBinaryType[] args)
+        private TransactionRequest SetupSCMethod(string scAddress, string methodName, long gasRequiredForSCExecution, params IBinaryType[] args)
         {
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig, connectedAccount, Address.FromBech32(scAddress), ESDTAmount.Zero(), methodName, args);
             transaction.SetGasLimit(new GasLimit(gasRequiredForSCExecution));
@@ -384,7 +380,7 @@ namespace MultiversXUnityTools
         /// <param name="txHash">the hash of the transaction</param>
         /// <param name="completeMethod">callback method</param>
         /// <param name="refreshTime">time interval to query the blockchain for the status of the transaction. Lower times means more calls to blockchain APIs</param>
-        internal void CheckTransactionStatus(string[] txHash, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
+        internal void CheckTransactionStatus(string[] txHash, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
         {
             try
             {
@@ -399,7 +395,7 @@ namespace MultiversXUnityTools
 
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, "", e.Message);
+                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, e.Message, null));
                 return;
             }
 
@@ -430,7 +426,7 @@ namespace MultiversXUnityTools
         /// <param name="tx">transaction</param>
         /// <param name="completeMethod">callback when completed</param>
         /// <param name="refreshTime"></param>
-        void Sync(Transaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
+        private void Sync(Transaction[] tx, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
         {
             StartCoroutine(CheckTransaction(tx, completeMethod, refreshTime));
         }
@@ -443,7 +439,7 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
         /// <returns></returns>
-        private IEnumerator CheckTransaction(Transaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
+        private IEnumerator CheckTransaction(Transaction[] tx, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
         {
             yield return new WaitForSeconds(refreshTime);
             SyncTransaction(tx, completeMethod, refreshTime);
@@ -456,7 +452,7 @@ namespace MultiversXUnityTools
         /// <param name="tx"></param>
         /// <param name="completeMethod"></param>
         /// <param name="refreshTime"></param>
-        private async void SyncTransaction(Transaction[] tx, UnityAction<OperationStatus, string, string> completeMethod, float refreshTime)
+        private async void SyncTransaction(Transaction[] tx, UnityAction<CompleteCallback<string>> completeMethod, float refreshTime)
         {
             bool executed = true;
             for (int i = 0; i < tx.Length; i++)
@@ -467,7 +463,7 @@ namespace MultiversXUnityTools
                 }
                 catch (Exception e)
                 {
-                    completeMethod?.Invoke(OperationStatus.Error, tx[i].TxHash, e.Message);
+                    completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, e.Message, tx[i].TxHash));
                     return;
                 }
                 if (!tx[i].IsExecuted())
@@ -482,7 +478,7 @@ namespace MultiversXUnityTools
                     try
                     {
                         tx[i].EnsureTransactionSuccess();
-                        completeMethod?.Invoke(OperationStatus.Complete, tx[i].TxHash, tx[i].Status);
+                        completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Success, tx[i].Status, tx[i].TxHash));
                     }
                     catch
                     {
@@ -509,7 +505,7 @@ namespace MultiversXUnityTools
                             }
                         }
                         Debug.LogWarning(logs);
-                        completeMethod?.Invoke(OperationStatus.Error, tx[i].TxHash, logs);
+                        completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, logs, tx[i].TxHash));
                     }
                 }
             }
@@ -526,15 +522,15 @@ namespace MultiversXUnityTools
         /// Load all tokens from a wallet
         /// </summary>
         /// <param name="completeMethod"></param>
-        internal async void LoadAllTokens(UnityAction<OperationStatus, string, TokenMetadata[]> completeMethod)
+        internal async void LoadAllTokens(UnityAction<CompleteCallback<TokenMetadata[]>> completeMethod)
         {
             try
             {
-                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXProvider.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString()));
+                completeMethod?.Invoke(new CompleteCallback<TokenMetadata[]>(OperationStatus.Success, "", await multiversXProvider.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString())));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, e.Message + ": " + e.Data, null);
+                completeMethod?.Invoke(new CompleteCallback<TokenMetadata[]>(OperationStatus.Error, e.Message + ": " + e.Data, null));
             }
         }
         #endregion
@@ -545,7 +541,7 @@ namespace MultiversXUnityTools
         /// Load all NFTs from a wallet
         /// </summary>
         /// <param name="completeMethod"></param>
-        public async void LoadWalletNFTs(UnityAction<OperationStatus, string, NFTMetadata[]> completeMethod)
+        public async void LoadWalletNFTs(UnityAction<CompleteCallback<NFTMetadata[]>> completeMethod)
         {
             try
             {
@@ -558,11 +554,11 @@ namespace MultiversXUnityTools
                         allNfts.RemoveAt(i);
                     }
                 }
-                completeMethod?.Invoke(OperationStatus.Complete, "Success", allNfts.ToArray());
+                completeMethod?.Invoke(new CompleteCallback<NFTMetadata[]>(OperationStatus.Success, "", allNfts.ToArray()));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", null);
+                completeMethod?.Invoke(new CompleteCallback<NFTMetadata[]>(OperationStatus.Error, $"{e.Message}", null));
                 return;
             }
         }
@@ -579,16 +575,16 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod">callback method</param>
         /// <param name="outputType">typevalue of the output</param>
         /// <param name="args">list of arguments if required</param>
-        internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<OperationStatus, string, T> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
+        internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<CompleteCallback<T>> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
         {
             try
             {
                 var queryResult = await SmartContract.QuerySmartContract<T>(multiversXProvider, Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
-                completeMethod(OperationStatus.Complete, "Success", queryResult);
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", queryResult));
             }
             catch (APIException e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Error}: {e.Message}", default(T));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Error, $"{e.Error}: {e.Message}", default(T)));
             }
         }
         #endregion
@@ -601,15 +597,15 @@ namespace MultiversXUnityTools
         /// <typeparam name="T"></typeparam>
         /// <param name="url"></param>
         /// <param name="completeMethod"></param>
-        internal async void GetRequest<T>(string url, UnityAction<OperationStatus, string, T> completeMethod)
+        internal async void GetRequest<T>(string url, UnityAction<CompleteCallback<T>> completeMethod)
         {
             try
             {
-                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXProvider.GetRequest<T>(url));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.GetRequest<T>(url)));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", default(T));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Error, $"{e.Message}", default(T)));
             }
         }
 
@@ -621,15 +617,15 @@ namespace MultiversXUnityTools
         /// <param name="url"></param>
         /// <param name="jsonData"></param>
         /// <param name="completeMethod"></param>
-        internal async void PostRequest<T>(string url, string jsonData, UnityAction<OperationStatus, string, T> completeMethod)
+        internal async void PostRequest<T>(string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
         {
             try
             {
-                completeMethod?.Invoke(OperationStatus.Complete, "Success", await multiversXProvider.PostRequest<T>(url, jsonData));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.PostRequest<T>(url, jsonData)));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}", default(T));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Error, $"{e.Message}", default(T)));
             }
         }
         #endregion
@@ -642,7 +638,7 @@ namespace MultiversXUnityTools
         /// <param name="imageURL"></param>
         /// <param name="displayComponent"></param>
         /// <param name="completeMethod"></param>
-        internal void LoadImage(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> completeMethod)
+        internal void LoadImage(string imageURL, Image displayComponent, UnityAction<CompleteCallback<Texture2D>> completeMethod)
         {
             StartCoroutine(LoadImageCoroutine(imageURL, displayComponent, completeMethod));
         }
@@ -653,7 +649,7 @@ namespace MultiversXUnityTools
         /// <param name="imageURL"></param>
         /// <param name="displayComponent">image component to display the downloaded thumbnail picture</param>
         /// <returns></returns>
-        private IEnumerator LoadImageCoroutine(string imageURL, Image displayComponent, UnityAction<OperationStatus, string> completeMethod)
+        private IEnumerator LoadImageCoroutine(string imageURL, Image displayComponent, UnityAction<CompleteCallback<Texture2D>> completeMethod)
         {
             if (!string.IsNullOrEmpty(Constants.CORSFixUrl))
             {
@@ -671,11 +667,11 @@ namespace MultiversXUnityTools
                         Texture2D imageTex = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
                         Sprite newSprite = Sprite.Create(imageTex, new Rect(0, 0, imageTex.width, imageTex.height), new Vector2(.5f, .5f));
                         displayComponent.sprite = newSprite;
-                        completeMethod?.Invoke(OperationStatus.Complete, "Success");
+                        completeMethod?.Invoke(new CompleteCallback<Texture2D>(OperationStatus.Success, "", imageTex));
                     }
                     break;
                 default:
-                    completeMethod?.Invoke(OperationStatus.Error, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+                    completeMethod?.Invoke(new CompleteCallback<Texture2D>(OperationStatus.Error, $"{webRequest.error} url: {webRequest.uri.AbsoluteUri}", null));
                     break;
             }
         }
@@ -698,7 +694,7 @@ namespace MultiversXUnityTools
         /// <returns></returns>
         internal bool IsWalletConnected()
         {
-            return walletConnect.IsConnected();
+            return walletConnectUnity.IsConnected();
         }
 
 
@@ -717,7 +713,7 @@ namespace MultiversXUnityTools
         /// </summary>
         internal async void Disconnect()
         {
-            await walletConnect.Disconnect();
+            await walletConnectUnity.Disconnect();
         }
 
 
@@ -762,16 +758,16 @@ namespace MultiversXUnityTools
             return networkConfig;
         }
 
-        internal async void LoadNetworkConfig(UnityAction<OperationStatus, string> completeMethod)
+        internal async void LoadNetworkConfig(UnityAction<CompleteCallback<NetworkConfig>> completeMethod)
         {
             try
             {
                 networkConfig = await LoadNetworkConfig(true);
-                completeMethod?.Invoke(OperationStatus.Complete, $"Success");
+                completeMethod?.Invoke(new CompleteCallback<NetworkConfig>(OperationStatus.Success, "", networkConfig));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(OperationStatus.Error, $"{e.Message}");
+                completeMethod?.Invoke(new CompleteCallback<NetworkConfig>(OperationStatus.Error, $"{e.Message}", null));
                 return;
             }
         }

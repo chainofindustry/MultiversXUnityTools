@@ -7,6 +7,6 @@ namespace MultiversXUnityTools
     {
         InProgress,//still processing
         Error,//is done but with error
-        Complete//is done successfully 
+        Success//is done successfully 
     }
 }

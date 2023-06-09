@@ -11,7 +11,7 @@ namespace MultiversXUnityTools
 {
     public class WalletConnectUnity : MonoBehaviour
     {
-        WalletConnect walletConnect;
+        private WalletConnect walletConnect;
         private UnityAction OnWalletDisconnected;
         private bool disconnected;
         private bool sessionConnected;

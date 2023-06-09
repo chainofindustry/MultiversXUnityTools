@@ -30,13 +30,13 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
-        private void AccountRefreshed(OperationStatus operationStatus, string message)
+        private void AccountRefreshed(CompleteCallback<Account> result)
         {
-            status.text = $"Account Refresh Complete {operationStatus} {message}";
-            if (operationStatus == OperationStatus.Complete)
+            status.text = $"Account Refresh Complete {result.status} {result.errorMessage}";
+            if (result.status == OperationStatus.Success)
             {
                 //if operation was success update the display values
-                RefreshAccount(Manager.GetConnectedAccount());
+                RefreshAccount(result.data);
             }
         }
 
@@ -58,11 +58,11 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
-        private void PictureLoadComplete(OperationStatus operationStatus, string message)
+        private void PictureLoadComplete(CompleteCallback<Texture2D> result)
         {
-            status.text = $"Picture Load Complete {operationStatus} {message}";
+            status.text = $"Picture Load Complete {result.status} {result.errorMessage}";
 
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
                 //color of picture holder image was set to the background color by default in case that picture is null to look better
                 //if picture was loaded set color to white to display the picture properly
@@ -76,11 +76,11 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
-        private void CoverLoadComplete(OperationStatus operationStatus, string message)
+        private void CoverLoadComplete(CompleteCallback<Texture2D> result)
         {
-            status.text = $"Cover Load Complete {operationStatus} {message}";
+            status.text = $"Cover Load Complete {result.status}   {result.errorMessage}";
 
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
                 //color of picture holder image was set to the background color by default in case that picture is null to look better
                 //if picture was loaded set color to white to display the picture properly

@@ -1,6 +1,3 @@
-
-using Mx.NET.SDK.Provider.Dtos.API.Transactions;
-using Mx.NET.SDK.WalletConnect.Data;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine.Networking;
@@ -9,31 +6,6 @@ namespace MultiversXUnityTools
 {
     public static class ExtenstionMethods
     {
-        /// <summary>
-        /// Apply signature to transaction
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <param name="signature"></param>
-        /// <returns></returns>
-        public static TransactionRequestDto ToSignedTransaction(this RequestData tx, string signature)
-        {
-            TransactionRequestDto request = new TransactionRequestDto
-            {
-                Nonce = tx.nonce,
-                Sender = tx.sender,
-                Receiver = tx.receiver,
-                Value = tx.value,
-                GasPrice = tx.gasPrice,
-                GasLimit = tx.gasLimit,
-                Data = tx.data,
-                ChainID = tx.chainID,
-                Version = tx.version,
-                Signature = signature
-            };
-            return request;
-        }
-
-
         /// <summary>
         /// Extension method to make Unity web request run as a task(required by ElrondSDK)
         /// </summary>

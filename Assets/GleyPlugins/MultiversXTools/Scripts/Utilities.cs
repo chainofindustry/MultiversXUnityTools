@@ -34,7 +34,7 @@ namespace MultiversXUnityTools
             {
                 return new OperationResult(OperationStatus.Error, $"Invalid amount: {amount}");
             }
-            return new OperationResult(OperationStatus.Complete, null);
+            return new OperationResult(OperationStatus.Success, null);
         }
 
 

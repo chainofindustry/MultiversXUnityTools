@@ -1,5 +1,6 @@
 using MultiversXUnityTools;
 using Mx.NET.SDK.Core.Domain;
+using Mx.NET.SDK.Domain.Data.Account;
 using Mx.NET.SDK.Domain.Data.Token;
 using Mx.NET.SDK.Provider.Dtos.API.Account;
 using System.Numerics;
@@ -46,13 +47,13 @@ namespace MultiversXUnityExamples
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
         /// <param name="allTokens"></param>
-        private void TokensLoaded(OperationStatus operationStatus, string message, TokenMetadata[] allTokens)
+        private void TokensLoaded(CompleteCallback<TokenMetadata[]> result)
         {
-            status.text = $"Tokens Loaded status: {operationStatus}. Message: {message}";
-            if (operationStatus == OperationStatus.Complete)
+            status.text = $"Tokens Loaded status: {result.status}. Error message: {result.errorMessage}";
+            if (result.status == OperationStatus.Success)
             {
                 //Add tokens to UI
-                PopulateUI(allTokens);
+                PopulateUI(result.data);
             }
         }
 
@@ -166,21 +167,21 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
-        private void SigningStatusListener(OperationStatus operationStatus, string message, string[] txHashes)
+        private void SigningStatusListener(CompleteCallback<string[]> result)
         {
-            status.text = $"Signing status: {operationStatus}. Message: {message} ";
-            if (operationStatus == OperationStatus.Complete)
+            status.text = $"Signing status: {result.status}. Message: {result.errorMessage} ";
+            if (result.status == OperationStatus.Success)
             {
                 string txs = "";
-                foreach (string txHash in txHashes)
+                foreach (string txHash in result.data)
                 {
                     txs += txHash + "\n";
                 }
                 status.text = $"Tx pending:\n {txs}";
-                transactionsToProcess = txHashes.Length;
-                Manager.CheckTransactionStatus(txHashes, TransactionProcessed, 6);
+                transactionsToProcess = result.data.Length;
+                Manager.CheckTransactionStatus(result.data, TransactionProcessed, 6);
             }
-            if (operationStatus == OperationStatus.Error)
+            if (result.status == OperationStatus.Error)
             {
                 //do something
             }
@@ -192,7 +193,7 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void TransactionProcessed(OperationStatus operationStatus, string tx, string txStatus)
+        private void TransactionProcessed(CompleteCallback<string> result)
         {
             transactionsToProcess--;
             if (status.text.Contains("Tx pending:"))
@@ -200,12 +201,12 @@ namespace MultiversXUnityExamples
                 status.text = "";
             }
 
-            status.text += $"Tx: {tx} {operationStatus} {txStatus} \n";
+            status.text += $"Tx: {result.data} {result.status} {result.errorMessage} \n";
 
             if (transactionsToProcess == 0)
             {
                 //after all transactions are processed, refresh account balance
-                if (operationStatus == OperationStatus.Complete)
+                if (result.status == OperationStatus.Success)
                 {
                     Manager.RefreshAccount(RefreshDone);
                 }
@@ -219,10 +220,10 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
-        private void RefreshDone(OperationStatus operationStatus, string message)
+        private void RefreshDone(CompleteCallback<Account> result)
         {
             //status.text = $"Refresh account status: {operationStatus}. Message: {message}";
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
                 //status.text = $"Transaction status: {operationStatus}. Message: {message} -> Refresh tokens";
                 //after the account is refreshed load again all tokens.

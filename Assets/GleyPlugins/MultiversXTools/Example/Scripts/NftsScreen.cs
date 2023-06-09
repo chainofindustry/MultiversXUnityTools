@@ -48,18 +48,18 @@ namespace MultiversXUnityExamples
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
         /// <param name="allNfts">All metadata properties serialized as NFTMetadata type</param>
-        private void LoadNFTComplete(OperationStatus operationStatus, string message, NFTMetadata[] allNfts)
+        private void LoadNFTComplete(CompleteCallback<NFTMetadata[]> result)
         {
-            status.text = operationStatus + " " + message;
-            this.allNfts = allNfts;
-            if (operationStatus == OperationStatus.Complete)
+            status.text = result.status + " " + result.errorMessage;
+            this.allNfts = result.data;
+            if (result.status == OperationStatus.Success)
             {
                 //after all metadata is loaded the NFTs will be displayed in a scroll view
                 StartCoroutine(LoadNFTs(allNfts,10));
             }
             else
             {
-                Debug.Log(operationStatus + " " + message);
+                Debug.Log(result.errorMessage);
             }
         }
 
@@ -108,7 +108,7 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="arg0"></param>
         /// <param name="arg1"></param>
-        private void NFTLoaded(OperationStatus operationStatus, string message)
+        private void NFTLoaded(CompleteCallback<Texture2D> result)
         {
             downloaded++;
             status.text = $"Downloaded {downloaded}/{total}";

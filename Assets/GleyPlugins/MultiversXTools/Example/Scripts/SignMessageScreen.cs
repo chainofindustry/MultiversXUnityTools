@@ -29,15 +29,15 @@ namespace MultiversXUnityExamples
             Manager.SignMessage(message.text, CompleteMethod);
         }
 
-        private void CompleteMethod(OperationStatus status, string message)
+        private void CompleteMethod(CompleteCallback<string> result)
         {
-            if(status== OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
-                result.text = message;
+                this.result.text = result.data;
             }
             else
             {
-                result.text = $"{status} {message}";
+                this.result.text = $"{result.status} {result.errorMessage}";
             }
         }
     }

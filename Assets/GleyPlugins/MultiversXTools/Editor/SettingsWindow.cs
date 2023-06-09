@@ -46,7 +46,7 @@ namespace MultiversXUnityTools
         {
             if (!LoadRootFolder())
                 return;
-            
+
             string path = $"{rootFolder}/Scripts/Version.txt";
 
             StreamReader reader = new StreamReader(path);
@@ -114,7 +114,7 @@ namespace MultiversXUnityTools
                 new ContactButton(new GUIContent(" Documentation", iconReferences.websiteIcon),"https://github.com/chainofindustry/MultiversXUnityTools/wiki"),
                 new ContactButton(new GUIContent(" Youtube", iconReferences.youtubeIcon),"https://www.youtube.com/channel/UCmvJB1_IobMjYKCNBtuZBog"),
                 new ContactButton(new GUIContent(" Twitter", iconReferences.twitterIcon),"https://twitter.com/XUnityTools"),
-                new ContactButton(new GUIContent(" Discord", iconReferences.discordIcon),"https://discord.gg/hQXw3rbQw7"),            
+                new ContactButton(new GUIContent(" Discord", iconReferences.discordIcon),"https://discord.gg/hQXw3rbQw7"),
             };
         }
 
@@ -159,6 +159,12 @@ namespace MultiversXUnityTools
             apiSettings.appIcon = EditorGUILayout.TextField("App Icon", apiSettings.appIcon);
             apiSettings.appName = EditorGUILayout.TextField("App Name", apiSettings.appName);
             apiSettings.appWebsite = EditorGUILayout.TextField("App Website", apiSettings.appWebsite);
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("Project Settings ", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+            apiSettings.projectID = EditorGUILayout.TextField("Project ID", apiSettings.projectID);
+            apiSettings.savePath = EditorGUILayout.TextField("Save path", apiSettings.savePath);
             EditorGUILayout.Space();
             #endregion
 
@@ -378,19 +384,19 @@ namespace MultiversXUnityTools
                     Debug.LogError("Supported APIs fields cannot be empty. Your settings are not saved");
                     return false;
                 }
-                for(int j=0;j<supportedAPIs[i].endpoints.Count;j++)
+                for (int j = 0; j < supportedAPIs[i].endpoints.Count; j++)
                 {
-                    if(string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].name)|| string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].resourceName)|| string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].baseAddress))
+                    if (string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].name) || string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].resourceName) || string.IsNullOrEmpty(supportedAPIs[i].endpoints[j].baseAddress))
                     {
                         Debug.LogWarning($"{supportedAPIs[i].apiName} has endpoints with empty fields: Name:'{supportedAPIs[i].endpoints[j].name}', BaseAddress: '{supportedAPIs[i].endpoints[j].baseAddress}', ResourceName:'{supportedAPIs[i].endpoints[j].resourceName}'");
                     }
                 }
             }
-                string text =
-            $"namespace {Constants.NAMESPACE_NAME}\n" +
-            "{\n" +
-            "\tpublic enum SupportedAPIs\n" +
-            "\t{\n";
+            string text =
+        $"namespace {Constants.NAMESPACE_NAME}\n" +
+        "{\n" +
+        "\tpublic enum SupportedAPIs\n" +
+        "\t{\n";
             for (int i = 0; i < supportedAPIs.Count; i++)
             {
                 text += "\t\t" + supportedAPIs[i].apiName + ",\n";
@@ -432,7 +438,7 @@ namespace MultiversXUnityTools
                     {
                         if (supportedAPIs[i].endpoints.FirstOrDefault(p => p.name == enumElements[j]) == null)
                         {
-                            if(string.IsNullOrEmpty(enumElements[j]))
+                            if (string.IsNullOrEmpty(enumElements[j]))
                             {
                                 Debug.LogError($"{supportedAPIs[i].apiName} has empty endpoints. Endpoint fields cannot be empty. Your settings are not saved");
                                 return false;

@@ -52,16 +52,16 @@ namespace MultiversXUnityExamples
         /// Triggered when xPortal app connected
         /// </summary>
         /// <param name="connectedAccount">A class containing informations about the connected wallet</param>
-        private void OnConnected(Account connectedAccount, string error)
+        private void OnConnected(CompleteCallback<Account> result)
         {
             //load the connected screen
-            if (connectedAccount != null)
+            if (result.status == OperationStatus.Success)
             {
-                DemoScript.Instance.LoadScreen(Screens.Connected, connectedAccount);
+                DemoScript.Instance.LoadScreen(Screens.Connected, result.data);
             }
             else
             {
-                Debug.LogError(error);
+                Debug.LogError(result.errorMessage);
                 //reload
                 DemoScript.Instance.LoadScreen(Screens.Login);
             }

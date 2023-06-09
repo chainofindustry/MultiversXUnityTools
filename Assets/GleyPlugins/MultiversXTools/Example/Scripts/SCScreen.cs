@@ -63,15 +63,15 @@ namespace MultiversXUnityExamples
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
         /// <param name="data">deserialized returned data</param>
-        private void QueryComplete(OperationStatus operationStatus, string message, NumericValue data)
+        private void QueryComplete(CompleteCallback<NumericValue> result)
         {
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
-                scResultText.text = "Current sum: " + data;
+                scResultText.text = "Current sum: " + result.data;
             }
             else
             {
-                scResultText.text = message;
+                scResultText.text = result.errorMessage;
             }
         }
 
@@ -81,18 +81,18 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void CallStatus(OperationStatus operationStatus, string message, string[] txHashes)
+        private void CallStatus(CompleteCallback<string[]> result)
         {
 
-            if (operationStatus == OperationStatus.Complete)
+            if (result.status == OperationStatus.Success)
             {
-                scResultText.text = $"Pending TX: {txHashes[0]}";
-                Manager.CheckTransactionStatus(txHashes, SCTransactionListener, 1);
+                scResultText.text = $"Pending TX: {result.data[0]}";
+                Manager.CheckTransactionStatus(result.data, SCTransactionListener, 1);
             }
             else
             {
                 //do something
-                scResultText.text = $"Transaction status: {operationStatus}. Message: {message}";
+                scResultText.text = $"Transaction status: {result.status}. Message: {result.errorMessage}";
             }
         }
 
@@ -102,10 +102,10 @@ namespace MultiversXUnityExamples
         /// </summary>
         /// <param name="operationStatus">Completed, In progress or Error</param>
         /// <param name="message">additional message</param>
-        private void SCTransactionListener(OperationStatus operationStatus,string tx, string txStatus)
+        private void SCTransactionListener(CompleteCallback<string> result)
         {
-            scResultText.text = tx + " " + txStatus;
-            if (operationStatus == OperationStatus.Complete)
+            scResultText.text = result.data + " " + result.errorMessage;
+            if (result.status == OperationStatus.Success)
             {
                 Manager.RefreshAccount();
             }
