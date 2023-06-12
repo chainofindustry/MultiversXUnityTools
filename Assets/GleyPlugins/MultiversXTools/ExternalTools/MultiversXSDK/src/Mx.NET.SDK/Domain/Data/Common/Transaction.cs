@@ -80,7 +80,7 @@ namespace Mx.NET.SDK.Domain.Data.Common
                 Name = transfer.Name,
                 Ticker = transfer.Ticker,
                 SvgUrl = transfer.SvgUrl,
-                Collection = transfer.Collection is null ? null : ESDTIdentifierValue.From(transfer.Collection), 
+                Collection = transfer.Collection is null ? null : ESDTIdentifierValue.From(transfer.Collection),
                 Token = transfer.Token is null ? null : ESDTIdentifierValue.From(transfer.Token),
                 Decimals = transfer.Decimals,
                 Identifier = transfer.Identifier is null ? null : ESDTIdentifierValue.From(transfer.Identifier),
@@ -202,6 +202,7 @@ namespace Mx.NET.SDK.Domain.Data.Common
         public string SvgUrl { get; private set; }
         public Assets SenderAssets { get; private set; }
         public Assets ReceiverAssets { get; private set; }
+        public string Message { get; private set; }
 
         private Operation() { }
 
@@ -226,7 +227,8 @@ namespace Mx.NET.SDK.Domain.Data.Common
                 Decimals = operation.Decimals,
                 SvgUrl = operation.SvgUrl,
                 SenderAssets = Assets.From(operation.SenderAssets),
-                ReceiverAssets = Assets.From(operation.ReceiverAssets)
+                ReceiverAssets = Assets.From(operation.ReceiverAssets),
+                Message = operation.Message
             }).ToArray();
         }
     }

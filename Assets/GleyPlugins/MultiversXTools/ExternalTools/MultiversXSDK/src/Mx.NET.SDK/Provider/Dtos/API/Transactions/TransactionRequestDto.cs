@@ -2,14 +2,7 @@
 {
     public class TransactionRequestDto
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public ulong Nonce { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
         public string Value { get; set; }
         public string Receiver { get; set; }
         public string Sender { get; set; }

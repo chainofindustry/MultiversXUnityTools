@@ -6,10 +6,10 @@ using Mx.NET.SDK.Domain.Data.Common;
 using Mx.NET.SDK.Domain.Exceptions;
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Provider;
 using Mx.NET.SDK.Provider.Dtos.API.Transactions;
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Domain.Helper;
+using Mx.NET.SDK.Provider.API;
 
 namespace Mx.NET.SDK.Domain.Data.Transaction
 {
@@ -236,7 +236,7 @@ namespace Mx.NET.SDK.Domain.Data.Transaction
         /// </summary>
         /// <param name="provider">MultiversX provider</param>
         /// <returns></returns>
-        public async Task Sync(IMultiversxProvider provider)
+        public async Task Sync(ITransactionsProvider provider)
         {
             var transaction = await provider.GetTransaction(TxHash);
 
@@ -346,7 +346,7 @@ namespace Mx.NET.SDK.Domain.Data.Transaction
         /// <exception cref="TransactionException.TransactionWithSmartContractErrorException">Transaction has Smart Contract Results error</exception>
         /// <exception cref="TransactionException.FailedTransactionException">Transaction is failed</exception>
         /// <exception cref="TransactionException.InvalidTransactionException">Transaction is invalid</exception>
-        public async Task AwaitExecuted(IMultiversxProvider provider, TimeSpan? msCheck = null, TimeSpan? timeout = null)
+        public async Task AwaitExecuted(ITransactionsProvider provider, TimeSpan? msCheck = null, TimeSpan? timeout = null)
         {
             if (!msCheck.HasValue)
                 msCheck = TimeSpan.FromSeconds(1);
@@ -397,7 +397,7 @@ namespace Mx.NET.SDK.Domain.Data.Transaction
         /// <param name="timeout">Time interval until transaction notarization check timeout. Default: 60 seconds</param>
         /// <returns></returns>
         /// <exception cref="TransactionException.TransactionStatusNotReachedException">Transaction notarized timeout is reached</exception>
-        public async Task AwaitNotarized(IMultiversxProvider provider, TimeSpan? msCheck = null, TimeSpan? timeout = null)
+        public async Task AwaitNotarized(ITransactionsProvider provider, TimeSpan? msCheck = null, TimeSpan? timeout = null)
         {
             if (!msCheck.HasValue)
                 msCheck = TimeSpan.FromSeconds(1);

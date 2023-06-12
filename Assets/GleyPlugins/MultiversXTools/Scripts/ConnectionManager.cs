@@ -1,5 +1,5 @@
+using Mx.NET.SDK.Configuration;
 using Mx.NET.SDK.Core.Domain;
-using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
 using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Domain.Data.Account;
@@ -9,11 +9,9 @@ using Mx.NET.SDK.Domain.Exceptions;
 using Mx.NET.SDK.Domain.SmartContracts;
 using Mx.NET.SDK.Provider.Dtos.API.Transactions;
 using Mx.NET.SDK.TransactionsManager;
-using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
@@ -26,10 +24,9 @@ namespace MultiversXUnityTools
     {
         private Account connectedAccount;
         private NetworkConfig networkConfig;
-        private APISettings apiSettings;
-        private API selectedAPI;
+        private AppSettings apiSettings;
         private WalletConnectUnity walletConnectUnity;
-        private IMultiversXApiProvider multiversXProvider;
+        private IMultiversXUnityApi multiversXProvider;
 
 
         //Create a static instance for easy access
@@ -58,7 +55,13 @@ namespace MultiversXUnityTools
         internal async void Connect(UnityAction<CompleteCallback<Account>> OnWalletConnected, UnityAction OnWalletDisconnected, UnityAction<string> OnSessionConnected, Image qrImage)
         {
             apiSettings = GetApiSettings();
-            LoadAPI();
+            if (apiSettings == null)
+            {
+                Debug.LogError("No API settings file found -> Go to ... and generate one");
+                return;
+            }
+            Debug.Log(apiSettings.selectedNetwork);
+            multiversXProvider = new MultiversXProviderUnity(new MultiversxNetworkConfiguration(apiSettings.selectedNetwork));
             try
             {
                 networkConfig = await LoadNetworkConfig(true, true);
@@ -74,7 +77,7 @@ namespace MultiversXUnityTools
 
                 if (walletConnectUnity == null)
                 {
-                    walletConnectUnity = await gameObject.AddComponent<WalletConnectUnity>().Initialize(metadata, apiSettings.projectID, networkConfig.ChainId, apiSettings.savePath);
+                    walletConnectUnity = await gameObject.AddComponent<WalletConnectUnity>().Initialize(metadata, apiSettings.projectID, networkConfig.ChainId, Application.persistentDataPath + apiSettings.savePath);
                 }
 
                 string account = await walletConnectUnity.Connect(
@@ -111,40 +114,6 @@ namespace MultiversXUnityTools
             {
                 qrImage.gameObject.AddComponent<WalletConnectQRImage>().Init(uri);
             }
-        }
-
-
-        /// <summary>
-        /// Load required API json file
-        /// </summary>
-        /// <returns></returns>
-        private void LoadAPI()
-        {
-            if (apiSettings == null || string.IsNullOrEmpty(apiSettings.selectedAPIName))
-            {
-                Debug.LogError("No API settings file found -> Go to ... and generate one");
-                return;
-            }
-
-            TextAsset targetFile = Resources.Load<TextAsset>($"APIs/{apiSettings.selectedAPIName}");
-            try
-            {
-                selectedAPI = JsonConvert.DeserializeObject<API>(targetFile.text);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"{e.Message}");
-                return;
-            }
-
-            if (selectedAPI == null)
-            {
-                Debug.LogError("Null API selected");
-                return;
-            }
-
-            Debug.Log($"SELECTED API {selectedAPI.apiName} {selectedAPI.baseAddress}");
-            multiversXProvider = new MultiversXProviderUnity(selectedAPI);
         }
 
 
@@ -202,7 +171,6 @@ namespace MultiversXUnityTools
             {
                 completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.InProgress, "Waiting to sign", null));
                 SignableMessage signature = await walletConnectUnity.SignMessage(message);
-                Debug.Log(signature);
                 completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Success, "", signature.Signature));
             }
             catch (Exception e)
@@ -495,12 +463,14 @@ namespace MultiversXUnityTools
                 List<NFTMetadata> allNfts = await multiversXProvider.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
                 for (int i = allNfts.Count - 1; i >= 0; i--)
                 {
+                    var medatada = allNfts[i].metadata;
                     //remove the LP tokens
                     if (allNfts[i].type == "MetaESDT")
                     {
                         allNfts.RemoveAt(i);
                     }
                 }
+                Debug.Log(allNfts.Count + " again");
                 completeMethod?.Invoke(new CompleteCallback<NFTMetadata[]>(OperationStatus.Success, "", allNfts.ToArray()));
             }
             catch (Exception e)
@@ -548,7 +518,7 @@ namespace MultiversXUnityTools
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.GetRequest<T>(url)));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.Get<T>(url)));
             }
             catch (Exception e)
             {
@@ -568,7 +538,7 @@ namespace MultiversXUnityTools
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.PostRequest<T>(url, jsonData)));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.Post<T>(url, jsonData)));
             }
             catch (Exception e)
             {
@@ -668,36 +638,19 @@ namespace MultiversXUnityTools
         /// Returns the current selected MultiversX API
         /// </summary>
         /// <returns></returns>
-        internal APISettings GetApiSettings()
+        internal AppSettings GetApiSettings()
         {
             if (apiSettings == null)
             {
-                apiSettings = Resources.Load<APISettings>(Constants.API_SETTINGS_DATA);
+                apiSettings = Resources.Load<AppSettings>(Constants.APP_SETTINGS_DATA);
             }
 
-            if (apiSettings == null || string.IsNullOrEmpty(apiSettings.selectedAPIName))
+            if (apiSettings == null)
             {
                 Debug.LogError("No Settings found. Go to Tools->MultiversX Tools->Settings Window and save your settings first");
             }
 
             return apiSettings;
-        }
-
-
-        /// <summary>
-        /// Returns the complete url based on the current selected API
-        /// </summary>
-        /// <param name="endpoint">Name of the endpoint from the Settings Window</param>
-        /// <returns></returns>
-        internal string GetEndpointUrl(EndpointNames endpoint)
-        {
-            if (selectedAPI == null)
-            {
-                Debug.LogError("Call connect method first");
-                return null;
-            }
-
-            return selectedAPI.GetEndpoint(endpoint);
         }
 
         internal NetworkConfig GetNetworkConfig()
@@ -721,5 +674,3 @@ namespace MultiversXUnityTools
         #endregion
     }
 }
-
-

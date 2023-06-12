@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 
 namespace MultiversXUnityTools
 {
@@ -15,13 +16,12 @@ namespace MultiversXUnityTools
         private UnityAction OnWalletDisconnected;
         private bool disconnected;
         private bool sessionConnected;
-        private bool hasConnection;
 
         internal async Task<WalletConnectUnity> Initialize(WalletConnectSharp.Core.Models.Pairing.Metadata appMetadata, string projectID, string chainId, string filePath)
         {
             walletConnect = new WalletConnect(appMetadata, projectID, chainId, filePath);
             walletConnect.OnSessionDeleteEvent += WalletDisconnected;
-            hasConnection = await walletConnect.GetConnection();
+            await walletConnect.ClientInit();
             return this;
         }
 
@@ -29,7 +29,7 @@ namespace MultiversXUnityTools
         {
             this.OnWalletDisconnected = OnWalletDisconnected;
 
-            if (!hasConnection)
+            if (!walletConnect.TryReconnect())
             {
                 try
                 {
@@ -49,7 +49,8 @@ namespace MultiversXUnityTools
 
         public bool IsConnected()
         {
-            return walletConnect.IsConnected();
+            return sessionConnected;
+            //return walletConnect.IsConnected();
         }
 
 
@@ -96,7 +97,7 @@ namespace MultiversXUnityTools
             }
 
 #if UNITY_ANDROID || UNITY_IOS
-            string xPortal = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://maiar.com/?wallet-connect=" + UnityWebRequest.EscapeURL($"{connectedData.Uri}&token={authToken}");
+            string xPortal = $"{WalletConnectGeneric.MAIAR_BRIDGE_URL}?wallet-connect={UnityWebRequest.EscapeURL(walletConnect.URI)}";
             Debug.Log("[WalletConnect] Opening URL: " + xPortal);
             Application.OpenURL(xPortal);
 #else
@@ -109,7 +110,7 @@ namespace MultiversXUnityTools
         private void OpenMobileWallet()
         {
 #if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
-            string xPortalURL = "https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://xportal.com" + "/wc";
+            string xPortalURL = $"{WalletConnectGeneric.MAIAR_BRIDGE_URL}/wc";
             Debug.Log($"{xPortalURL}");
             Application.OpenURL(xPortalURL);
 #else
@@ -122,7 +123,6 @@ namespace MultiversXUnityTools
         {
             disconnected = true;
             sessionConnected = false;
-            hasConnection = false;
         }
 
 

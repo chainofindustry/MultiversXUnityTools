@@ -1,8 +1,10 @@
 using MultiversXUnityTools;
+using Mx.NET.SDK.Configuration;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Network = Mx.NET.SDK.Configuration.Network;
 
 namespace MultiversXUnityExamples
 {
@@ -12,8 +14,8 @@ namespace MultiversXUnityExamples
         public Dropdown supportedAPIs;
         public GameObject warning;
 
-        private APISettings apiSettings;
-        private SupportedAPIs selected;
+        private AppSettings apiSettings;
+        private Network selected;
 
 
         private void Start()
@@ -22,9 +24,10 @@ namespace MultiversXUnityExamples
             apiSettings = Manager.GetApiSettings();
 
             //load all available API and populate selection dropdown
+            selected = apiSettings.selectedNetwork;
             PopulateDropDownWithEnum(supportedAPIs, selected);
-            supportedAPIs.value = (int)(SupportedAPIs)Enum.Parse(typeof(SupportedAPIs), apiSettings.selectedAPIName, true);
-            selected = (SupportedAPIs)supportedAPIs.value;
+            supportedAPIs.value = (int)selected;
+
             supportedAPIs.onValueChanged.AddListener(delegate
             {
                 DropdownValueChanged(supportedAPIs);
@@ -67,9 +70,9 @@ namespace MultiversXUnityExamples
         /// <param name="dropdown"></param>
         private void DropdownValueChanged(Dropdown dropdown)
         {
-            selected = (SupportedAPIs)dropdown.value;
+            selected = (Network)dropdown.value;
             //select the active API according to user selection
-            apiSettings.selectedAPIName = selected.ToString();
+            apiSettings.selectedNetwork = selected;
             ActivateWarning();
         }
 
@@ -77,7 +80,7 @@ namespace MultiversXUnityExamples
         //display a text if selected API is for mainnet
         void ActivateWarning()
         {
-            if (selected == SupportedAPIs.MultiversXApiMainnet)
+            if (selected == Network.MainNet)
             {
                 warning.SetActive(true);
             }

@@ -16,7 +16,7 @@ namespace MultiversXUnityTools
         public Medium[] media { get; set; }
         public bool isWhitelistedStorage { get; set; }
         public string[] tags { get; set; }
-        public Metadata metadata { get; set; }
+        public Info metadata { get; set; }
         public string ticker { get; set; }
         public object score { get; set; }
         public int rank { get; set; }
@@ -30,7 +30,7 @@ namespace MultiversXUnityTools
         public Unlockschedule[] unlockSchedule { get; set; }
     }
 
-    public class Metadata
+    public class Info
     {
         public object id { get; set; }
         public string name { get; set; }

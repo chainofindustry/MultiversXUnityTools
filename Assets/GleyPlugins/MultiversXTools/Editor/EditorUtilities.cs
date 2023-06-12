@@ -26,5 +26,38 @@ namespace MultiversXUnityTools
                 }
             }
         }
+
+        public static string FindFolder(string folderName, string parent)
+        {
+            string result = null;
+            var folders = AssetDatabase.GetSubFolders("Assets");
+            foreach (var folder in folders)
+            {
+                result = Recursive(folder, folderName, parent);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+            return result;
+        }
+
+        static string Recursive(string currentFolder, string folderToSearch, string parent)
+        {
+            if (currentFolder.EndsWith($"{parent}/{folderToSearch}"))
+            {
+                return currentFolder;
+            }
+            var folders = AssetDatabase.GetSubFolders(currentFolder);
+            foreach (var fld in folders)
+            {
+                string result = Recursive(fld, folderToSearch, parent);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
     }
 }

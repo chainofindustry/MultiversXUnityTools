@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Numerics;
-using System.Text;
 using System.Threading.Tasks;
 using Mx.NET.SDK.Domain.Data.Common;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Provider;
 using Mx.NET.SDK.Provider.Dtos.API.Account;
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Helper;
+using Mx.NET.SDK.Provider.API;
 
 namespace Mx.NET.SDK.Domain.Data.Account
 {
@@ -119,7 +118,7 @@ namespace Mx.NET.SDK.Domain.Data.Account
         /// </summary>
         /// <param name="provider"></param>
         /// <returns></returns>
-        public async Task Sync(IMultiversxProvider provider)
+        public async Task Sync(IApiProvider provider)
         {
             var accountDto = await provider.GetAccount(Address.Bech32);
 

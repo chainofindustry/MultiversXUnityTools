@@ -19,6 +19,7 @@ using Mx.NET.SDK.Provider.Dtos.API.Token;
 using Mx.NET.SDK.Core.Domain.Constants;
 using Mx.NET.SDK.Provider.Dtos.Gateway.Query;
 using System.Net;
+using Mx.NET.SDK.Provider.Dtos.API.Block;
 
 namespace Mx.NET.SDK.Provider
 {
@@ -107,59 +108,37 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<AccountDto> GetAccount(string address)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AccountDto>(content);
-            return result;
+            return await Get<AccountDto>($"accounts/{address}");
         }
 
         public async Task<AccountTokenDto[]> GetAccountTokens(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetAccountTokensCustom<AccountTokenDto>(address, size, from, parameters);
+            return await GetAccountTokens<AccountTokenDto>(address, size, from, parameters);
         }
 
-        public async Task<AccountToken[]> GetAccountTokensCustom<AccountToken>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<AccountToken[]> GetAccountTokens<AccountToken>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/tokens?from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<AccountToken[]>(content);
-            return result;
+            return await Get<AccountToken[]>($"accounts/{address}/tokens?from={from}&size={size}{args}");
         }
 
         public async Task<string> GetAccountTokensCount(string address)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/tokens/count");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            return content;
+            return await Get<string>($"accounts/{address}/tokens/count");
         }
 
         public async Task<AccountTokenDto> GetAccountToken(string address, string tokenIdentifier)
         {
-            return await GetAccountTokenCustom<AccountTokenDto>(address, tokenIdentifier);
+            return await GetAccountToken<AccountTokenDto>(address, tokenIdentifier);
         }
 
-        public async Task<Token> GetAccountTokenCustom<Token>(string address, string tokenIdentifier)
+        public async Task<Token> GetAccountToken<Token>(string address, string tokenIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/tokens/{tokenIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<Token>(content);
-            return result;
+            return await Get<Token>($"accounts/{address}/tokens/{tokenIdentifier}");
         }
 
         public async Task<AccountCollectionRoleDto[]> GetAccountCollectionsRole(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
@@ -168,13 +147,8 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/roles/collections?from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<AccountCollectionRoleDto[]>(content);
-            return result;
+            return await Get<AccountCollectionRoleDto[]>($"accounts/{address}/roles/collections?from={from}&size={size}{args}");
         }
 
         public async Task<string> GetAccountCollectionsRoleCount(string address, Dictionary<string, string> parameters = null)
@@ -182,23 +156,13 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"?{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/roles/collections/count{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"accounts/{address}/roles/collections/count{args}");
         }
 
         public async Task<AccountCollectionRoleDto> GetAccountCollectionRole(string address, string collectionIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/roles/collections/{collectionIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AccountCollectionRoleDto>(content);
-            return result;
+            return await Get<AccountCollectionRoleDto>($"accounts/{address}/roles/collections/{collectionIdentifier}");
         }
 
         public async Task<AccountTokenRoleDto[]> GetAccountTokensRole(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
@@ -207,13 +171,8 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/roles/tokens?from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<AccountTokenRoleDto[]>(content);
-            return result;
+            return await Get<AccountTokenRoleDto[]>($"accounts/{address}/roles/tokens?from={from}&size={size}{args}");
         }
 
         public async Task<string> GetAccountTokensRoleCount(string address, Dictionary<string, string> parameters = null)
@@ -221,43 +180,28 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"?{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/roles/tokens/count{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"accounts/{address}/roles/tokens/count{args}");
         }
 
         public async Task<AccountTokenRoleDto> GetAccountTokenRole(string address, string tokenIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/roles/tokens/{tokenIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AccountTokenRoleDto>(content);
-            return result;
+            return await Get<AccountTokenRoleDto>($"accounts/{address}/roles/tokens/{tokenIdentifier}");
         }
 
         public async Task<AccountNftDto[]> GetAccountNFTs(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetAccountNFTsCustom<AccountNftDto>(address, size, from, parameters);
+            return await GetAccountNFTs<AccountNftDto>(address, size, from, parameters);
         }
 
-        public async Task<NFT[]> GetAccountNFTsCustom<NFT>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<NFT[]> GetAccountNFTs<NFT>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/nfts?excludeMetaESDT=true&from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<NFT[]>(content);
-            return result;
+            return await Get<NFT[]>($"accounts/{address}/nfts?excludeMetaESDT=true&from={from}&size={size}{args}");
         }
 
         public async Task<string> GetAccountNFTsCount(string address, Dictionary<string, string> parameters = null)
@@ -265,48 +209,33 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/nfts/count?excludeMetaESDT=true{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"accounts/{address}/nfts/count?excludeMetaESDT=true{args}");
         }
 
         public async Task<AccountNftDto> GetAccountNFT(string address, string nftIdentifier)
         {
-            return await GetAccountNFTCustom<AccountNftDto>(address, nftIdentifier);
+            return await GetAccountNFT<AccountNftDto>(address, nftIdentifier);
         }
 
-        public async Task<NFT> GetAccountNFTCustom<NFT>(string address, string nftIdentifier)
+        public async Task<NFT> GetAccountNFT<NFT>(string address, string nftIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/nfts/{nftIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<NFT>(content);
-            return result;
+            return await Get<NFT>($"accounts/{address}/nfts/{nftIdentifier}");
         }
 
         public async Task<AccountMetaESDTDto[]> GetAccountMetaESDTs(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetAccountMetaESDTsCustom<AccountMetaESDTDto>(address, size, from, parameters);
+            return await GetAccountMetaESDTs<AccountMetaESDTDto>(address, size, from, parameters);
         }
 
-        public async Task<MetaESDT[]> GetAccountMetaESDTsCustom<MetaESDT>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<MetaESDT[]> GetAccountMetaESDTs<MetaESDT>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/nfts?type={ESDTTokenType.MetaESDT}&from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<MetaESDT[]>(content);
-            return result;
+            return await Get<MetaESDT[]>($"accounts/{address}/nfts?type={ESDTTokenType.MetaESDT}&from={from}&size={size}{args}");
         }
 
         public async Task<string> GetAccountMetaESDTsCount(string address, Dictionary<string, string> parameters = null)
@@ -314,84 +243,83 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/nfts/count?type={ESDTTokenType.MetaESDT}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"accounts/{address}/nfts/count?type={ESDTTokenType.MetaESDT}{args}");
         }
 
         public async Task<AccountMetaESDTDto> GetAccountMetaESDT(string address, string metaEsdtIdentifier)
         {
-            return await GetAccountMetaESDTCustom<AccountMetaESDTDto>(address, metaEsdtIdentifier);
+            return await GetAccountMetaESDT<AccountMetaESDTDto>(address, metaEsdtIdentifier);
         }
 
-        public async Task<MetaESDT> GetAccountMetaESDTCustom<MetaESDT>(string address, string metaEsdtIdentifier)
+        public async Task<MetaESDT> GetAccountMetaESDT<MetaESDT>(string address, string metaEsdtIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/nfts/{metaEsdtIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<MetaESDT>(content);
-            return result;
+            return await Get<MetaESDT>($"accounts/{address}/nfts/{metaEsdtIdentifier}");
         }
 
         public async Task<AccountSCStakeDto[]> GetAccountStake(string address)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/stake");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AccountSCStakeDto[]>(content);
-            return result;
+            return await Get<AccountSCStakeDto[]>($"accounts/{address}/stake");
         }
 
         public async Task<AccountContractDto[]> GetAccountContracts(string address)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/contracts");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AccountContractDto[]>(content);
-            return result;
+            return await Get<AccountContractDto[]>($"accounts/{address}/contracts");
         }
 
         public async Task<string> GetAccountContractsCount(string address)
         {
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/contracts/count");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            return content;
+            return await Get<string>($"accounts/{address}/contracts/count");
         }
 
         public async Task<AccountHistoryDto[]> GetAccountHistory(string address, int size = 100, int from = 0)
         {
             size = size > 10000 ? 10000 : size;
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/history?from={from}&size={size}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AccountHistoryDto[]>(content);
-            return result;
+            return await Get<AccountHistoryDto[]>($"accounts/{address}/history?from={from}&size={size}");
         }
 
         public async Task<AccountHistoryTokenDto[]> GetAccountHistoryToken(string address, string tokenIdentifier, int size = 100, int from = 0)
         {
             size = size > 10000 ? 10000 : size;
-            var response = await _httpAPIClient.GetAsync($"accounts/{address}/history/{tokenIdentifier}?from={from}&size={size}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
+            return await Get<AccountHistoryTokenDto[]>($"accounts/{address}/history/{tokenIdentifier}?from={from}&size={size}");
+        }
 
-            var result = JsonWrapper.Deserialize<AccountHistoryTokenDto[]>(content);
-            return result;
+        #endregion
+
+        #region blocks
+
+        public async Task<BlocksDto[]> GetBlocks(int size = 25, int from = 0, Dictionary<string, string> parameters = null)
+        {
+            return await GetBlocks<BlocksDto>(size, from, parameters);
+        }
+
+        public async Task<Blocks[]> GetBlocks<Blocks>(int size = 25, int from = 0, Dictionary<string, string> parameters = null)
+        {
+            size = size > 10000 ? 10000 : size;
+            string args = "";
+            if (parameters != null)
+                args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
+
+            return await Get<Blocks[]>($"blocks?from={from}&size={size}{args}");
+        }
+
+        public async Task<string> GetBlocksCount(Dictionary<string, string> parameters = null)
+        {
+            string args = "";
+            if (parameters != null)
+                args = $"?{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
+
+            return await Get<string>($"blocks/count{args}");
+        }
+
+        public async Task<BlockDto> GetBlock(string blockHash)
+        {
+            return await GetBlock<BlockDto>(blockHash);
+        }
+
+        public async Task<Block> GetBlock<Block>(string blockHash)
+        {
+            return await Get<Block>($"blocks/{blockHash}");
         }
 
         #endregion
@@ -400,22 +328,17 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<CollectionDto[]> GetCollections(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetCollectionsCustom<CollectionDto>(size, from, parameters);
+            return await GetCollections<CollectionDto>(size, from, parameters);
         }
 
-        public async Task<Collection[]> GetCollectionsCustom<Collection>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<Collection[]> GetCollections<Collection>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"collections?from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<Collection[]>(content);
-            return result;
+            return await Get<Collection[]>($"collections?from={from}&size={size}{args}");
         }
 
         public async Task<string> GetCollectionsCount(Dictionary<string, string> parameters = null)
@@ -423,28 +346,18 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"?{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"collections/count{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"collections/count{args}");
         }
 
         public async Task<CollectionDto> GetCollection(string collectionIdentifier)
         {
-            return await GetCollectionCustom<CollectionDto>(collectionIdentifier);
+            return await GetCollection<CollectionDto>(collectionIdentifier);
         }
 
-        public async Task<Collection> GetCollectionCustom<Collection>(string collectionIdentifier)
+        public async Task<Collection> GetCollection<Collection>(string collectionIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"collections/{collectionIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<Collection>(content);
-            return result;
+            return await Get<Collection>($"collections/{collectionIdentifier}");
         }
 
         #endregion
@@ -453,44 +366,21 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<GatewayNetworkConfigDataDto> GetGatewayNetworkConfig()
         {
-            var response = await _httpGatewayClient.GetAsync("network/config");
-
-            var content = await response.Content.ReadAsStringAsync();
-            var result = JsonWrapper.Deserialize<GatewayResponseDto<GatewayNetworkConfigDataDto>>(content);
-            result.EnsureSuccessStatusCode();
-            return result.Data;
+            return await GetGW<GatewayNetworkConfigDataDto>("network/config");
         }
-
         public async Task<GatewayNetworkEconomicsDataDto> GetGatewayNetworkEconomics()
         {
-            var response = await _httpGatewayClient.GetAsync("network/economics");
-
-            var content = await response.Content.ReadAsStringAsync();
-            var result = JsonWrapper.Deserialize<GatewayResponseDto<GatewayNetworkEconomicsDataDto>>(content);
-            result.EnsureSuccessStatusCode();
-            return result.Data;
+            return await GetGW<GatewayNetworkEconomicsDataDto>("network/economics");
         }
 
         public async Task<NetworkEconomicsDto> GetNetworkEconomics()
         {
-            var response = await _httpAPIClient.GetAsync("economics");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<NetworkEconomicsDto>(content);
-            return result;
+            return await Get<NetworkEconomicsDto>("economics");
         }
 
         public async Task<NetworkStatsDto> GetNetworkStats()
         {
-            var response = await _httpAPIClient.GetAsync("stats");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<NetworkStatsDto>(content);
-            return result;
+            return await Get<NetworkStatsDto>("stats");
         }
 
         #endregion
@@ -499,22 +389,17 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<NFTDto[]> GetNFTs(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetNFTsCustom<NFTDto>(size, from, parameters);
+            return await GetNFTs<NFTDto>(size, from, parameters);
         }
 
-        public async Task<NFT[]> GetNFTsCustom<NFT>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<NFT[]> GetNFTs<NFT>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"nfts?type={ESDTTokenType.NonFungibleESDT},{ESDTTokenType.SemiFungibleESDT}&from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<NFT[]>(content);
-            return result;
+            return await Get<NFT[]>($"nfts?type={ESDTTokenType.NonFungibleESDT},{ESDTTokenType.SemiFungibleESDT}&from={from}&size={size}{args}");
         }
 
         public async Task<string> GetNFTsCount(Dictionary<string, string> parameters = null)
@@ -522,32 +407,23 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"nfts/count?type={ESDTTokenType.NonFungibleESDT},{ESDTTokenType.SemiFungibleESDT}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"nfts/count?type={ESDTTokenType.NonFungibleESDT},{ESDTTokenType.SemiFungibleESDT}{args}");
         }
 
         public async Task<MetaESDTDto[]> GetMetaESDTs(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetMetaESDTsCustom<MetaESDTDto>(size, from, parameters);
+            return await GetMetaESDTs<MetaESDTDto>(size, from, parameters);
         }
 
-        public async Task<MetaESDT[]> GetMetaESDTsCustom<MetaESDT>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<MetaESDT[]> GetMetaESDTs<MetaESDT>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"nfts?type={ESDTTokenType.MetaESDT}&from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<MetaESDT[]>(content);
-            return result;
+            return await Get<MetaESDT[]>($"nfts?type={ESDTTokenType.MetaESDT}&from={from}&size={size}{args}");
         }
 
         public async Task<string> GetMetaESDTsCount(Dictionary<string, string> parameters = null)
@@ -555,88 +431,50 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"nfts/count?type={ESDTTokenType.MetaESDT}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"nfts/count?type={ESDTTokenType.MetaESDT}{args}");
         }
 
         public async Task<NFTDto> GetNFT(string nftIdentifier)
         {
-            return await GetNFTCustom<NFTDto>(nftIdentifier);
+            return await GetNFT<NFTDto>(nftIdentifier);
         }
 
-        public async Task<NFT> GetNFTCustom<NFT>(string nftIdentifier)
+        public async Task<NFT> GetNFT<NFT>(string nftIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"nfts/{nftIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<NFT>(content);
-            return result;
+            return await Get<NFT>($"nfts/{nftIdentifier}");
         }
 
         public async Task<MetaESDTDto> GetMetaESDT(string metaEsdtIdentifier)
         {
-            return await GetMetaESDTCustom<MetaESDTDto>(metaEsdtIdentifier);
+            return await GetMetaESDT<MetaESDTDto>(metaEsdtIdentifier);
         }
 
-        public async Task<MetaESDT> GetMetaESDTCustom<MetaESDT>(string metaEsdtIdentifier)
+        public async Task<MetaESDT> GetMetaESDT<MetaESDT>(string metaEsdtIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"nfts/{metaEsdtIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<MetaESDT>(content);
-            return result;
+            return await Get<MetaESDT>($"nfts/{metaEsdtIdentifier}");
         }
 
         public async Task<AddressBalanceDto[]> GetNFTAccounts(string nftIdentifier, int size = 100, int from = 0)
         {
             size = size > 10000 ? 10000 : size;
-            var response = await _httpAPIClient.GetAsync($"nfts/{nftIdentifier}/accounts?from={from}&size={size}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AddressBalanceDto[]>(content);
-            return result;
+            return await Get<AddressBalanceDto[]>($"nfts/{nftIdentifier}/accounts?from={from}&size={size}");
         }
 
-        public async Task<string> GetNFTAccountsCounter(string nftIdentifier)
+        public async Task<string> GetNFTAccountsCount(string nftIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"nfts/{nftIdentifier}/accounts/count");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            return content;
+            return await Get<string>($"nfts/{nftIdentifier}/accounts/count");
         }
 
         public async Task<AddressBalanceDto[]> GetMetaESDTAccounts(string metaEsdtIdentifier, int size = 100, int from = 0)
         {
             size = size > 10000 ? 10000 : size;
-            var response = await _httpAPIClient.GetAsync($"nfts/{metaEsdtIdentifier}/accounts?from={from}&size={size}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AddressBalanceDto[]>(content);
-            return result;
+            return await Get<AddressBalanceDto[]>($"nfts/{metaEsdtIdentifier}/accounts?from={from}&size={size}");
         }
 
-        public async Task<string> GetMetaESDTAccountsCounter(string metaEsdtIdentifier)
+        public async Task<string> GetMetaESDTAccountsCount(string metaEsdtIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"nfts/{metaEsdtIdentifier}/accounts/count");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            return content;
+            return await Get<string>($"nfts/{metaEsdtIdentifier}/accounts/count");
         }
 
         #endregion
@@ -645,22 +483,17 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<TokenDto[]> GetTokens(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetTokensCustom<TokenDto>(size, from, parameters);
+            return await GetTokens<TokenDto>(size, from, parameters);
         }
 
-        public async Task<Token[]> GetTokensCustom<Token>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<Token[]> GetTokens<Token>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"tokens?from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<Token[]>(content);
-            return result;
+            return await Get<Token[]>($"tokens?from={from}&size={size}{args}");
         }
 
         public async Task<string> GetTokensCount(Dictionary<string, string> parameters = null)
@@ -668,50 +501,29 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"?{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"tokens/count{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"tokens/count{args}");
         }
 
         public async Task<TokenDto> GetToken(string tokenIdentifier)
         {
-            return await GetTokenCustom<TokenDto>(tokenIdentifier);
+            return await GetToken<TokenDto>(tokenIdentifier);
         }
 
-        public async Task<Token> GetTokenCustom<Token>(string tokenIdentifier)
+        public async Task<Token> GetToken<Token>(string tokenIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"tokens/{tokenIdentifier}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<Token>(content);
-            return result;
+            return await Get<Token>($"tokens/{tokenIdentifier}");
         }
 
         public async Task<AddressBalanceDto[]> GetTokenAccounts(string tokenIdentifier, int size = 100, int from = 0)
         {
             size = size > 10000 ? 10000 : size;
-            var response = await _httpAPIClient.GetAsync($"tokens/{tokenIdentifier}/accounts?from={from}&size={size}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AddressBalanceDto[]>(content);
-            return result;
+            return await Get<AddressBalanceDto[]>($"tokens/{tokenIdentifier}/accounts?from={from}&size={size}");
         }
 
-        public async Task<string> GetTokenAccountsCounter(string tokenIdentifier)
+        public async Task<string> GetTokenAccountsCount(string tokenIdentifier)
         {
-            var response = await _httpAPIClient.GetAsync($"tokens/{tokenIdentifier}/accounts/count");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            return content;
+            return await Get<string>($"tokens/{tokenIdentifier}/accounts/count");
         }
 
         #endregion
@@ -720,49 +532,27 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<TransactionDto[]> GetTransactions(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
-            return await GetTransactionsCustom<TransactionDto>(size, from, parameters);
+            return await GetTransactions<TransactionDto>(size, from, parameters);
         }
 
-        public async Task<Transaction[]> GetTransactionsCustom<Transaction>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        public async Task<Transaction[]> GetTransactions<Transaction>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
         {
             size = size > 10000 ? 10000 : size;
             string args = "";
             if (parameters != null)
                 args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"transactions?from={from}&size={size}{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            var result = JsonWrapper.Deserialize<Transaction[]>(content);
-            return result;
+            return await Get<Transaction[]>($"transactions?from={from}&size={size}{args}");
         }
 
         public async Task<TransactionResponseDto> SendTransaction(TransactionRequestDto transactionRequestDto)
         {
-            var raw = JsonWrapper.Serialize(transactionRequestDto);
-            var payload = new StringContent(raw, Encoding.UTF8, "application/json");
-            var response = await _httpAPIClient.PostAsync("transactions", payload);
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<TransactionResponseDto>(content);
-            return result;
+            return await PostGW<TransactionResponseDto>("transaction/send", transactionRequestDto);
         }
 
         public async Task<MultipleTransactionsResponseDto> SendTransactions(TransactionRequestDto[] transactionsRequestDto)
         {
-            var raw = JsonWrapper.Serialize(transactionsRequestDto);
-            var payload = new StringContent(raw, Encoding.UTF8, "application/json");
-            var response = await _httpAPIClient.PostAsync("transaction/send-multiple", payload);
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<GatewayResponseDto<MultipleTransactionsResponseDto>>(content);
-            result.EnsureSuccessStatusCode();
-            return result.Data;
+            return await PostGW<MultipleTransactionsResponseDto>("transaction/send-multiple", transactionsRequestDto);
         }
 
         public async Task<string> GetTransactionsCount(Dictionary<string, string> parameters = null)
@@ -770,28 +560,18 @@ namespace Mx.NET.SDK.Provider
             string args = "";
             if (parameters != null)
                 args = $"?{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
-            var response = await _httpAPIClient.GetAsync($"transactions/count{args}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
 
-            return content;
+            return await Get<string>($"transactions/count{args}");
         }
 
         public async Task<TransactionDto> GetTransaction(string txHash)
         {
-            return await GetTransactionCustom<TransactionDto>(txHash);
+            return await GetTransaction<TransactionDto>(txHash);
         }
 
-        public async Task<Transaction> GetTransactionCustom<Transaction>(string txHash)
+        public async Task<Transaction> GetTransaction<Transaction>(string txHash)
         {
-            var response = await _httpAPIClient.GetAsync($"transactions/{txHash}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<Transaction>(content);
-            return result;
+            return await Get<Transaction>($"transactions/{txHash}");
         }
 
         #endregion
@@ -800,13 +580,7 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<AccountDto> GetAccountByUsername(string username)
         {
-            var response = await _httpAPIClient.GetAsync($"usernames/{username}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<AccountDto>(content);
-            return result;
+            return await Get<AccountDto>($"usernames/{username}");
         }
 
         #endregion
@@ -815,14 +589,7 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<QueryVmResponseDto> QueryVm(QueryVmRequestDto queryVmRequestDto)
         {
-            var raw = JsonWrapper.Serialize(queryVmRequestDto);
-            var payload = new StringContent(raw, Encoding.UTF8, "application/json");
-            var response = await _httpGatewayClient.PostAsync("vm-values/query", payload);
-
-            var content = await response.Content.ReadAsStringAsync();
-            var result = JsonWrapper.Deserialize<GatewayResponseDto<QueryVmResponseDto>>(content);
-            result.EnsureSuccessStatusCode();
-            return result.Data;
+            return await PostGW<QueryVmResponseDto>("vm-values/query", queryVmRequestDto);
         }
 
         #endregion
@@ -831,13 +598,7 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<MexEconomicsDto> GetMexEconomics()
         {
-            var response = await _httpAPIClient.GetAsync("mex/economics");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-
-            var result = JsonWrapper.Deserialize<MexEconomicsDto>(content);
-            return result;
+            return await Get<MexEconomicsDto>("mex/economics");
         }
 
         #endregion

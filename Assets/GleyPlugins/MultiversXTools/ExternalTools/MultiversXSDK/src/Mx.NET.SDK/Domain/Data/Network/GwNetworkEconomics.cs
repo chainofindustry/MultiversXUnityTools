@@ -1,5 +1,5 @@
-﻿using Mx.NET.SDK.Provider;
-using Mx.NET.SDK.Provider.Dtos.Gateway.Network;
+﻿using Mx.NET.SDK.Provider.Dtos.Gateway.Network;
+using Mx.NET.SDK.Provider.Gateway;
 using System.Threading.Tasks;
 
 namespace Mx.NET.SDK.Domain.Data.Network
@@ -13,8 +13,6 @@ namespace Mx.NET.SDK.Domain.Data.Network
         public string TotalFees { get; set; }
         public string TotalSupply { get; set; }
         public string TotalTopUpValue { get; set; }
-
-        private GwNetworkEconomics() { }
 
         private GwNetworkEconomics(GatewayNetworkEconomicsDataDto economics)
         {
@@ -32,18 +30,9 @@ namespace Mx.NET.SDK.Domain.Data.Network
         /// </summary>
         /// <param name="provider">MultiversX provider</param>
         /// <returns>NetworkEconomics</returns>
-        public static async Task<GwNetworkEconomics> GetFromNetwork(IMultiversxProvider provider)
+        public static async Task<GwNetworkEconomics> GetFromNetwork(INetworkProvider provider)
         {
             return new GwNetworkEconomics(await provider.GetGatewayNetworkEconomics());
-        }
-
-        /// <summary>
-        /// New empty NetworkConfig
-        /// </summary>
-        /// <returns>NetworkConfig</returns>
-        public static GwNetworkEconomics New()
-        {
-            return new GwNetworkEconomics();
         }
     }
 }

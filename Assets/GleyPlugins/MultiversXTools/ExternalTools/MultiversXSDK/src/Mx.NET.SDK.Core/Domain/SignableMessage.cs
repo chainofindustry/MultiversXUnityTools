@@ -9,8 +9,8 @@ namespace Mx.NET.SDK.Core.Domain
     {
         const string MESSAGE_PREFIX = "\u0017Elrond Signed Message:\n";
 
-        public string Message { get; set; }
-        public string Signature { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string Signature { get; set; } = string.Empty;
         public Address Address { get; set; }
 
         public SignableMessage() { }

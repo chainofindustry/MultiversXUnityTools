@@ -155,7 +155,7 @@ namespace Mx.NET.SDK.Domain.Data.NFT
 
         /// <summary>
         /// Creates a new array of NFTs from data
-        /// </summary>a
+        /// </summary>
         /// <param name="nfts">Array of NFT Data Object from API</param>
         /// <returns>Array of NFT objects</returns>
         public static NFT[] From(NFTDto[] nfts)

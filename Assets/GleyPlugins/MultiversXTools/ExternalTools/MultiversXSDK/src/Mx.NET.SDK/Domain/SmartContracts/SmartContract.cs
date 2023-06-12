@@ -7,7 +7,8 @@ using Mx.NET.SDK.Core.Domain.Abi;
 using Mx.NET.SDK.Core.Domain.Codec;
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Provider;
+using Mx.NET.SDK.Domain.Exceptions;
+using Mx.NET.SDK.Provider.Gateway;
 using Mx.NET.SDK.Provider.Dtos.Gateway.Query;
 using Org.BouncyCastle.Crypto.Digests;
 using static Mx.NET.SDK.Core.Domain.Constants.Constants;
@@ -69,7 +70,7 @@ namespace Mx.NET.SDK.Domain.SmartContracts
         /// <param name="args">The arguments of the Pure Function. Can be empty</param>
         /// <returns>The response</returns>
         public static Task<T> QuerySmartContractWithAbiDefinition<T>(
-            IMultiversxProvider provider,
+            IGatewayProvider provider,
             Address address,
             AbiDefinition abiDefinition,
             string endpoint,
@@ -85,39 +86,6 @@ namespace Mx.NET.SDK.Domain.SmartContracts
         }
 
         /// <summary>
-        /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution of BooleanValue result (the Virtual Machine Output).
-        /// </summary>
-        /// <param name="provider">MultiversX provider</param>
-        /// <param name="address">The Address of the Smart Contract.</param>
-        /// <param name="endpoint">The name of the Pure Function to execute.</param>
-        /// <param name="caller">Optional caller</param>
-        /// <param name="args">The arguments of the Pure Function. Can be empty</param>
-        /// <returns>The response</returns>
-        public static async Task<BooleanValue> QueryBoolSmartContract(
-            IMultiversxProvider provider,
-            Address address,
-            string endpoint,
-            Address caller = null,
-            params IBinaryType[] args)
-        {
-            var arguments = args
-                           .Select(typeValue => Converter.ToHexString(BinaryCoder.EncodeTopLevel(typeValue)))
-                           .ToArray();
-
-            var query = new QueryVmRequestDto { FuncName = endpoint, Args = arguments, ScAddress = address.Bech32, Caller = caller?.Bech32 };
-
-            var response = await provider.QueryVm(query);
-            var data = response.Data;
-
-            if (data.ReturnData[0] == "")
-                return BooleanValue.From(false);
-
-            var returnData = Convert.FromBase64String(data.ReturnData[0]);
-            var decodedResponse = BinaryCoder.DecodeTopLevel(returnData, TypeValue.BooleanValue);
-            return (BooleanValue)decodedResponse;
-        }
-
-        /// <summary>
         /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution results (the Virtual Machine Output).
         /// </summary>
         /// <param name="provider">MultiversX provider</param>
@@ -128,7 +96,7 @@ namespace Mx.NET.SDK.Domain.SmartContracts
         /// <param name="args">The arguments of the Pure Function. Can be empty</param>
         /// <returns>The response</returns>
         public static async Task<T> QuerySmartContract<T>(
-            IMultiversxProvider provider,
+            IGatewayProvider provider,
             Address address,
             TypeValue outputTypeValue,
             string endpoint,
@@ -144,7 +112,12 @@ namespace Mx.NET.SDK.Domain.SmartContracts
             var response = await provider.QueryVm(query);
             var data = response.Data;
 
-            if (data.ReturnData is null || data.ReturnData.Length == 0)
+            if (data.ReturnData is null)
+            {
+                throw new APIException(data.ReturnMessage);
+            }
+
+            if (data.ReturnData.Length == 0)
             {
                 return (T)BinaryCoder.DecodeTopLevel(new byte[0], outputTypeValue);
             }
@@ -162,8 +135,7 @@ namespace Mx.NET.SDK.Domain.SmartContracts
                 var decodedValues = new List<IBinaryType>();
                 for (var i = 0; i < multiTypes.Length; i++)
                 {
-                    var decoded =
-                        BinaryCoder.DecodeTopLevel(Convert.FromBase64String(data.ReturnData[i]), multiTypes[i]);
+                    var decoded = BinaryCoder.DecodeTopLevel(Convert.FromBase64String(data.ReturnData[i]), multiTypes[i]);
                     decodedValues.Add(decoded);
                 }
 
@@ -177,7 +149,7 @@ namespace Mx.NET.SDK.Domain.SmartContracts
         }
 
         public static async Task<T[]> QueryArraySmartContract<T>(
-                IMultiversxProvider provider,
+                IGatewayProvider provider,
                 Address address,
                 TypeValue outputTypeValue,
                 string endpoint,
@@ -193,7 +165,12 @@ namespace Mx.NET.SDK.Domain.SmartContracts
             var response = await provider.QueryVm(query);
             var data = response.Data;
 
-            if (data.ReturnData is null || data.ReturnData.Length == 0)
+            if (data.ReturnData is null)
+            {
+                throw new APIException(data.ReturnMessage);
+            }
+
+            if (data.ReturnData.Length == 0)
             {
                 return Array.Empty<T>();
             }

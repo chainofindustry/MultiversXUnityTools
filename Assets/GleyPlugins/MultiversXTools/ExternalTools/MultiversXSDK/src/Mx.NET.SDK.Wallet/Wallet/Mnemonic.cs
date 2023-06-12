@@ -9,16 +9,48 @@ namespace Mx.NET.SDK.Wallet.Wallet
 {
     public class Mnemonic
     {
+        private const int MNEMONIC_STRENGTH = 256;
         private const string HdPrefix = "m/44'/508'/0'/0'";
 
-        public static byte[] DecryptSecretKey(string mnemonic, int accountIndex = 0)
+        public string SeedPhrase { get; set; } = string.Empty;
+
+        private Mnemonic(string phrase)
+        {
+            SeedPhrase = phrase;
+        }
+
+        public static Mnemonic Generate()
+        {
+            var bip39 = new BIP39();
+            return new Mnemonic(bip39.GenerateMnemonic(MNEMONIC_STRENGTH, BIP39Wordlist.English));
+        }
+
+        public static Mnemonic FromString(string seedPhrase)
+        {
+            seedPhrase = seedPhrase.Trim();
+
+            var bip39 = new BIP39();
+            if (bip39.ValidateMnemonic(seedPhrase, BIP39Wordlist.English))
+                return new Mnemonic(seedPhrase);
+            else
+                throw new Exception("Bad mnemonic");
+        }
+
+        public string[] GetWords()
+        {
+            if (string.IsNullOrEmpty(SeedPhrase))
+                throw new Exception("Seed phrase is empty");
+            return SeedPhrase.Split(' ');
+        }
+
+        public static byte[] DecryptSecretKey(string mnemonic, int addressIndex = 0)
         {
             try
             {
                 var bip39 = new BIP39();
                 var seedHex = bip39.MnemonicToSeedHex(mnemonic, "");
 
-                var hdPath = $"{HdPrefix}/{accountIndex}'";
+                var hdPath = $"{HdPrefix}/{addressIndex}'";
                 var kv = DerivePath(hdPath, seedHex);
                 var secretKey = kv.Key;
                 return secretKey;

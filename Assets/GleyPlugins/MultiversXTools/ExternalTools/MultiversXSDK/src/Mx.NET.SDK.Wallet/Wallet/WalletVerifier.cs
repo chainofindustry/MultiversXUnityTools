@@ -6,7 +6,7 @@ namespace Mx.NET.SDK.Wallet.Wallet
 {
     public class WalletVerifier
     {
-        private WalletPublicKey _publicKey;
+        private readonly WalletPublicKey _publicKey;
 
         public WalletVerifier(byte[] publicKey)
         {

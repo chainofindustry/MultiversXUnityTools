@@ -69,9 +69,9 @@ namespace Mx.NET.SDK.Wallet.Wallet
         /// Get the wallet signer
         /// </summary>
         /// <returns>Signer</returns>
-        public Signer GetSigner()
+        public WalletSigner GetSigner()
         {
-            return new Signer(_secretKey);
+            return new WalletSigner(_secretKey);
         }
 
         /// <summary>

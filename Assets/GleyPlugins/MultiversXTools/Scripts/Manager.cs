@@ -157,20 +157,9 @@ namespace MultiversXUnityTools
         /// Get the current config settings saved using the Settings Window
         /// </summary>
         /// <returns></returns>
-        public static APISettings GetApiSettings()
+        public static AppSettings GetApiSettings()
         {
             return ConnectionManager.Instance.GetApiSettings();
-        }
-
-
-        /// <summary>
-        /// Returns the URL associated with Endpoint
-        /// </summary>
-        /// <param name="endpoint">endpoint defined inside settings window</param>
-        /// <returns></returns>
-        public static string GetEndpointUrl(EndpointNames endpoint)
-        {
-            return ConnectionManager.Instance.GetEndpointUrl(endpoint);
         }
         #endregion
 

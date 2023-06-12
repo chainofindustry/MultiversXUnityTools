@@ -115,5 +115,6 @@ namespace Mx.NET.SDK.Provider.Dtos.API.Transactions
         public string SvgUrl { get; set; }
         public AssetsDto SenderAssets { get; set; }
         public AssetsDto ReceiverAssets { get; set; }
+        public string Message { get; set; }
     }
 }

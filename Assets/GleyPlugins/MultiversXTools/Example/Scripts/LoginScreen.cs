@@ -1,7 +1,9 @@
 using MultiversXUnityTools;
+using Mx.NET.SDK.Configuration;
 using Mx.NET.SDK.Domain.Data.Account;
 using UnityEngine;
 using UnityEngine.UI;
+using Network = Mx.NET.SDK.Configuration.Network;
 
 namespace MultiversXUnityExamples
 {
@@ -18,8 +20,8 @@ namespace MultiversXUnityExamples
             Manager.Connect(OnConnected,DemoScript.Instance.OnDisconnected, OnSessionConnected, qrImage);
             
             //display warning is selected API is Mainnet 
-            APISettings apiSettings = Manager.GetApiSettings();
-            if (apiSettings.selectedAPIName == SupportedAPIs.MultiversXApiMainnet.ToString())
+            AppSettings apiSettings = Manager.GetApiSettings();
+            if (apiSettings.selectedNetwork == Network.MainNet)
             {
                 warning.SetActive(true);
             }
@@ -63,7 +65,7 @@ namespace MultiversXUnityExamples
             {
                 Debug.LogError(result.errorMessage);
                 //reload
-                DemoScript.Instance.LoadScreen(Screens.Login);
+                //DemoScript.Instance.LoadScreen(Screens.Login);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using Mx.NET.SDK.Provider;
+﻿using Mx.NET.SDK.Provider.API;
 using Mx.NET.SDK.Provider.Dtos.API.Exchange;
 using System.Threading.Tasks;
 
@@ -30,7 +30,7 @@ namespace Mx.NET.SDK.Domain.Data.Exchange
         /// </summary>
         /// <param name="provider">MultiversX provider</param>
         /// <returns>MexEconomics</returns>
-        public static async Task<MexEconomics> GetFromNetwork(IMultiversxProvider provider)
+        public static async Task<MexEconomics> GetFromNetwork(IxExchangeProvider provider)
         {
             return new MexEconomics(await provider.GetMexEconomics());
         }

@@ -35,16 +35,29 @@ namespace Mx.NET.SDK.Wallet.Wallet
 
         public static string BuildPemFile(WalletSecretKey secretKey)
         {
-            throw new NotImplementedException();
-
             var publicKey = secretKey.GeneratePublicKey();
             var address = publicKey.ToAddress().Bech32;
             string header = $"-----BEGIN PRIVATE KEY for {address}-----";
             string footer = $"-----END PRIVATE KEY for {address}-----";
 
-            var hex = Converter.ToHexString(secretKey.GetKey().Concat(publicKey.GetKey()).ToArray());
-            var text = Convert.ToBase64String(Encoding.UTF8.GetBytes(hex));
-            return text;
+            var keys = secretKey.GetKey().Concat(publicKey.GetKey()).ToArray();
+            var hex = Encoding.UTF8.GetBytes(Converter.ToHexString(keys));
+            var base64Key = Convert.ToBase64String(hex);
+
+            var lines = SplitBy(base64Key, 64);
+            var text = string.Join(Environment.NewLine, lines);
+            return string.Join(Environment.NewLine, new[] { header, text, footer });
+        }
+
+        private static IEnumerable<string> SplitBy(string text, int chunkSize)
+        {
+            var chunks = new List<string>();
+            for (var i = 0; i < text.Length; i += chunkSize)
+            {
+                var chunk = text.Substring(i, Math.Min(chunkSize, text.Length - i));
+                chunks.Add(chunk);
+            }
+            return chunks;
         }
     }
 }

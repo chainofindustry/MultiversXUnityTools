@@ -157,9 +157,13 @@ namespace Mx.NET.SDK.Core.Domain
             start = start < 0 ? 0 : start;
 
             var decimals = padded.Substring(start, Esdt.DecimalPrecision < nrOfDecimals ? Esdt.DecimalPrecision : nrOfDecimals);
+            decimals = decimals.TrimEnd('0');
             var integer = start == 0 ? "0" : padded.Substring(0, start);
 
-            return $"{integer}.{decimals}";
+            if (string.IsNullOrEmpty(decimals))
+                return integer;
+            else
+                return $"{integer}.{decimals}";
         }
 
         /// <summary>

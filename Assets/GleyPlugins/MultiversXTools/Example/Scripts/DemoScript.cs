@@ -114,8 +114,8 @@ namespace MultiversXUnityExamples
         /// </summary>
         public void Get()
         {
-            string url = Manager.GetEndpointUrl(EndpointNames.GetAccount).Replace("{address}", "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
-            Manager.GetRequest<AccountDto>(url, CompleteMethodGet);
+            //string url = Manager.GetEndpointUrl(EndpointNames.GetAccount).Replace("{address}", "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf");
+            //Manager.GetRequest<AccountDto>(url, CompleteMethodGet);
         }
 
 

@@ -1,18 +1,14 @@
+using Microsoft.IdentityModel.Tokens;
+using Mx.NET.SDK.Configuration;
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Domain.Exceptions;
 using Mx.NET.SDK.Provider.Dtos.API.Account;
-using Mx.NET.SDK.Provider.Dtos.API.Block;
-using Mx.NET.SDK.Provider.Dtos.API.Collection;
-using Mx.NET.SDK.Provider.Dtos.API.Common;
-using Mx.NET.SDK.Provider.Dtos.API.Exchange;
-using Mx.NET.SDK.Provider.Dtos.API.Network;
-using Mx.NET.SDK.Provider.Dtos.API.NFT;
-using Mx.NET.SDK.Provider.Dtos.API.Token;
 using Mx.NET.SDK.Provider.Dtos.API.Transactions;
 using Mx.NET.SDK.Provider.Dtos.Gateway;
 using Mx.NET.SDK.Provider.Dtos.Gateway.Network;
 using Mx.NET.SDK.Provider.Dtos.Gateway.Query;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -24,34 +20,67 @@ namespace MultiversXUnityTools
     /// You can implement your own version of provider
     /// Used to download data from blockchain API
     /// </summary>
-    public class MultiversXProviderUnity : IMultiversXApiProvider
+    public class MultiversXProviderUnity : IMultiversXUnityApi
     {
-        API selectedAPI;
-        public MultiversXProviderUnity(API api)
+        string baseApiAddress;
+        string baseGatewayAddress;
+
+        public MultiversXProviderUnity(MultiversxNetworkConfiguration config)
         {
-            selectedAPI = api;
+            baseApiAddress = config.APIUri.AbsoluteUri;
+            baseGatewayAddress = config.GatewayUri.AbsoluteUri;
         }
 
-        #region IElrondProvider
-        public async Task<GatewayNetworkConfigDataDto> GetGatewayNetworkConfig()
+        #region IApiProvider
+        public async Task<TR> Get<TR>(string requestUri)
         {
-            UnityWebRequest webRequest = UnityWebRequest.Get(selectedAPI.GetEndpoint(EndpointNames.GetNetworkConfig));
+            requestUri = requestUri.StartsWith("/") ? requestUri[1..] : requestUri;
+            string request = $"{baseApiAddress}{requestUri}";
+            Debug.Log("request: " + request);
+            UnityWebRequest webRequest = UnityWebRequest.Get(request);
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
+            Debug.Log("response: " + response);
+            var content = webRequest.downloadHandler.text;
+            Debug.Log("content: " + content);
+            switch (response)
+            {
+                case UnityWebRequest.Result.Success:
+                    return JsonWrapper.Deserialize<TR>(content);
+                default:
+                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
+            }
+        }
+
+
+        public async Task<TR> Post<TR>(string requestUri, object requestContent)
+        {
+            requestUri = requestUri.StartsWith("/") ? requestUri[1..] : requestUri;
+            string jsonData = JsonWrapper.Serialize(requestContent);
+            var webRequest = new UnityWebRequest();
+            webRequest.url = $"{baseApiAddress}{requestUri}";
+            webRequest.method = "POST";
+            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonData));
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+           
+            UnityWebRequest.Result response = await webRequest.SendWebRequest();
+           
             var content = webRequest.downloadHandler.text;
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
-                    var result = JsonWrapper.Deserialize<GatewayResponseDto<GatewayNetworkConfigDataDto>>(content);
-                    result.EnsureSuccessStatusCode();
-                    return result.Data;
+                    var result = JsonWrapper.Deserialize<TR>(content);
+                    return result;
                 default:
-                    throw new APIException($"{webRequest.error} url: {webRequest.uri.AbsoluteUri}");
+                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
             }
         }
 
+
         public async Task<AccountDto> GetAccount(string address)
         {
-            string url = selectedAPI.GetEndpoint(EndpointNames.GetAccount).Replace("{address}", address);
+            string url = $"{baseApiAddress}accounts/{address}";
             UnityWebRequest webRequest = UnityWebRequest.Get(url);
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
             var content = webRequest.downloadHandler.text;
@@ -64,129 +93,41 @@ namespace MultiversXUnityTools
                     throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
             }
         }
-
-        public async Task<TransactionDto> GetTransaction(string txHash)
-        {
-            return await GetTransactionCustom<TransactionDto>(txHash);
-        }
-
-        public async Task<T> GetTransactionCustom<T>(string txHash)
-        {
-            string url = selectedAPI.GetEndpoint(EndpointNames.GetTransactionDetail).Replace("{txHash}", txHash);
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonWrapper.Deserialize<T>(content);
-                    return result;
-                default:
-                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-            }
-        }
-
-        public async Task<QueryVmResponseDto> QueryVm(QueryVmRequestDto queryVmRequestDto)
-        {
-            var raw = JsonWrapper.Serialize(queryVmRequestDto);
-
-            var webRequest = new UnityWebRequest();
-            webRequest.url = selectedAPI.GetEndpoint(EndpointNames.QueryVm);
-            webRequest.method = "POST";
-            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("accept", "application/json");
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonWrapper.Deserialize<GatewayResponseDto<QueryVmResponseDto>>(content);
-                    result.EnsureSuccessStatusCode();
-                    if (result.Data.Data.ReturnData is null || result.Data.Data.ReturnData.Length == 0)
-                    {
-                        throw new APIException(new APIExceptionResponse() { Error = result.Data.Data.ReturnCode, Message = result.Data.Data.ReturnMessage });
-                    }
-                    return result.Data;
-                default:
-                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-            }
-        }
-
-        public async Task<TransactionResponseDto> SendTransaction(TransactionRequestDto transactionRequestDto)
-        {
-            var raw = JsonWrapper.Serialize(transactionRequestDto);
-            var webRequest = new UnityWebRequest();
-            webRequest.url = selectedAPI.GetEndpoint(EndpointNames.SendTransaction);
-            Debug.Log("URL " + webRequest.url);
-            webRequest.method = "POST";
-            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("accept", "application/json");
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonWrapper.Deserialize<TransactionResponseDto>(content);
-                    return result;
-                default:
-                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-            }
-        }
-
-        public async Task<MultipleTransactionsResponseDto> SendTransactions(TransactionRequestDto[] transactionRequestDto)
-        {
-            var raw = JsonWrapper.Serialize(transactionRequestDto);
-            var webRequest = new UnityWebRequest();
-            webRequest.url = selectedAPI.GetEndpoint(EndpointNames.SendTransactions);
-            webRequest.method = "POST";
-            webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(raw));
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("accept", "application/json");
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonWrapper.Deserialize<GatewayResponseDto<MultipleTransactionsResponseDto>>(content);
-                    result.EnsureSuccessStatusCode();
-                    return result.Data;
-                default:
-                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-            }
-        }
-
         #endregion
 
-        #region IMultiversXApiProvider 
-        public async Task<T> GetRequest<T>(string url)
+
+        #region IGatewayProvider
+        public async Task<TR> GetGW<TR>(string requestUri)
         {
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
+            requestUri = requestUri.StartsWith("/") ? requestUri[1..] : requestUri;
+            string request = $"{baseGatewayAddress}{requestUri}";
+            Debug.Log("request " + request);
+            UnityWebRequest webRequest = UnityWebRequest.Get(request);
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
             var content = webRequest.downloadHandler.text;
+            Debug.Log("response " + response);
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
-                    return JsonWrapper.Deserialize<T>(content);
+                    var result = JsonWrapper.Deserialize<GatewayResponseDto<TR>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
                 default:
-                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
+                    if (content.IsNullOrEmpty())
+                    {
+                        throw new APIException($"{request} {response}");
+                    }
+                    throw new APIException(content);
             }
         }
 
 
-
-        public async Task<T> PostRequest<T>(string url, string jsonData)
+        public async Task<TR> PostGW<TR>(string requestUri, object requestContent)
         {
+            requestUri = requestUri.StartsWith("/") ? requestUri[1..] : requestUri;
+            string jsonData = JsonWrapper.Serialize(requestContent);
             var webRequest = new UnityWebRequest();
-            webRequest.url = url;
+            webRequest.url = $"{baseGatewayAddress}{requestUri}";
             webRequest.method = "POST";
             webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonData));
             webRequest.downloadHandler = new DownloadHandlerBuffer();
@@ -198,383 +139,97 @@ namespace MultiversXUnityTools
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
-                    var result = JsonWrapper.Deserialize<T>(content);
-                    return result;
+                    var result = JsonWrapper.Deserialize<GatewayResponseDto<TR>>(content);
+                    result.EnsureSuccessStatusCode();
+                    return result.Data;
                 default:
-                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
+                    throw new APIException(content);
             }
         }
 
+
+        public async Task<GatewayNetworkConfigDataDto> GetGatewayNetworkConfig()
+        {
+            return await GetGW<GatewayNetworkConfigDataDto>("network/config");
+        }
+
+
+        public async Task<QueryVmResponseDto> QueryVm(QueryVmRequestDto queryVmRequestDto)
+        {
+            return await PostGW<QueryVmResponseDto>("vm-values/query", queryVmRequestDto);
+        }
+
+
+        public async Task<TransactionResponseDto> SendTransaction(TransactionRequestDto transactionRequestDto)
+        {
+            return await PostGW<TransactionResponseDto>("transaction/send", transactionRequestDto);
+        }
+
+
+        public async Task<MultipleTransactionsResponseDto> SendTransactions(TransactionRequestDto[] transactionsRequestDto)
+        {
+            return await PostGW<MultipleTransactionsResponseDto>("transaction/send-multiple", transactionsRequestDto);
+        }
+        #endregion
+
+
+        #region ITransactionsProvider
+        public async Task<TransactionDto> GetTransaction(string txHash)
+        {
+            return await GetTransaction<TransactionDto>(txHash);
+        }
+
+
+        public async Task<Transaction> GetTransaction<Transaction>(string txHash)
+        {
+            return await Get<Transaction>($"transactions/{txHash}");
+        }
+
+
+        public async Task<string> GetTransactionsCount(Dictionary<string, string> parameters = null)
+        {
+            string args = "";
+            if (parameters != null)
+                args = $"?{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
+
+            return await Get<string>($"transactions/count{args}");
+        }
+
+
+        public async Task<TransactionDto[]> GetTransactions(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        {
+            return await GetTransactions<TransactionDto>(size, from, parameters);
+        }
+
+
+        public async Task<Transaction[]> GetTransactions<Transaction>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
+        {
+            size = size > 10000 ? 10000 : size;
+            string args = "";
+            if (parameters != null)
+                args = $"&{string.Join("&", parameters.Select(e => $"{e.Key}={e.Value}"))}";
+
+            return await Get<Transaction[]>($"transactions?from={from}&size={size}{args}");
+        }
+        #endregion
+
+
+        #region IMultiversXUnityApi 
         public async Task<T> GetWalletNfts<T>(string address)
         {
-            string url = selectedAPI.GetEndpoint(EndpointNames.GetNFTsCount).Replace("{address}", address);
-            int totalNfts = await GetRequest<int>(url);
-            url = selectedAPI.GetEndpoint(EndpointNames.GetWalletNfts).Replace("{address}", address).Replace("{start}", "0").Replace("{totalNfts}", totalNfts.ToString());
-            return await GetRequest<T>(url);
+            string url = $"accounts/{address}/nfts/count";
+            int totalNfts = await Get<int>(url);
+            url = $"accounts/{address}/nfts?from={0}&size={totalNfts}";
+            return await Get<T>(url);
         }
 
         public async Task<T> GetWalletTokens<T>(string address)
         {
-            string url = selectedAPI.GetEndpoint(EndpointNames.GetTokensCount).Replace("{address}", address);
-            int totalTokens = await GetRequest<int>(url);
-            url = selectedAPI.GetEndpoint(EndpointNames.GetWalletTokens).Replace("{address}", address).Replace("{start}", "0").Replace("{totalTokens}", totalTokens.ToString());
-            return await GetRequest<T>(url);
+            string url = $"accounts/{address}/tokens/count";
+            int totalTokens = await Get<int>(url);
+            url = $"accounts/{address}/tokens?from={0}&size={totalTokens}";
+            return await Get<T>(url);
         }
-
-
-
-        public Task<TR> Get<TR>(string requestUri)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<TR> Post<TR>(string requestUri, object requestContent)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<TR> GetGW<TR>(string requestUri)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<TR> PostGW<TR>(string requestUri, object requestContent)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountTokenDto[]> GetAccountTokens(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountToken[]> GetAccountTokensCustom<AccountToken>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetAccountTokensCount(string address)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountTokenDto> GetAccountToken(string address, string tokenIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountToken> GetAccountTokenCustom<AccountToken>(string address, string tokenIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountCollectionRoleDto[]> GetAccountCollectionsRole(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetAccountCollectionsRoleCount(string address, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountCollectionRoleDto> GetAccountCollectionRole(string address, string collectionIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountTokenRoleDto[]> GetAccountTokensRole(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetAccountTokensRoleCount(string address, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountTokenRoleDto> GetAccountTokenRole(string address, string tokenIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountNftDto[]> GetAccountNFTs(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NFT[]> GetAccountNFTsCustom<NFT>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetAccountNFTsCount(string address, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountNftDto> GetAccountNFT(string address, string nftIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NFT> GetAccountNFTCustom<NFT>(string address, string nftIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountMetaESDTDto[]> GetAccountMetaESDTs(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<MetaESDT[]> GetAccountMetaESDTsCustom<MetaESDT>(string address, int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetAccountMetaESDTsCount(string address, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountMetaESDTDto> GetAccountMetaESDT(string address, string metaEsdtIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<MetaESDT> GetAccountMetaESDTCustom<MetaESDT>(string address, string metaEsdtIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountSCStakeDto[]> GetAccountStake(string scAddress)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountContractDto[]> GetAccountContracts(string address)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetAccountContractsCount(string address)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountHistoryDto[]> GetAccountHistory(string address, int size = 100, int from = 0)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AccountHistoryTokenDto[]> GetAccountHistoryToken(string address, string tokenIdentifier, int size = 100, int from = 0)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<CollectionDto[]> GetCollections(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Collection[]> GetCollectionsCustom<Collection>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetCollectionsCount(Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<CollectionDto> GetCollection(string collectionIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Collection> GetCollectionCustom<Collection>(string collectionIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-
-
-        public Task<GatewayNetworkEconomicsDataDto> GetGatewayNetworkEconomics()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NetworkEconomicsDto> GetNetworkEconomics()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NetworkStatsDto> GetNetworkStats()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NFTDto[]> GetNFTs(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NFT[]> GetNFTsCustom<NFT>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetNFTsCount(Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<MetaESDTDto[]> GetMetaESDTs(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<MetaESDT[]> GetMetaESDTsCustom<MetaESDT>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetMetaESDTsCount(Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NFTDto> GetNFT(string nftIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<NFT> GetNFTCustom<NFT>(string nftIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<MetaESDTDto> GetMetaESDT(string metaEsdtIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<MetaESDT> GetMetaESDTCustom<MetaESDT>(string metaEsdtIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AddressBalanceDto[]> GetNFTAccounts(string nftIdentifier, int size = 100, int from = 0)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetNFTAccountsCounter(string nftIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AddressBalanceDto[]> GetMetaESDTAccounts(string metaEsdtIdentifier, int size = 100, int from = 0)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetMetaESDTAccountsCounter(string metaEsdtIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<TokenDto[]> GetTokens(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Token[]> GetTokensCustom<Token>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetTokensCount(Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<TokenDto> GetToken(string tokenIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Token> GetTokenCustom<Token>(string tokenIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<AddressBalanceDto[]> GetTokenAccounts(string tokenIdentifier, int size = 100, int from = 0)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetTokenAccountsCounter(string tokenIdentifier)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<TransactionDto[]> GetTransactions(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Transaction[]> GetTransactionsCustom<Transaction>(int size = 100, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-
-
-        public Task<string> GetTransactionsCount(Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-
-
-        public Task<AccountDto> GetAccountByUsername(string username)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<MexEconomicsDto> GetMexEconomics()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<BlocksDto[]> GetBlocks(int size = 25, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Blocks[]> GetBlocksCustom<Blocks>(int size = 25, int from = 0, Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<string> GetBlocksCount(Dictionary<string, string> parameters = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<BlockDto> GetBlock(string blockHash)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Block> GetBlockCustom<Block>(string blockHash)
-        {
-            throw new System.NotImplementedException();
-        }
-
-
         #endregion
     }
 }

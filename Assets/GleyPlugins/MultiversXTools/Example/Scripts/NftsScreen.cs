@@ -1,4 +1,5 @@
 using MultiversXUnityTools;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -52,6 +53,7 @@ namespace MultiversXUnityExamples
         {
             status.text = result.status + " " + result.errorMessage;
             this.allNfts = result.data;
+            Debug.Log(allNfts.Length);
             if (result.status == OperationStatus.Success)
             {
                 //after all metadata is loaded the NFTs will be displayed in a scroll view

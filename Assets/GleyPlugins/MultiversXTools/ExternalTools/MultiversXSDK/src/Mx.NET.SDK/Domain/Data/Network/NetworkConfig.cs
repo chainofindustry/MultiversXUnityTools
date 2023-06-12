@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Mx.NET.SDK.Provider;
 using Mx.NET.SDK.Provider.Dtos.Gateway.Network;
+using Mx.NET.SDK.Provider.Gateway;
 
 namespace Mx.NET.SDK.Domain.Data.Network
 {
@@ -28,20 +28,11 @@ namespace Mx.NET.SDK.Domain.Data.Network
         /// <summary>
         /// Synchronize the configuration with the network
         /// </summary>
-        /// <param name="provider">MultiversX provider</param>
+        /// <param name="provider">Gateway network provider</param>
         /// <returns>NetworkConfig</returns>
-        public static async Task<NetworkConfig> GetFromNetwork(IMultiversxProvider provider)
+        public static async Task<NetworkConfig> GetFromNetwork(IGatewayProvider provider)
         {
             return new NetworkConfig(await provider.GetGatewayNetworkConfig());
-        }
-
-        /// <summary>
-        /// New empty NetworkConfig
-        /// </summary>
-        /// <returns>NetworkConfig</returns>
-        public static NetworkConfig New()
-        {
-            return new NetworkConfig();
         }
     }
 }

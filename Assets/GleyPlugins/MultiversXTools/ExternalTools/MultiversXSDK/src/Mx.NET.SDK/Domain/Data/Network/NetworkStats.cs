@@ -1,4 +1,4 @@
-﻿using Mx.NET.SDK.Provider;
+﻿using Mx.NET.SDK.Provider.API;
 using Mx.NET.SDK.Provider.Dtos.API.Network;
 using System.Threading.Tasks;
 
@@ -15,8 +15,6 @@ namespace Mx.NET.SDK.Domain.Data.Network
         public long RoundsPassed { get; set; }
         public long RoundsPerEpoch { get; set; }
 
-        private NetworkStats() { }
-
         private NetworkStats(NetworkStatsDto stats)
         {
             Shards = stats.Shards;
@@ -32,20 +30,11 @@ namespace Mx.NET.SDK.Domain.Data.Network
         /// <summary>
         /// Gets the Network Stats
         /// </summary>
-        /// <param name="provider">MultiversX provider</param>
+        /// <param name="provider">Network provider</param>
         /// <returns>NetworkEconomics</returns>
-        public static async Task<NetworkStats> GetFromNetwork(IMultiversxProvider provider)
+        public static async Task<NetworkStats> GetFromNetwork(INetworkProvider provider)
         {
             return new NetworkStats(await provider.GetNetworkStats());
-        }
-
-        /// <summary>
-        /// New empty Stats
-        /// </summary>
-        /// <returns>NetworkConfig</returns>
-        public static NetworkStats New()
-        {
-            return new NetworkStats();
         }
     }
 }
