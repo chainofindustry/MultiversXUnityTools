@@ -1,3 +1,4 @@
+//#define DebugAPI
 using Microsoft.IdentityModel.Tokens;
 using Mx.NET.SDK.Configuration;
 using Mx.NET.SDK.Core.Domain.Helper;
@@ -36,12 +37,18 @@ namespace MultiversXUnityTools
         {
             requestUri = requestUri.StartsWith("/") ? requestUri[1..] : requestUri;
             string request = $"{baseApiAddress}{requestUri}";
+#if DebugAPI
             Debug.Log("request: " + request);
+#endif
             UnityWebRequest webRequest = UnityWebRequest.Get(request);
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
+#if DebugAPI
             Debug.Log("response: " + response);
+#endif
             var content = webRequest.downloadHandler.text;
+#if DebugAPI
             Debug.Log("content: " + content);
+#endif
             switch (response)
             {
                 case UnityWebRequest.Result.Success:
@@ -80,18 +87,7 @@ namespace MultiversXUnityTools
 
         public async Task<AccountDto> GetAccount(string address)
         {
-            string url = $"{baseApiAddress}accounts/{address}";
-            UnityWebRequest webRequest = UnityWebRequest.Get(url);
-            UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
-            switch (response)
-            {
-                case UnityWebRequest.Result.Success:
-                    var result = JsonWrapper.Deserialize<AccountDto>(content);
-                    return result;
-                default:
-                    throw new APIException(JsonWrapper.Deserialize<APIExceptionResponse>(content));
-            }
+            return await Get<AccountDto>($"accounts/{address}");
         }
         #endregion
 
@@ -101,11 +97,18 @@ namespace MultiversXUnityTools
         {
             requestUri = requestUri.StartsWith("/") ? requestUri[1..] : requestUri;
             string request = $"{baseGatewayAddress}{requestUri}";
+#if DebugAPI
             Debug.Log("request " + request);
+#endif
             UnityWebRequest webRequest = UnityWebRequest.Get(request);
             UnityWebRequest.Result response = await webRequest.SendWebRequest();
-            var content = webRequest.downloadHandler.text;
+#if DebugAPI
             Debug.Log("response " + response);
+#endif
+            var content = webRequest.downloadHandler.text;
+#if DebugAPI
+            Debug.Log("content: " + content);
+#endif
             switch (response)
             {
                 case UnityWebRequest.Result.Success:

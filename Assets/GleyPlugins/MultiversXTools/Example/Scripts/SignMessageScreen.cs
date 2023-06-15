@@ -1,4 +1,5 @@
 using MultiversXUnityTools;
+using Mx.NET.SDK.Core.Domain;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,11 +30,13 @@ namespace MultiversXUnityExamples
             Manager.SignMessage(message.text, CompleteMethod);
         }
 
-        private void CompleteMethod(CompleteCallback<string> result)
+        private void CompleteMethod(CompleteCallback<SignableMessage> result)
         {
             if (result.status == OperationStatus.Success)
             {
-                this.result.text = result.data;
+                this.result.text = $"Message: {result.data.Message}\n" +
+                    $"Address: {result.data.Address}\n" +
+                    $"Signature: {result.data.Signature}";
             }
             else
             {

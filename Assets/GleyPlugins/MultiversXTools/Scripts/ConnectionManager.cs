@@ -60,8 +60,16 @@ namespace MultiversXUnityTools
                 Debug.LogError("No API settings file found -> Go to ... and generate one");
                 return;
             }
-            Debug.Log(apiSettings.selectedNetwork);
-            multiversXProvider = new MultiversXProviderUnity(new MultiversxNetworkConfiguration(apiSettings.selectedNetwork));
+
+            try
+            {
+                multiversXProvider = new MultiversXProviderUnity(new MultiversxNetworkConfiguration(apiSettings.selectedNetwork));
+            }
+            catch
+            {
+                OnWalletConnected?.Invoke(new CompleteCallback<Account>(OperationStatus.Error, $"Network not found: {apiSettings.selectedNetwork}", null));
+                return;
+            }
             try
             {
                 networkConfig = await LoadNetworkConfig(true, true);
@@ -164,18 +172,18 @@ namespace MultiversXUnityTools
         #endregion
 
 
-        internal async void SignMessage(string message, UnityAction<CompleteCallback<string>> completeMethod)
+        internal async void SignMessage(string message, UnityAction<CompleteCallback<SignableMessage>> completeMethod)
         {
             Debug.Log("Sign message");
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.InProgress, "Waiting to sign", null));
+                completeMethod?.Invoke(new CompleteCallback<SignableMessage>(OperationStatus.InProgress, "Waiting to sign", null));
                 SignableMessage signature = await walletConnectUnity.SignMessage(message);
-                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Success, "", signature.Signature));
+                completeMethod?.Invoke(new CompleteCallback<SignableMessage>(OperationStatus.Success, "", signature));
             }
             catch (Exception e)
             {
-                completeMethod?.Invoke(new CompleteCallback<string>(OperationStatus.Error, $"{e.Message}", null));
+                completeMethod?.Invoke(new CompleteCallback<SignableMessage>(OperationStatus.Error, $"{e.Message}", null));
             }
         }
 
@@ -458,6 +466,8 @@ namespace MultiversXUnityTools
         /// <param name="completeMethod"></param>
         public async void LoadWalletNFTs(UnityAction<CompleteCallback<NFTMetadata[]>> completeMethod)
         {
+
+
             try
             {
                 List<NFTMetadata> allNfts = await multiversXProvider.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
@@ -470,7 +480,7 @@ namespace MultiversXUnityTools
                         allNfts.RemoveAt(i);
                     }
                 }
-                Debug.Log(allNfts.Count + " again");
+
                 completeMethod?.Invoke(new CompleteCallback<NFTMetadata[]>(OperationStatus.Success, "", allNfts.ToArray()));
             }
             catch (Exception e)

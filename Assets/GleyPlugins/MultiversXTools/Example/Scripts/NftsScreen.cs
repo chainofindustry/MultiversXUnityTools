@@ -1,5 +1,4 @@
 using MultiversXUnityTools;
-using Newtonsoft.Json;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -52,8 +51,7 @@ namespace MultiversXUnityExamples
         private void LoadNFTComplete(CompleteCallback<NFTMetadata[]> result)
         {
             status.text = result.status + " " + result.errorMessage;
-            this.allNfts = result.data;
-            Debug.Log(allNfts.Length);
+            allNfts = result.data;
             if (result.status == OperationStatus.Success)
             {
                 //after all metadata is loaded the NFTs will be displayed in a scroll view
@@ -74,7 +72,14 @@ namespace MultiversXUnityExamples
         /// <returns></returns>
         IEnumerator LoadNFTs(NFTMetadata[] allNfts, int paralelDownloads)
         {
-            status.text = "Start downloading NFTs";
+            if (allNfts.Length == 0)
+            {
+                status.text = "No NFTs found";
+            }
+            else
+            {
+                status.text = "Start downloading NFTs";
+            }
             downloaded = 0;
             total = allNfts.Length;
             int started = 0;

@@ -26,7 +26,6 @@ namespace MultiversXUnityExamples
         private string defaultAddress = "erd1jza9qqw0l24svfmm2u8wj24gdf84hksd5xrctk0s0a36leyqptgs5whlhf";
         private string defaultMessage = "You see this?";
         private double egld = 0.001;
-        int transactionsToProcess;
 
         public override void Init(params object[] args)
         {
@@ -51,11 +50,16 @@ namespace MultiversXUnityExamples
         /// <param name="allTokens"></param>
         private void TokensLoaded(CompleteCallback<TokenMetadata[]> result)
         {
-            status.text = $"Tokens Loaded status: {result.status}. Error message: {result.errorMessage}";
+           
             if (result.status == OperationStatus.Success)
             {
+                status.text = $"Tokens Loaded";
                 //Add tokens to UI
                 PopulateUI(result.data);
+            }
+            else
+            {
+                status.text = $"Tokens Loaded: {result.status}. Error message: {result.errorMessage}";
             }
         }
 
@@ -171,21 +175,22 @@ namespace MultiversXUnityExamples
         /// <param name="message">if the operation status is complete, the message is the txHash</param>
         private void SigningStatusListener(CompleteCallback<string[]> result)
         {
-            status.text = $"Signing status: {result.status}. Message: {result.errorMessage} ";
-            if (result.status == OperationStatus.Success)
+
+            if (result.status == OperationStatus.InProgress)
             {
-                string txs = "";
-                foreach (string txHash in result.data)
-                {
-                    txs += txHash + "\n";
-                }
-                status.text += $" processing...";
-                transactionsToProcess = result.data.Length;
-                Manager.CheckTransactionStatus(result.data, TransactionProcessed, 1);
+                status.text = $"Waiting for xPortal signature";
             }
+
             if (result.status == OperationStatus.Error)
             {
+                status.text = $"Signing status: {result.status}. Message: {result.errorMessage} ";
                 //do something
+            }
+
+            if (result.status == OperationStatus.Success)
+            {
+                //check if the transaction is processed by blockchain
+                Manager.CheckTransactionStatus(result.data, TransactionProcessed, 1);
             }
         }
 
@@ -219,24 +224,6 @@ namespace MultiversXUnityExamples
                     status.text += $"Tx: {result.data[i].TxHash} : {result.data[i].Status}\n";
                 }
             }
-
-            //transactionsToProcess--;
-            //if (status.text.Contains("Tx pending:"))
-            //{
-            //    status.text = "";
-            //}
-
-
-
-            //if (transactionsToProcess == 0)
-            //{
-            //    //after all transactions are processed, refresh account balance
-            //    if (result.status == OperationStatus.Success)
-            //    {
-            //        Manager.RefreshAccount(RefreshDone);
-            //    }
-
-            //}
         }
 
 

@@ -112,7 +112,7 @@ namespace MultiversXUnityTools
         /// </summary>
         /// <param name="message"></param>
         /// <param name="completeMethod"></param>
-        public static void SignMessage(string message, UnityAction<CompleteCallback<string>> completeMethod)
+        public static void SignMessage(string message, UnityAction<CompleteCallback<SignableMessage>> completeMethod)
         {
             ConnectionManager.Instance.SignMessage(message, completeMethod);
         }

@@ -70,11 +70,15 @@ namespace MultiversXUnityExamples
         /// <param name="message">additional message</param>
         private void BlockchainTransactionListener(CompleteCallback<Transaction[]> result)
         {
-            demoScript.status.text = $"{result.data} {result.errorMessage}";
+            demoScript.status.text = $"Tx: {result.data[0].TxHash} : {result.data[0].Status}";
             if (result.status == OperationStatus.Success)
             {
                 demoScript.RefreshNFTs(collectionIdentifier, nonce);
                 Destroy(gameObject);
+            }
+            if(result.status == OperationStatus.Error)
+            {
+                demoScript.status.text = $"Tx: {result.data[0].TxHash} : {result.data[0].Status} {result.data[0].GetLogs()}\n";
             }
         }
     }

@@ -1,5 +1,4 @@
 using MultiversXUnityTools;
-using Mx.NET.SDK.Configuration;
 using Mx.NET.SDK.Domain.Data.Account;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,13 +11,13 @@ namespace MultiversXUnityExamples
         public Image qrImage;
         public GameObject warning;
         public GameObject loginButton;
+        public GameObject loading;
 
         public override void Init(params object[] args)
         {
-            loginButton.SetActive(false);   
-            //when this screen is active automatically call the connect method
-            Manager.Connect(OnConnected,DemoScript.Instance.OnDisconnected, OnSessionConnected, qrImage);
-            
+            loginButton.SetActive(false);
+            qrImage.gameObject.SetActive(false);
+
             //display warning is selected API is Mainnet 
             AppSettings apiSettings = Manager.GetApiSettings();
             if (apiSettings.selectedNetwork == Network.MainNet)
@@ -29,11 +28,18 @@ namespace MultiversXUnityExamples
             {
                 warning.SetActive(false);
             }
+
+            //when this screen is active automatically call the connect method
+            Manager.Connect(OnConnected,DemoScript.Instance.OnDisconnected, OnSessionConnected, qrImage);
+            
+           
         }
 
         private void OnSessionConnected(string arg0)
         {
             loginButton.SetActive(true);
+            qrImage.gameObject.SetActive(true);
+            loading.SetActive(false);
         }
 
 
@@ -63,9 +69,9 @@ namespace MultiversXUnityExamples
             }
             else
             {
-                Debug.LogError(result.errorMessage);
-                //reload
-                //DemoScript.Instance.LoadScreen(Screens.Login);
+                loading.SetActive(false);
+                warning.SetActive(true);
+                warning.GetComponent<Text>().text = result.errorMessage;
             }
         }
     }
