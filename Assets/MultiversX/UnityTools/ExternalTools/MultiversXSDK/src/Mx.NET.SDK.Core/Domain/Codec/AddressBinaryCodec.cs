@@ -18,8 +18,8 @@ namespace Mx.NET.SDK.Core.Domain.Codec
 
         public IBinaryType DecodeTopLevel(byte[] data, TypeValue type)
         {
-            var result = DecodeNested(data, type);
-            return result.Value;
+            var (value, _) = DecodeNested(data, type);
+            return value;
         }
 
         public byte[] EncodeNested(IBinaryType value)

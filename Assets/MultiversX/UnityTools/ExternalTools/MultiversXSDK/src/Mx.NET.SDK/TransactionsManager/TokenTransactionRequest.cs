@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Accounts;
 using Mx.NET.SDK.Domain.Data.Network;
 using Mx.NET.SDK.Domain.Data.Properties;
 using static Mx.NET.SDK.Core.Domain.Constants.Constants;
@@ -34,6 +34,7 @@ namespace Mx.NET.SDK.TransactionsManager
         private const string WIPE = "wipe";
         private const string SET_SPECIAL_ROLE = "setSpecialRole";
         private const string UNSET_SPECIAL_ROLE = "unSetSpecialRole";
+        private const string SEND_ALL_TRANSFER_ROLES_ADDRESSES = "sendAllTransferRoleAddresses";
         private const string TRANSFER_OWNERSHIP = "transferOwnership";
         private const string CONTROL_CHANGES = "controlChanges";
 
@@ -331,7 +332,7 @@ namespace Mx.NET.SDK.TransactionsManager
                 arguments.Add(BytesValue.FromUtf8(ESDTTokenProperties.CanUpgrade));
                 arguments.Add(BytesValue.FromUtf8(properties.CanUpgrade.ToString().ToLower()));
                 arguments.Add(BytesValue.FromUtf8(ESDTTokenProperties.CanAddSpecialRoles));
-                arguments.Add(BytesValue.FromUtf8((properties.CanAddSpecialRoles ?? true).ToString().ToLower()));
+                arguments.Add(BytesValue.FromUtf8(properties.CanAddSpecialRoles.ToString().ToLower()));
                 arguments.AddRange(args);
             }
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
@@ -381,13 +382,13 @@ namespace Mx.NET.SDK.TransactionsManager
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
         /// <param name="tokenIdentifier">Token identifier</param>
-        /// <param name="supplyToBurn">The ESDT supply to burn locally</param>
+        /// <param name="amountToBurn">The ESDT amount to burn locally</param>
         /// <returns></returns>
         public static TransactionRequest LocalBurn(
             NetworkConfig networkConfig,
             Account account,
             ESDTIdentifierValue tokenIdentifier,
-            ESDTAmount supplyToBurn)
+            ESDTAmount amountToBurn)
         {
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
                                                                                            account,
@@ -395,7 +396,7 @@ namespace Mx.NET.SDK.TransactionsManager
                                                                                            ESDTAmount.Zero(),
                                                                                            ESDT_LOCAL_BURN,
                                                                                            tokenIdentifier,
-                                                                                           NumericValue.BigUintValue(supplyToBurn.Value));
+                                                                                           NumericValue.BigUintValue(amountToBurn.Value));
 
             transaction.SetGasLimit(new GasLimit(500000));
 
@@ -558,8 +559,7 @@ namespace Mx.NET.SDK.TransactionsManager
             };
             arguments.AddRange(rolesValue);
 
-            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(
-                                                                                           networkConfig,
+            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
                                                                                            account,
                                                                                            SYSTEM_SMART_CONTRACT_ADDRESS,
                                                                                            ESDTAmount.Zero(),
@@ -597,13 +597,36 @@ namespace Mx.NET.SDK.TransactionsManager
             };
             arguments.AddRange(rolesValue);
 
-            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(
-                                                                                           networkConfig,
+            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
                                                                                            account,
                                                                                            SYSTEM_SMART_CONTRACT_ADDRESS,
                                                                                            ESDTAmount.Zero(),
                                                                                            UNSET_SPECIAL_ROLE,
                                                                                            arguments.ToArray());
+
+            transaction.SetGasLimit(new GasLimit(60000000));
+
+            return transaction;
+        }
+
+        /// <summary>
+        /// Create transaction request - Update to follow the latest implementation for token transferability
+        /// </summary>
+        /// <param name="networkConfig">MultiversX Network Configuration</param>
+        /// <param name="account">Sender Account</param>
+        /// <param name="tokenIdentifier">Token identifier</param>
+        /// <returns></returns>
+        public static TransactionRequest SendAllTransferRoleAddresses(
+            NetworkConfig networkConfig,
+            Account account,
+            ESDTIdentifierValue tokenIdentifier)
+        {
+            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
+                                                                                           account,
+                                                                                           SYSTEM_SMART_CONTRACT_ADDRESS,
+                                                                                           ESDTAmount.Zero(),
+                                                                                           SEND_ALL_TRANSFER_ROLES_ADDRESSES,
+                                                                                           tokenIdentifier);
 
             transaction.SetGasLimit(new GasLimit(60000000));
 
@@ -672,7 +695,7 @@ namespace Mx.NET.SDK.TransactionsManager
                 BytesValue.FromUtf8(ESDTTokenProperties.CanUpgrade),
                 BytesValue.FromUtf8(properties.CanUpgrade.ToString().ToLower()),
                 BytesValue.FromUtf8(ESDTTokenProperties.CanAddSpecialRoles),
-                BytesValue.FromUtf8((properties.CanAddSpecialRoles ?? true).ToString().ToLower())
+                BytesValue.FromUtf8(properties.CanAddSpecialRoles.ToString().ToLower())
             };
             arguments.AddRange(args);
 

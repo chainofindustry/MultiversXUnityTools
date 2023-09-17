@@ -1,9 +1,9 @@
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Core.Domain.Values;
 using Mx.NET.SDK.Domain;
-using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Accounts;
 using Mx.NET.SDK.Domain.Data.Network;
-using Mx.NET.SDK.Domain.Data.Transaction;
+using Mx.NET.SDK.Domain.Data.Transactions;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -136,9 +136,9 @@ namespace MultiversX.UnityTools
         /// <typeparam name="T">Return type</typeparam>
         /// <param name="url">Get API url</param>
         /// <param name="completeMethod">Complete listener (operation status, error message, return data)</param>
-        public static void GetRequest<T>(string url, UnityAction<CompleteCallback<T>> completeMethod)
+        public static void GetRequest<T>(IUnityProvider provider, string url, UnityAction<CompleteCallback<T>> completeMethod)
         {
-            ConnectionManager.Instance.GetRequest(url, completeMethod);
+            ConnectionManager.Instance.GetRequest(provider, url, completeMethod);
         }
 
 
@@ -148,9 +148,19 @@ namespace MultiversX.UnityTools
         /// <param name="url">Post url</param>
         /// <param name="jsonData">json data to send</param>
         /// <param name="completeMethod">Complete listener (operation status, error message, return data)</param>
-        public static void PostRequest<T>(string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
+        public static void PostRequest<T>(IUnityProvider provider, string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
         {
-            ConnectionManager.Instance.PostRequest(url, jsonData, completeMethod);
+            ConnectionManager.Instance.PostRequest(provider, url, jsonData, completeMethod);
+        }
+
+        public static IApiProviderUnity GetApiProvider()
+        {
+            return ConnectionManager.Instance.GetApiProvider();
+        }
+
+        public static IGatewayProviderUnity GetGatewayProvider()
+        {
+            return ConnectionManager.Instance.GetGatewayProvider();
         }
 
         /// <summary>
@@ -237,7 +247,7 @@ namespace MultiversX.UnityTools
         /// <param name="completeMethod">Callback to get the result of the query after finished</param>
         /// <param name="outputType">Type of expected result</param>
         /// <param name="args">The list of arguments</param>        
-        public static void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<CompleteCallback<T>> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
+        public static void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<CompleteCallback<T>> completeMethod, TypeValue[] outputType, params IBinaryType[] args) where T : IBinaryType
         {
             ConnectionManager.Instance.MakeSCQuery(scAddress, methodName, completeMethod, outputType, args);
         }

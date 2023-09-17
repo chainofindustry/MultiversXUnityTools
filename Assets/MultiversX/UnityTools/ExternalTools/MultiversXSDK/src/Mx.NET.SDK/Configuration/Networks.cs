@@ -5,6 +5,7 @@
         LocalNet,
         MainNet,
         TestNet,
-        DevNet
+        DevNet,
+        DevNet2
     }
 }

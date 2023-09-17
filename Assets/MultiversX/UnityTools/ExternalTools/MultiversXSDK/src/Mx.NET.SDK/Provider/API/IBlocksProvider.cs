@@ -1,4 +1,4 @@
-﻿using Mx.NET.SDK.Provider.Dtos.API.Block;
+﻿using Mx.NET.SDK.Provider.Dtos.API.Blocks;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

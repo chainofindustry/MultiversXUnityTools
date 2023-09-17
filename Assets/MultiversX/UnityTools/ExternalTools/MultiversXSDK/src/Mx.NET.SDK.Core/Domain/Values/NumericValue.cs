@@ -51,5 +51,10 @@ namespace Mx.NET.SDK.Core.Domain.Values
         {
             return Number.ToString();
         }
+
+        public override string ToJson()
+        {
+            return Number.ToString();
+        }
     }
 }

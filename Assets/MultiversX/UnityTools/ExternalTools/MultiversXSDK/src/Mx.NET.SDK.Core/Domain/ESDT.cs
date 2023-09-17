@@ -122,13 +122,13 @@ namespace Mx.NET.SDK.Core.Domain
         }
 
         /// <summary>
-        /// Token Identifiers are equal
+        /// ESDT Identifiers are equal
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="esdt"></param>
         /// <returns></returns>
-        public bool Equals(ESDT token)
+        public bool Equals(ESDT esdt)
         {
-            return Identifier == token.Identifier;
+            return Identifier == esdt.Identifier;
         }
     }
 }

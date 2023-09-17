@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
 
 namespace Mx.NET.SDK.Core.Domain.Codec
@@ -18,26 +19,25 @@ namespace Mx.NET.SDK.Core.Domain.Codec
         {
             var fieldDefinitions = type.GetFieldDefinitions();
             var fields = new List<StructField>();
-            var buffer = data.ToList();
+            var originalBuffer = data;
             var offset = 0;
+
             foreach (var fieldDefinition in fieldDefinitions)
             {
-                var (value, bytesLength) = _binaryCodec.DecodeNested(buffer.ToArray(), fieldDefinition.Type);
+                var (value, bytesLength) = _binaryCodec.DecodeNested(data, fieldDefinition.Type);
                 fields.Add(new StructField(fieldDefinition.Name, value));
-
                 offset += bytesLength;
-                buffer = buffer.Skip(bytesLength).ToList();
+                data = originalBuffer.Slice(offset);
             }
 
-            var structObject = new StructValue(type, fields.ToArray());
-
-            return (structObject, offset);
+            var structValue = new StructValue(type, fields.ToArray());
+            return (structValue, offset);
         }
 
         public IBinaryType DecodeTopLevel(byte[] data, TypeValue type)
         {
-            var decoded = DecodeNested(data, type);
-            return decoded.Value;
+            var (value, _) = DecodeNested(data, type);
+            return value;
         }
 
         public byte[] EncodeNested(IBinaryType value)
@@ -53,7 +53,6 @@ namespace Mx.NET.SDK.Core.Domain.Codec
             }
 
             var data = buffers.SelectMany(s => s);
-
             return data.ToArray();
         }
 

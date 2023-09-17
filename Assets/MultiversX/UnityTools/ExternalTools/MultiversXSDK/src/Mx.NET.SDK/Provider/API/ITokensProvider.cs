@@ -1,5 +1,5 @@
 ﻿using Mx.NET.SDK.Provider.Dtos.API.Common;
-using Mx.NET.SDK.Provider.Dtos.API.Token;
+using Mx.NET.SDK.Provider.Dtos.API.Tokens;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

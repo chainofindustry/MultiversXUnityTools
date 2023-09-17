@@ -1,6 +1,6 @@
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Domain;
-using Mx.NET.SDK.Provider.Dtos.API.Transactions;
+using Mx.NET.SDK.Provider.Dtos.Common.Transactions;
 using Mx.NET.SDK.WalletConnect;
 using System;
 using System.Threading.Tasks;

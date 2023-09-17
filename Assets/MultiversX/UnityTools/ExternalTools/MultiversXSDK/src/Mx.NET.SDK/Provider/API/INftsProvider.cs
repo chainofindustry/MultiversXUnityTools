@@ -1,5 +1,5 @@
 ﻿using Mx.NET.SDK.Provider.Dtos.API.Common;
-using Mx.NET.SDK.Provider.Dtos.API.NFT;
+using Mx.NET.SDK.Provider.Dtos.API.NFTs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
 
 namespace Mx.NET.SDK.Core.Domain.Codec
@@ -18,14 +19,15 @@ namespace Mx.NET.SDK.Core.Domain.Codec
         public (IBinaryType Value, int BytesLength) DecodeNested(byte[] data, TypeValue type)
         {
             var result = new Dictionary<TypeValue, IBinaryType>();
-            var buffer = data.ToList();
+            var originalBuffer = data;
             var offset = 0;
+
             foreach (var multiType in type.MultiTypes)
             {
-                var (value, bytesLength) = _binaryCodec.DecodeNested(buffer.ToArray(), multiType);
+                var (value, bytesLength) = _binaryCodec.DecodeNested(data, multiType);
                 result.Add(multiType, value);
                 offset += bytesLength;
-                buffer = buffer.Skip(bytesLength).ToList();
+                data = originalBuffer.Slice(offset);
             }
 
             var multiValue = new MultiValue(type, result);
@@ -34,8 +36,8 @@ namespace Mx.NET.SDK.Core.Domain.Codec
 
         public IBinaryType DecodeTopLevel(byte[] data, TypeValue type)
         {
-            var decoded = DecodeNested(data, type);
-            return decoded.Value;
+            var (value, _) = _binaryCodec.DecodeNested(data, type);
+            return value;
         }
 
         public byte[] EncodeNested(IBinaryType value)

@@ -1,6 +1,6 @@
 using Mx.NET.SDK.Core.Domain;
-using Mx.NET.SDK.Domain.Data.Account;
-using Mx.NET.SDK.Domain.Data.Transaction;
+using Mx.NET.SDK.Domain.Data.Accounts;
+using Mx.NET.SDK.Domain.Data.Transactions;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;

@@ -1,5 +1,6 @@
 ﻿using Mx.NET.SDK.Provider.API;
 using Mx.NET.SDK.Provider.Dtos.API.Network;
+using Mx.NET.SDK.Provider.Dtos.Gateway.Network;
 using System.Threading.Tasks;
 
 namespace Mx.NET.SDK.Domain.Data.Network
@@ -28,7 +29,7 @@ namespace Mx.NET.SDK.Domain.Data.Network
         }
 
         /// <summary>
-        /// Gets the Network Stats
+        /// Get general network statistics From API
         /// </summary>
         /// <param name="provider">Network provider</param>
         /// <returns>NetworkEconomics</returns>

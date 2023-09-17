@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Numerics;
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
@@ -10,6 +8,8 @@ namespace Mx.NET.SDK.Core.Domain.Codec
     public class NumericBinaryCodec : IBinaryCodec
     {
         public string Type => TypeValue.BinaryTypes.Numeric;
+
+        private const int BytesSizeOfU32 = 4;
 
         public (IBinaryType Value, int BytesLength) DecodeNested(byte[] data, TypeValue type)
         {
@@ -22,16 +22,11 @@ namespace Mx.NET.SDK.Core.Domain.Codec
             }
             else
             {
-                const int u32Size = 4;
-                var sizeInBytes = (int)BitConverter.ToUInt32(data.Slice(0, u32Size), 0);
-                if (BitConverter.IsLittleEndian)
-                {
-                    sizeInBytes = (int)BitConverter.ToUInt32(data.Slice(0, u32Size).Reverse().ToArray(), 0);
-                }
-
-                var payload = data.Skip(u32Size).Take(sizeInBytes).ToArray();
+                var sizeInBytes = data.ReadUInt32BE(0);
+                var payload = data.Slice(BytesSizeOfU32, BytesSizeOfU32 + sizeInBytes);
                 var bigNumber = Converter.ToBigInteger(payload, !type.HasSign(), isBigEndian: true);
-                return (new NumericValue(type, bigNumber), sizeInBytes + u32Size);
+
+                return (new NumericValue(type, bigNumber), BytesSizeOfU32 + payload.Length);
             }
         }
 
@@ -48,11 +43,11 @@ namespace Mx.NET.SDK.Core.Domain.Codec
 
         public byte[] EncodeNested(IBinaryType value)
         {
-            var numericValue = value.ValueOf<NumericValue>();
+            var numericValueObject = value.ValueOf<NumericValue>();
             if (value.Type.HasFixedSize())
             {
                 var sizeInBytes = value.Type.SizeInBytes();
-                var number = numericValue.Number;
+                var number = numericValueObject.Number;
                 var fullArray = Enumerable.Repeat((byte)0x00, sizeInBytes).ToArray();
                 if (number.IsZero)
                 {
@@ -62,26 +57,18 @@ namespace Mx.NET.SDK.Core.Domain.Codec
                 var payload = Converter.FromBigInteger(number, !value.Type.HasSign(), true);
                 var payloadLength = payload.Length;
 
-                var buffer = new List<byte>();
-                buffer.AddRange(fullArray.Slice(0, sizeInBytes - payloadLength));
-                buffer.AddRange(payload);
-                var data = buffer.ToArray();
-                return data;
+                var data = fullArray.Slice(0, sizeInBytes - payloadLength).Concat(payload);
+                return data.ToArray();
             }
             else
             {
                 var payload = EncodeTopLevel(value);
-                var sizeBytes = BitConverter.GetBytes(payload.Length).ToList();
-                if (BitConverter.IsLittleEndian)
-                {
-                    sizeBytes.Reverse();
-                }
 
-                var buffer = new List<byte>();
-                buffer.AddRange(sizeBytes);
-                buffer.AddRange(payload);
-                var data = buffer.ToArray();
-                return data;
+                var lengthBuffer = new byte[4];
+                lengthBuffer.WriteUInt32BE(payload.Length);
+
+                var data = lengthBuffer.Concat(payload);
+                return data.ToArray();
             }
         }
 

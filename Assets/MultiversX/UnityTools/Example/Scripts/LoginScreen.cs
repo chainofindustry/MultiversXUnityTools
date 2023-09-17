@@ -1,4 +1,4 @@
-using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Accounts;
 using UnityEngine;
 using UnityEngine.UI;
 using Network = Mx.NET.SDK.Configuration.Network;

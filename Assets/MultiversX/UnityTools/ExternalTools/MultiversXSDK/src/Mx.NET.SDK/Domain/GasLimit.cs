@@ -14,6 +14,7 @@ namespace Mx.NET.SDK.Domain
 
         public static GasLimit operator +(GasLimit gasLimit1, GasLimit gasLimit2) => new GasLimit(gasLimit1.Value + gasLimit2.Value);
         public static GasLimit operator +(long gas, GasLimit gasLimit) => new GasLimit(gasLimit.Value + gas);
+        public static GasLimit operator +(GasLimit gasLimit, long gas) => new GasLimit(gasLimit.Value + gas);
 
         /// <summary>
         /// Compute GasLimit for transaction

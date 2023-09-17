@@ -1,5 +1,5 @@
 ## Mx.NET.SDK.Wallet
-⚡ MultiversX .NET Wallet SDK: Wallet and crypto components for [Mx.NET.SDK](https://github.com/RemarkableTools/Mx.NET.SDK)
+⚡ MultiversX .NET Wallet SDK: Wallet and crypto components for MultiversX Wallets
 
 ## How to install?
 The content is delivered via nuget package:
@@ -7,5 +7,4 @@ The content is delivered via nuget package:
 
 ## Info
 This SDK depends on:
-* [Mx.NET.SDK](https://github.com/RemarkableTools/Mx.NET.SDK)
 * [Mx.NET.SDK.Core](https://github.com/RemarkableTools/Mx.NET.SDK/tree/main/src/Mx.NET.SDK.Core)

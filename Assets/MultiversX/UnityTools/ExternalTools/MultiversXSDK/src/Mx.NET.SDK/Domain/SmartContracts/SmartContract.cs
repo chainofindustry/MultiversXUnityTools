@@ -7,11 +7,11 @@ using Mx.NET.SDK.Core.Domain.Abi;
 using Mx.NET.SDK.Core.Domain.Codec;
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Domain.Exceptions;
-using Mx.NET.SDK.Provider.Gateway;
-using Mx.NET.SDK.Provider.Dtos.Gateway.Query;
+using Mx.NET.SDK.Provider.Dtos.Common.QueryVm;
 using Org.BouncyCastle.Crypto.Digests;
 using static Mx.NET.SDK.Core.Domain.Constants.Constants;
+using Mx.NET.SDK.Domain.Exceptions;
+using Mx.NET.SDK.Provider;
 
 namespace Mx.NET.SDK.Domain.SmartContracts
 {
@@ -60,10 +60,10 @@ namespace Mx.NET.SDK.Domain.SmartContracts
         }
 
         /// <summary>
-        /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution results (the Virtual Machine Output).
+        /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution results (the Virtual Machine Output) from Gateway.
         /// </summary>
-        /// <param name="provider">MultiversX provider</param>
-        /// <param name="address">The Address of the Smart Contract.</param>
+        /// <param name="provider">Gateway provider</param>
+        /// <param name="address">The Addresses of the Smart Contract.</param>
         /// <param name="abiDefinition">The smart contract ABI Definition</param>
         /// <param name="endpoint">The name of the Pure Function to execute.</param>
         /// <param name="caller">Optional caller</param>
@@ -79,18 +79,40 @@ namespace Mx.NET.SDK.Domain.SmartContracts
         {
             var endpointDefinition = abiDefinition.GetEndpointDefinition(endpoint);
             var outputs = endpointDefinition.Output.Select(o => o.Type).ToArray();
-            if (outputs.Length != 1)
-                throw new Exception("Bad output quantities in ABI definition. Should only be one.");
 
-            return QuerySmartContract<T>(provider, address, outputs[0], endpoint, caller, args);
+            return QuerySmartContract<T>(provider, address, outputs, endpoint, caller, args);
         }
 
         /// <summary>
-        /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution results (the Virtual Machine Output).
+        /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution results (the Virtual Machine Output) from API.
+        /// </summary>
+        /// <param name="provider">API provider</param>
+        /// <param name="address">The Addresses of the Smart Contract.</param>
+        /// <param name="abiDefinition">The smart contract ABI Definition</param>
+        /// <param name="endpoint">The name of the Pure Function to execute.</param>
+        /// <param name="caller">Optional caller</param>
+        /// <param name="args">The arguments of the Pure Function. Can be empty</param>
+        /// <returns>The response</returns>
+        public static Task<T> QuerySmartContractWithAbiDefinition<T>(
+            IApiProvider provider,
+            Address address,
+            AbiDefinition abiDefinition,
+            string endpoint,
+            Address caller = null,
+            params IBinaryType[] args) where T : IBinaryType
+        {
+            var endpointDefinition = abiDefinition.GetEndpointDefinition(endpoint);
+            var outputs = endpointDefinition.Output.Select(o => o.Type).ToArray();
+
+            return QuerySmartContract<T>(provider, address, outputs, endpoint, caller, args);
+        }
+
+        /// <summary>
+        /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution results (the Virtual Machine Output) from Gaetway.
         /// </summary>
         /// <param name="provider">MultiversX provider</param>
         /// <param name="address">The Address of the Smart Contract.</param>
-        /// <param name="outputTypeValue">Output value type of the response</param>
+        /// <param name="outputTypes">Output value types of the response</param>
         /// <param name="endpoint">The name of the Pure Function to execute.</param>
         /// <param name="caller">Optional caller</param>
         /// <param name="args">The arguments of the Pure Function. Can be empty</param>
@@ -98,7 +120,7 @@ namespace Mx.NET.SDK.Domain.SmartContracts
         public static async Task<T> QuerySmartContract<T>(
             IGatewayProvider provider,
             Address address,
-            TypeValue outputTypeValue,
+            TypeValue[] outputTypes,
             string endpoint,
             Address caller = null,
             params IBinaryType[] args) where T : IBinaryType
@@ -117,44 +139,26 @@ namespace Mx.NET.SDK.Domain.SmartContracts
                 throw new APIException(data.ReturnMessage);
             }
 
-            if (data.ReturnData.Length == 0)
-            {
-                return (T)BinaryCoder.DecodeTopLevel(new byte[0], outputTypeValue);
-            }
-
-            if (data.ReturnData.Length > 1)
-            {
-                var multiTypes = outputTypeValue.MultiTypes;
-                var optional = false;
-                if (outputTypeValue.BinaryType == TypeValue.BinaryTypes.Option)
-                {
-                    optional = true;
-                    multiTypes = outputTypeValue.InnerType?.MultiTypes;
-                }
-
-                var decodedValues = new List<IBinaryType>();
-                for (var i = 0; i < multiTypes.Length; i++)
-                {
-                    var decoded = BinaryCoder.DecodeTopLevel(Convert.FromBase64String(data.ReturnData[i]), multiTypes[i]);
-                    decodedValues.Add(decoded);
-                }
-
-                var multiValue = MultiValue.From(decodedValues.ToArray());
-                return (T)(optional ? OptionValue.NewProvided(multiValue) : (IBinaryType)multiValue);
-            }
-
-            var returnData = Convert.FromBase64String(data.ReturnData[0]);
-            var decodedResponse = BinaryCoder.DecodeTopLevel(returnData, outputTypeValue);
-            return (T)decodedResponse;
+            return GetResults<T>(outputTypes, data.ReturnData);
         }
 
-        public static async Task<T[]> QueryArraySmartContract<T>(
-                IGatewayProvider provider,
-                Address address,
-                TypeValue outputTypeValue,
-                string endpoint,
-                Address caller = null,
-                params IBinaryType[] args) where T : IBinaryType
+        /// <summary>
+        /// Allows one to execute - with no side-effects - a pure function of a Smart Contract and retrieve the execution results (the Virtual Machine Output) from API.
+        /// </summary>
+        /// <param name="provider">MultiversX provider</param>
+        /// <param name="address">The Address of the Smart Contract.</param>
+        /// <param name="outputTypes">Output value types of the response</param>
+        /// <param name="endpoint">The name of the Pure Function to execute.</param>
+        /// <param name="caller">Optional caller</param>
+        /// <param name="args">The arguments of the Pure Function. Can be empty</param>
+        /// <returns>The response</returns>
+        public static async Task<T> QuerySmartContract<T>(
+            IApiProvider provider,
+            Address address,
+            TypeValue[] outputTypes,
+            string endpoint,
+            Address caller = null,
+            params IBinaryType[] args) where T : IBinaryType
         {
             var arguments = args
                            .Select(typeValue => Converter.ToHexString(BinaryCoder.EncodeTopLevel(typeValue)))
@@ -163,23 +167,91 @@ namespace Mx.NET.SDK.Domain.SmartContracts
             var query = new QueryVmRequestDto { FuncName = endpoint, Args = arguments, ScAddress = address.Bech32, Caller = caller?.Bech32 };
 
             var response = await provider.QueryVm(query);
-            var data = response.Data;
+            var data = response;
 
-            if (data.ReturnData is null)
+            return GetResults<T>(outputTypes, data.ReturnData ?? Array.Empty<string>());
+        }
+
+        public static T GetResults<T>(
+            TypeValue[] outputTypes,
+            string[] data)
+        {
+            var buffers = data.Select(d => Convert.FromBase64String(d)).ToArray();
+            var outputValues = new List<IBinaryType>();
+            var bufferIndex = 0;
+            int numBuffers = buffers.Length;
+
+            foreach (var outputType in outputTypes)
             {
-                throw new APIException(data.ReturnMessage);
+                var value = ReadValue(outputType);
+                outputValues.Add(value);
             }
 
-            if (data.ReturnData.Length == 0)
+            IBinaryType ReadValue(TypeValue typeValue)
             {
-                return Array.Empty<T>();
+                if (typeValue.BinaryType == TypeValue.BinaryTypes.Optional)
+                {
+                    IBinaryType value = ReadValue(typeValue.InnerType);
+                    return OptionalValue.NewProvided(value);
+                }
+                else if (typeValue.BinaryType == TypeValue.BinaryTypes.Variadic)
+                {
+                    return ReadVariadicValue(typeValue);
+                }
+                else if (typeValue.BinaryType == TypeValue.BinaryTypes.Multi)
+                {
+                    var values = new Dictionary<TypeValue, IBinaryType>();
+
+                    foreach (var type in typeValue.MultiTypes)
+                        values.Add(type, ReadValue(type));
+                    return new MultiValue(typeValue, values);
+                }
+                else
+                {
+                    var value = DecodeNextBuffer(typeValue);
+                    return value;
+                }
             }
 
-            var decodedValues = new T[data.ReturnData.Length];
-            for (var i = 0; i < data.ReturnData.Length; i++)
-                decodedValues[i] = (T)BinaryCoder.DecodeTopLevel(Convert.FromBase64String(data.ReturnData[i]), outputTypeValue);
+            IBinaryType ReadVariadicValue(TypeValue typeValue)
+            {
+                var values = new List<IBinaryType>();
 
-            return decodedValues;
+                if (typeValue.IsCounted())
+                {
+                    var count = ReadValue(TypeValue.U32TypeValue).ToObject<uint>();
+                    for (var i = 0; i < count; i++)
+                        values.Add(ReadValue(typeValue.InnerType));
+                }
+                else
+                {
+                    while (!HasReachedTheEnd())
+                        values.Add(ReadValue(typeValue.InnerType));
+                }
+                return new VariadicValue(typeValue, typeValue.InnerType, values.ToArray());
+            }
+
+            IBinaryType DecodeNextBuffer(TypeValue typeValue)
+            {
+                if (HasReachedTheEnd())
+                {
+                    return null;
+                }
+
+                var buffer = buffers[bufferIndex++];
+                var decodedValue = BinaryCoder.DecodeTopLevel(buffer, typeValue);
+                return decodedValue;
+            }
+
+            bool HasReachedTheEnd()
+            {
+                return bufferIndex >= numBuffers;
+            }
+
+            if (outputValues.Count == 1)
+                return (T)outputValues[0];
+            else
+                return (T)(IBinaryType)MultiValue.From(outputValues.ToArray());
         }
 
         private static byte[] ConcatByteArrays(params byte[][] arrays)

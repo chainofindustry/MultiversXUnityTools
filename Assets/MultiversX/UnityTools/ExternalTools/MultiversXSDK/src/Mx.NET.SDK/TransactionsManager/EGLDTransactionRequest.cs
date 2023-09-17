@@ -1,6 +1,6 @@
 ﻿using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Accounts;
 using Mx.NET.SDK.Domain.Data.Network;
 using Mx.NET.SDK.Core.Domain;
 

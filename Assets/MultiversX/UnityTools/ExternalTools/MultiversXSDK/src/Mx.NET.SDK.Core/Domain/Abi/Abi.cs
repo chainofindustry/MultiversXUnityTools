@@ -9,7 +9,7 @@ namespace Mx.NET.SDK.Core.Domain.Abi
             public string Name { get; set; }
             public string Type { get; set; }
 
-            [JsonProperty("multi_arg")] 
+            [JsonProperty("multi_arg")]
             public bool MultiArg { get; set; }
         }
 
@@ -17,12 +17,19 @@ namespace Mx.NET.SDK.Core.Domain.Abi
         {
             public string Type { get; set; }
             public Field[] Fields { get; set; }
+            public Variant[] Variants { get; set; }
         }
 
         public class Field
         {
             public string Name { get; set; }
             public string Type { get; set; }
+        }
+
+        public class Variant
+        {
+            public string Name { get; set; }
+            public int Discriminant { get; set; }
         }
 
         public class Endpoint
@@ -33,11 +40,17 @@ namespace Mx.NET.SDK.Core.Domain.Abi
             public string[] PayableInTokens { get; set; }
         }
 
+        public class Event
+        {
+            public string Identifier { get; set; }
+            public Input[] Inputs { get; set; }
+        }
+
         public class Output
         {
             public string Type { get; set; }
 
-            [JsonProperty("multi_result")] 
+            [JsonProperty("multi_result")]
             public bool MultiResult { get; set; }
         }
     }

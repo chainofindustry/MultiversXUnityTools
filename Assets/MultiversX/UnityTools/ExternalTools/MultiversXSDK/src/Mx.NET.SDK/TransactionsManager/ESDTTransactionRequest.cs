@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Accounts;
 using Mx.NET.SDK.Domain.Data.Network;
 using Mx.NET.SDK.Domain.Data.Properties;
 using Mx.NET.SDK.Core.Domain;
@@ -35,6 +35,8 @@ namespace Mx.NET.SDK.TransactionsManager
         private const string ESDT_NFT_ADD_URI = "ESDTNFTAddURI";
         private const string ESDT_NFT_ADD_QUANTITY = "ESDTNFTAddQuantity";
         private const string ESDT_NFT_BURN = "ESDTNFTBurn";
+        private const string PAUSE = "pause";
+        private const string UNPAUSE = "unPause";
         private const string FREEZE_SINGLE_NFT = "freezeSingleNFT";
         private const string UNFREEZE_SINGLE_NFT = "unFreezeSingleNFT";
         private const string WIPE_SINGLE_NFT = "wipeSingleNFT";
@@ -681,7 +683,7 @@ namespace Mx.NET.SDK.TransactionsManager
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
-        /// <param name="collectionIdentifier">Collection identifier</param>
+        /// <param name="collectionIdentifier">NFT collection identifier</param>
         /// <param name="nftNonce">NFT nonce</param>
         /// <param name="attributes">Arbitrary field that should contain a set of attributes in the format desired by the creator</param>
         /// <returns></returns>
@@ -714,7 +716,7 @@ namespace Mx.NET.SDK.TransactionsManager
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
-        /// <param name="collectionIdentifier">Collection identifier</param>
+        /// <param name="collectionIdentifier">NFT collection identifier</param>
         /// <param name="nftNonce">NFT nonce</param>
         /// <param name="uris">Minimum one field that should contain the Uniform Resource Identifier. Can be a URL to a media file or something similar.</param>
         /// <returns></returns>
@@ -723,7 +725,7 @@ namespace Mx.NET.SDK.TransactionsManager
             Account account,
             ESDTIdentifierValue collectionIdentifier,
             ulong nftNonce,
-            Uri[] uris)
+            params Uri[] uris)
         {
             var urisValue = uris.Select(u => (IBinaryType)BytesValue.FromUtf8(u.AbsoluteUri)).ToArray();
 
@@ -747,21 +749,21 @@ namespace Mx.NET.SDK.TransactionsManager
         }
 
         /// <summary>
-        /// Create transaction request - SFT (only) Add quantity
+        /// Create transaction request - SFT/MetaESDT (only) Add quantity
         /// 'ESDTRoleNFTAddQuantity' role must have been assigned to account
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
-        /// <param name="collectionIdentifier">Collection identifier</param>
-        /// <param name="sftNonce">SFT nonce</param>
-        /// <param name="quantity">Quantity to add</param>
+        /// <param name="collectionIdentifier">SFT/MetaESDT collection identifier</param>
+        /// <param name="nonce">nonce</param>
+        /// <param name="quantityToAdd">Quantity to add</param>
         /// <returns></returns>
-        public static TransactionRequest SFTAddQuantity(
+        public static TransactionRequest AddQuantity(
             NetworkConfig networkConfig,
             Account account,
             ESDTIdentifierValue collectionIdentifier,
-            ulong sftNonce,
-            BigInteger quantity)
+            ulong nonce,
+            ESDTAmount quantityToAdd)
         {
 
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
@@ -770,10 +772,10 @@ namespace Mx.NET.SDK.TransactionsManager
                                                                                            ESDTAmount.Zero(),
                                                                                            ESDT_NFT_ADD_QUANTITY,
                                                                                            collectionIdentifier,
-                                                                                           NumericValue.U64Value(sftNonce),
-                                                                                           NumericValue.BigUintValue(quantity));
+                                                                                           NumericValue.U64Value(nonce),
+                                                                                           NumericValue.BigUintValue(quantityToAdd.Value));
 
-            transaction.SetGasLimit(new GasLimit(500000));
+            transaction.SetGasLimit(new GasLimit(1000000));
 
             return transaction;
         }
@@ -785,15 +787,15 @@ namespace Mx.NET.SDK.TransactionsManager
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
         /// <param name="collectionIdentifier">Collection identifier</param>
-        /// <param name="nftNonce">NFT nonce</param>
-        /// <param name="quantity">Quantity to burn</param>
+        /// <param name="nonce">nonce</param>
+        /// <param name="quantityToBurn">Quantity to burn</param>
         /// <returns></returns>
-        public static TransactionRequest NFTBurn(
+        public static TransactionRequest BurnQuantity(
             NetworkConfig networkConfig,
             Account account,
             ESDTIdentifierValue collectionIdentifier,
-            ulong nftNonce,
-            BigInteger quantity)
+            ulong nonce,
+            ESDTAmount quantityToBurn)
         {
 
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
@@ -802,8 +804,8 @@ namespace Mx.NET.SDK.TransactionsManager
                                                                                            ESDTAmount.Zero(),
                                                                                            ESDT_NFT_BURN,
                                                                                            collectionIdentifier,
-                                                                                           NumericValue.U64Value(nftNonce),
-                                                                                           NumericValue.BigUintValue(quantity));
+                                                                                           NumericValue.U64Value(nonce),
+                                                                                           NumericValue.BigUintValue(quantityToBurn.Value));
 
             transaction.SetGasLimit(new GasLimit(60000000));
 
@@ -811,19 +813,67 @@ namespace Mx.NET.SDK.TransactionsManager
         }
 
         /// <summary>
-        /// Create transaction request -  Freeze single NFT/SFT
+        /// Create transaction request - Pause operation (suspend all transactions of the ESDT, except minting, freezing/unfreezing and wiping)
+        /// </summary>
+        /// <param name="networkConfig">MultiversX Network Configuration</param>
+        /// <param name="account">Sender Account</param>
+        /// <param name="esdtIdentifier">ESDT identifier</param>
+        /// <returns></returns>
+        public static TransactionRequest Pause(
+            NetworkConfig networkConfig,
+            Account account,
+            ESDTIdentifierValue esdtIdentifier)
+        {
+            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
+                                                                                           account,
+                                                                                           SYSTEM_SMART_CONTRACT_ADDRESS,
+                                                                                           ESDTAmount.Zero(),
+                                                                                           PAUSE,
+                                                                                           esdtIdentifier);
+
+            transaction.SetGasLimit(new GasLimit(60000000));
+
+            return transaction;
+        }
+
+        /// <summary>
+        /// Create transaction request - Unpause operation (allow transactions with the EDST again)
+        /// </summary>
+        /// <param name="networkConfig">MultiversX Network Configuration</param>
+        /// <param name="account">Sender Account</param>
+        /// <param name="esdtIdentifier">ESDT identifier</param>
+        /// <returns></returns>
+        public static TransactionRequest Unpause(
+            NetworkConfig networkConfig,
+            Account account,
+            ESDTIdentifierValue esdtIdentifier)
+        {
+            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
+                                                                                           account,
+                                                                                           SYSTEM_SMART_CONTRACT_ADDRESS,
+                                                                                           ESDTAmount.Zero(),
+                                                                                           UNPAUSE,
+                                                                                           esdtIdentifier);
+
+            transaction.SetGasLimit(new GasLimit(60000000));
+
+            return transaction;
+        }
+
+        /// <summary>
+        /// Create transaction request -  Freeze NFT/SFT/MetaESDT
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
         /// <param name="collectionIdentifier">Collection identifier</param>
-        /// <param name="nftNonce">NFT nonce</param>
-        /// <param name="receiver">Address to freeze the NFT/SFT</param>
+        /// <param name="nonce">nonce</param>
+        /// <param name="receiver">Address to freeze the ESDT tokens</param>
         /// <returns></returns>
-        public static TransactionRequest FreezeSingleNFT(
+        public static TransactionRequest Freeze(
             NetworkConfig networkConfig,
             Account account,
             ESDTIdentifierValue collectionIdentifier,
-            ulong nftNonce,
+            ulong nonce,
             Address receiver)
         {
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
@@ -832,7 +882,7 @@ namespace Mx.NET.SDK.TransactionsManager
                                                                                            ESDTAmount.Zero(),
                                                                                            FREEZE_SINGLE_NFT,
                                                                                            collectionIdentifier,
-                                                                                           NumericValue.U64Value(nftNonce),
+                                                                                           NumericValue.U64Value(nonce),
                                                                                            receiver);
 
             transaction.SetGasLimit(new GasLimit(60000000));
@@ -841,19 +891,19 @@ namespace Mx.NET.SDK.TransactionsManager
         }
 
         /// <summary>
-        /// Create transaction request - Unfreeze single NFT/SFT
+        /// Create transaction request - Unfreeze NFT/SFT/MetaESDT
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
         /// <param name="collectionIdentifier">Collection identifier</param>
-        /// <param name="nftNonce">NFT nonce</param>
-        /// <param name="receiver">Address to unfreeze the NFT/SFT</param>
+        /// <param name="nonce">nonce</param>
+        /// <param name="receiver">Address to unfreeze the ESDT tokens</param>
         /// <returns></returns>
-        public static TransactionRequest UnfreezeSingleNFT(
+        public static TransactionRequest Unfreeze(
             NetworkConfig networkConfig,
             Account account,
             ESDTIdentifierValue collectionIdentifier,
-            ulong nftNonce,
+            ulong nonce,
             Address receiver)
         {
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
@@ -862,7 +912,7 @@ namespace Mx.NET.SDK.TransactionsManager
                                                                                            ESDTAmount.Zero(),
                                                                                            UNFREEZE_SINGLE_NFT,
                                                                                            collectionIdentifier,
-                                                                                           NumericValue.U64Value(nftNonce),
+                                                                                           NumericValue.U64Value(nonce),
                                                                                            receiver);
 
             transaction.SetGasLimit(new GasLimit(60000000));
@@ -871,20 +921,20 @@ namespace Mx.NET.SDK.TransactionsManager
         }
 
         /// <summary>
-        /// Create transaction request - Wipe single NFT/SFTs
+        /// Create transaction request - Wipe all NFT/SFT/MetaESDT tokens
         /// Account must be frozen before the wipe operation
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
         /// <param name="collectionIdentifier">Collection identifier</param>
-        /// <param name="nftNonce">NFT nonce</param>
-        /// <param name="receiver">Address to wipe the NFT/SFT</param>
+        /// <param name="nonce">nonce</param>
+        /// <param name="receiver">Address to wipe all the ESDT tokens</param>
         /// <returns></returns>
-        public static TransactionRequest WipeSingleNFT(
+        public static TransactionRequest Wipe(
             NetworkConfig networkConfig,
             Account account,
             ESDTIdentifierValue collectionIdentifier,
-            ulong nftNonce,
+            ulong nonce,
             Address receiver)
         {
             var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
@@ -893,7 +943,7 @@ namespace Mx.NET.SDK.TransactionsManager
                                                                                            ESDTAmount.Zero(),
                                                                                            WIPE_SINGLE_NFT,
                                                                                            collectionIdentifier,
-                                                                                           NumericValue.U64Value(nftNonce),
+                                                                                           NumericValue.U64Value(nonce),
                                                                                            receiver);
 
             transaction.SetGasLimit(new GasLimit(60000000));
@@ -907,7 +957,7 @@ namespace Mx.NET.SDK.TransactionsManager
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
-        /// <param name="receiver">Receiver address</param>
+        /// <param name="receiver">Roles Receiver address</param>
         /// <param name="collectionIdentifier">Collection Identifier</param>
         /// <param name="roles">Roles to assign to receiver address</param>
         /// <returns></returns>
@@ -927,8 +977,7 @@ namespace Mx.NET.SDK.TransactionsManager
             };
             arguments.AddRange(rolesValue);
 
-            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(
-                                                                                           networkConfig,
+            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
                                                                                            account,
                                                                                            SYSTEM_SMART_CONTRACT_ADDRESS,
                                                                                            ESDTAmount.Zero(),
@@ -946,8 +995,8 @@ namespace Mx.NET.SDK.TransactionsManager
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
-        /// <param name="receiver">Receiver address</param>
         /// <param name="collectionIdentifier">Collection Identifier</param>
+        /// <param name="receiver">Roles Receiver address</param>
         /// <param name="roles">Roles to unassign for receiver address</param>
         /// <returns></returns>
         public static TransactionRequest UnsetSpecialRole(
@@ -966,8 +1015,7 @@ namespace Mx.NET.SDK.TransactionsManager
             };
             arguments.AddRange(rolesValue);
 
-            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(
-                                                                                           networkConfig,
+            var transaction = TransactionRequest.CreateCallSmartContractTransactionRequest(networkConfig,
                                                                                            account,
                                                                                            SYSTEM_SMART_CONTRACT_ADDRESS,
                                                                                            ESDTAmount.Zero(),
@@ -1008,12 +1056,12 @@ namespace Mx.NET.SDK.TransactionsManager
         }
 
         /// <summary>
-        /// Create transaction request - NFT collection properties change
+        /// Create transaction request - ESDT collection properties change
         /// </summary>
         /// <param name="networkConfig">MultiversX Network Configuration</param>
         /// <param name="account">Sender Account</param>
         /// <param name="collectionIdentifier">Collection identifier</param>
-        /// <param name="properties">Nft properties object</param>
+        /// <param name="properties">Collection properties object</param>
         /// <param name="args">Other args for future use</param>
         /// <returns></returns>
         public static TransactionRequest ChangeProperties(

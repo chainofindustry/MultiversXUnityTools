@@ -6,13 +6,18 @@ namespace Mx.NET.SDK.Provider.API
     public interface INetworkProvider
     {
         /// <summary>
-        /// This endpoint allows one to query economics information.
+        /// Returns network-specific constants
+        /// </summary>
+        /// <returns><see cref="NetworkConfigDto"/></returns>
+        Task<NetworkConfigDto> GetNetworkConfig();
+        /// <summary>
+        /// Returns general economics information
         /// </summary>
         /// <returns><see cref="NetworkEconomicsDto"/></returns>
         Task<NetworkEconomicsDto> GetNetworkEconomics();
 
         /// <summary>
-        /// This endpoint allows one to query network statistics.
+        /// Returns general network statistics
         /// </summary>
         /// <returns><see cref="NetworkStatsDto"/></returns>
         Task<NetworkStatsDto> GetNetworkStats();

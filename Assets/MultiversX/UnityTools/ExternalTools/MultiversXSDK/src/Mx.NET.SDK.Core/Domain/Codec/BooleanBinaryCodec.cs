@@ -12,7 +12,9 @@ namespace Mx.NET.SDK.Core.Domain.Codec
 
         public (IBinaryType Value, int BytesLength) DecodeNested(byte[] data, TypeValue type)
         {
-            // We don't check the size of the buffer, we just read the first byte.
+            if (data.Length == 0)
+                return (new BooleanValue(false), 1);
+
             var firstByte = data[0];
             return (new BooleanValue(firstByte == True), 1);
         }

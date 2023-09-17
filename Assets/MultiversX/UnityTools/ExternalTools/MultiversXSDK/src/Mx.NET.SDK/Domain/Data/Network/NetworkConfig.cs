@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
+using Mx.NET.SDK.Provider;
+using Mx.NET.SDK.Provider.Dtos.API.Network;
 using Mx.NET.SDK.Provider.Dtos.Gateway.Network;
-using Mx.NET.SDK.Provider.Gateway;
 
 namespace Mx.NET.SDK.Domain.Data.Network
 {
@@ -13,9 +14,7 @@ namespace Mx.NET.SDK.Domain.Data.Network
         public string GasPriceModifier { get; set; }
         public int MinTransactionVersion { get; set; }
 
-        private NetworkConfig() { }
-
-        private NetworkConfig(GatewayNetworkConfigDataDto constants)
+        private NetworkConfig(NetworkConfigDataDto constants)
         {
             ChainId = constants.Config.erd_chain_id;
             GasPerDataByte = constants.Config.erd_gas_per_data_byte;
@@ -25,14 +24,34 @@ namespace Mx.NET.SDK.Domain.Data.Network
             MinTransactionVersion = constants.Config.erd_min_transaction_version;
         }
 
+        private NetworkConfig(Provider.Dtos.API.Network.NetworkConfigDto constants)
+        {
+            ChainId = constants.ChainId;
+            GasPerDataByte = constants.GasPerDataByte;
+            MinGasLimit = constants.MinGasLimit;
+            MinGasPrice = constants.MinGasPrice;
+            GasPriceModifier = constants.GasPriceModifier;
+            MinTransactionVersion = constants.MinTransactionVersion;
+        }
+
         /// <summary>
-        /// Synchronize the configuration with the network
+        /// Get network-specific constants from Gateway
         /// </summary>
         /// <param name="provider">Gateway network provider</param>
         /// <returns>NetworkConfig</returns>
         public static async Task<NetworkConfig> GetFromNetwork(IGatewayProvider provider)
         {
-            return new NetworkConfig(await provider.GetGatewayNetworkConfig());
+            return new NetworkConfig(await provider.GetNetworkConfig());
+        }
+
+        /// <summary>
+        /// Get network-specific constants from API
+        /// </summary>
+        /// <param name="provider">API network provider</param>
+        /// <returns>NetworkConfig</returns>
+        public static async Task<NetworkConfig> GetFromNetwork(IApiProvider provider)
+        {
+            return new NetworkConfig(await provider.GetNetworkConfig());
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Mx.NET.SDK.Core.Domain
         public ESDT Esdt { get; }
         public BigInteger Value { get; }
 
-        private ESDTAmount(long value, ESDT token)
+        private ESDTAmount(decimal value, ESDT token)
         {
             Esdt = token;
             Value = new BigInteger(value);
@@ -176,61 +176,82 @@ namespace Mx.NET.SDK.Core.Domain
         }
 
         /// <summary>
-        /// Creates a token amount object from an eGLD value (denomination will be applied).
+        /// Create ESDT amount object from a value (denomination will be applied)
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">ESDT amount</param>
+        /// <param name="esdt">ESDT token, default is EGLD</param>
         /// <returns></returns>
-        // ReSharper disable once InconsistentNaming
-        public static ESDTAmount EGLD(string value)
+        public static ESDTAmount ESDT(string value, ESDT esdt = null)
         {
-            var egld = Domain.ESDT.EGLD();
+            if (esdt is null) esdt = Domain.ESDT.EGLD();
             var split = value.Split('.');
             var integerPart = split.FirstOrDefault() ?? "0";
             var decimalPart = split.Length == 2 ? split[1] : string.Empty;
-            var full = $"{integerPart}{decimalPart.PadRight(egld.DecimalPrecision, '0')}";
-            return new ESDTAmount(full, Domain.ESDT.EGLD());
+            var full = $"{integerPart}{decimalPart.PadRight(esdt.DecimalPrecision, '0')}";
+            return new ESDTAmount(full, esdt);
         }
 
         /// <summary>
-        /// Create a token amount object from a value (denomination will be applied)
+        /// Create ESDT amount object from a value (denomination will be applied)
         /// </summary>
-        /// <param name="value">Amount</param>
-        /// <param name="token">Token, default is EGLD</param>
+        /// <param name="value">ESDT amount</param>
+        /// <param name="esdt">ESDT Token, default is EGLD</param>
         /// <returns></returns>
-        public static ESDTAmount ESDT(string value, ESDT token)
+        public static ESDTAmount ESDT(decimal value, ESDT esdt = null)
         {
-            var split = value.Split('.');
-            var integerPart = split.FirstOrDefault() ?? "0";
-            var decimalPart = split.Length == 2 ? split[1] : string.Empty;
-            var full = $"{integerPart}{decimalPart.PadRight(token.DecimalPrecision, '0')}";
-            return new ESDTAmount(full, token);
+            return ESDT(value.ToString(), esdt);
         }
 
-        public static ESDTAmount From(string value, ESDT token = null)
+        /// <summary>
+        /// Creates ESDT amount object from eGLD value (denomination will be applied).
+        /// </summary>
+        /// <param name="value">eGLD value</param>
+        /// <returns></returns>
+        public static ESDTAmount EGLD(decimal value)
         {
-            if (token == null)
-                token = Domain.ESDT.EGLD();
-            return new ESDTAmount(value, token);
+            return ESDT(value);
         }
 
-        public static ESDTAmount From(long value, ESDT token = null)
+        /// <summary>
+        /// Creates ESDT amount object from eGLD value (denomination will be applied).
+        /// </summary>
+        /// <param name="value">eGLD value</param>
+        /// <returns></returns>
+        public static ESDTAmount EGLD(string value)
         {
-            if (token == null)
-                token = Domain.ESDT.EGLD();
-            return new ESDTAmount(value, token);
+            return ESDT(value);
+        }
+
+        /// <summary>
+        /// Creates ESDT amount object from a value
+        /// </summary>
+        /// <param name="value">ESDT Amount</param>
+        /// <param name="esdt">ESDT Token, default is EGLD</param>
+        /// <returns></returns>
+        public static ESDTAmount From(BigInteger value, ESDT esdt = null)
+        {
+            return From(value.ToString(), esdt);
+        }
+
+        /// <summary>
+        /// Creates ESDT amount object from a value
+        /// </summary>
+        /// <param name="value">ESDT Amount</param>
+        /// <param name="esdt">ESDT Token, default is EGLD</param>
+        /// <returns></returns>
+        public static ESDTAmount From(string value, ESDT esdt = null)
+        {
+            return new ESDTAmount(value, esdt ?? Domain.ESDT.EGLD());
         }
 
         /// <summary>
         /// Value zero
         /// </summary>
-        /// <param name="token">Token, default is EGLD</param>
+        /// <param name="esdt">EGLD Token, default is EGLD</param>
         /// <returns></returns>
-        public static ESDTAmount Zero(ESDT token = null)
+        public static ESDTAmount Zero(ESDT esdt = null)
         {
-            if (token == null)
-                token = Domain.ESDT.EGLD();
-
-            return new ESDTAmount(0, token);
+            return new ESDTAmount(0, esdt ?? Domain.ESDT.EGLD());
         }
 
         public override string ToString()

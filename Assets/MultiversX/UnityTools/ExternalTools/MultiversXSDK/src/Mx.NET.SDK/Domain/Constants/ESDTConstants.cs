@@ -34,6 +34,11 @@
             /// This role allows one to update NFT/SFT URIs
             /// </summary>
             public const string ESDTRoleNFTAddURI = "ESDTRoleNFTAddURI";
+
+            /// <summary>
+            /// This role enables transfer only to specified addresses. The addresses with the transfer role can transfer anywhere.
+            /// </summary>
+            public const string ESDTTransferRole = "ESDTTransferRole";
         }
 
         /// <summary>
@@ -45,7 +50,6 @@
             public const string CanWipe = "canWipe";
             public const string CanPause = "canPause";
             public const string CanTransferNftCreateRole = "canTransferNFTCreateRole";
-
             public const string CanChangeOwner = "canChangeOwner";
             public const string CanUpgrade = "canUpgrade";
             public const string CanAddSpecialRoles = "canAddSpecialRoles";

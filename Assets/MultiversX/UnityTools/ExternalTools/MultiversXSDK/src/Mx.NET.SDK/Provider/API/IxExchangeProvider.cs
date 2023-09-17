@@ -1,4 +1,4 @@
-﻿using Mx.NET.SDK.Provider.Dtos.API.Exchange;
+﻿using Mx.NET.SDK.Provider.Dtos.API.xExchange;
 using System.Threading.Tasks;
 
 namespace Mx.NET.SDK.Provider.API

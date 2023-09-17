@@ -57,6 +57,11 @@ namespace Mx.NET.SDK.Core.Domain.Helper
             return hex;
         }
 
+        public static string HexToString(string hex)
+        {
+            return Encoding.UTF8.GetString(FromHexString(hex));
+        }
+
         public static byte[] FromHexString(string hex)
         {
             var bytes = new byte[hex.Length / 2];

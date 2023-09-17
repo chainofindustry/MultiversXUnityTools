@@ -1,4 +1,4 @@
-﻿using Mx.NET.SDK.Provider.Dtos.API.Collection;
+﻿using Mx.NET.SDK.Provider.Dtos.API.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

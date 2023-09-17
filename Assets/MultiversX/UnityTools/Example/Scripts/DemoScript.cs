@@ -1,4 +1,4 @@
-using Mx.NET.SDK.Provider.Dtos.API.Account;
+using Mx.NET.SDK.Provider.Dtos.API.Accounts;
 using Mx.NET.SDK.Provider.Dtos.Gateway.Transactions;
 using System.Linq;
 using UnityEngine;
@@ -163,7 +163,7 @@ namespace MultiversX.UnityTools.Examples
                           "}";
 
             //Make the Post request 
-            API.PostRequest<TransactionCostDto>(url, json, CompleteMethodPost);
+            API.PostRequest<TransactionCostResponseDto>(API.GetGatewayProvider(), url, json, CompleteMethodPost);
         }
 
 
@@ -173,7 +173,7 @@ namespace MultiversX.UnityTools.Examples
         /// <param name="operationStatus"></param>
         /// <param name="message"></param>
         /// <param name="result"></param>
-        private void CompleteMethodPost(CompleteCallback<TransactionCostDto> result)
+        private void CompleteMethodPost(CompleteCallback<TransactionCostResponseDto> result)
         {
             if (result.status == OperationStatus.Success)
             {

@@ -78,6 +78,8 @@ namespace Mx.NET.SDK.Provider.Dtos.API.Transactions
         public string OriginalTxHash { get; set; }
         public string CallType { get; set; }
         public string ReturnMessage { get; set; }
+        public string Operation { get; set; }
+        public string Function { get; set; }
     }
 
     public class LogDto

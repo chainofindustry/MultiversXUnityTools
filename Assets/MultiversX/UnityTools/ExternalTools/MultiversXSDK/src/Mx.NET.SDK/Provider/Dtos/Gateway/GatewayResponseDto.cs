@@ -1,5 +1,4 @@
 ﻿using Mx.NET.SDK.Domain.Exceptions;
-using System.Net;
 
 namespace Mx.NET.SDK.Provider.Dtos.Gateway
 {

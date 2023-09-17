@@ -20,6 +20,8 @@ namespace Mx.NET.SDK.Core.Domain.Values
 
         public static OptionValue NewProvided(IBinaryType value)
         {
+            if (value is null)
+                return NewMissing();
             return new OptionValue(TypeValue.OptionValue(value.Type), value.Type, value);
         }
 
@@ -35,7 +37,7 @@ namespace Mx.NET.SDK.Core.Domain.Values
 
         public override T ToObject<T>()
         {
-            return JsonWrapper.Deserialize<T>(ToJson());
+            return IsSet() ? JsonWrapper.Deserialize<T>(ToJson()) : default;
         }
 
         public override string ToJson()

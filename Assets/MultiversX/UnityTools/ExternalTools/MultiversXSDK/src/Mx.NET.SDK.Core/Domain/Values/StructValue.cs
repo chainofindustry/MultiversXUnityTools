@@ -60,22 +60,13 @@ namespace Mx.NET.SDK.Core.Domain.Values
 
         public override string ToJson()
         {
-            var dic = new Dictionary<string, object>();
+            var dict = new Dictionary<string, object>();
             foreach (var field in Fields)
             {
-                if (field.Value.Type.BinaryType == TypeValue.BinaryTypes.Struct)
-                {
-                    var json = field.Value.ToJson();
-                    var jsonObject = JsonWrapper.Deserialize<object>(json);
-                    dic.Add(field.Name, jsonObject);
-                }
-                else
-                {
-                    dic.Add(field.Name, field.ToString());
-                }
+                dict.Add(field.Name, field.Value.ToJson());
             }
 
-            return JsonWrapper.Serialize(dic);
+            return JsonUnqtWrapper.Serialize(dict);
         }
     }
 }

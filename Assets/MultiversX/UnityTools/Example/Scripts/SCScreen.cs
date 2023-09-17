@@ -1,7 +1,8 @@
 using UnityEngine.UI;
 using System.Numerics;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Domain.Data.Transaction;
+using Mx.NET.SDK.Domain.Data.Transactions;
+using UnityEngine;
 
 namespace MultiversX.UnityTools.Examples
 {
@@ -42,7 +43,7 @@ namespace MultiversX.UnityTools.Examples
         public void ExecuteQuery()
         {
             //call the method from scAddress with parameters
-            API.MakeSCQuery<NumericValue>(scAddress.text, method.text, QueryComplete, TypeValue.BigUintTypeValue);
+            API.MakeSCQuery<NumericValue>(scAddress.text, method.text, QueryComplete, new TypeValue[] { TypeValue.BigUintTypeValue });
         }
 
 

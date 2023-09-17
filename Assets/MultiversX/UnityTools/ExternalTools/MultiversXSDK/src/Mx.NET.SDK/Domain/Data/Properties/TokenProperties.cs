@@ -9,7 +9,7 @@
         public bool CanBurn { get; private set; }
         public bool CanUpgrade { get; private set; }
         public bool CanChangeOwner { get; private set; }
-        public bool? CanAddSpecialRoles { get; private set; }
+        public bool CanAddSpecialRoles { get; private set; }
 
         private TokenProperties() { }
 
@@ -20,7 +20,7 @@
                                 bool canBurn,
                                 bool canUpgrade,
                                 bool canChangeOwner,
-                                bool? canAddSpecialRoles)
+                                bool canAddSpecialRoles)
         {
             CanFreeze = canFreeze;
             CanWipe = canWipe;
@@ -50,33 +50,9 @@
                                            bool canBurn,
                                            bool canUpgrade,
                                            bool canChangeOwner,
-                                           bool? canAddSpecialRoles = null)
+                                           bool canAddSpecialRoles)
         {
             return new TokenProperties(canFreeze, canWipe, canPause, canMint, canBurn, canUpgrade, canChangeOwner, canAddSpecialRoles);
-        }
-    }
-
-    public class TokenManagerProperties
-    {
-        public bool? CanLocalMint { get; private set; }
-        public bool? CanLocalBurn { get; private set; }
-
-        public TokenManagerProperties() { }
-
-        /// <summary>
-        /// The Token Manager Properties
-        /// </summary>
-        /// <param name="canLocalMint">The token manager may local mint (in their account) tokens, increasing the supply</param>
-        /// <param name="canLocalBurn">The token manager may local burn (from their account) tokens, decreasing the supply</param>
-        /// <returns>The token manager properties</returns>
-        public static TokenManagerProperties From(bool? canLocalMint,
-                                                  bool? canLocalBurn)
-        {
-            return new TokenManagerProperties()
-            {
-                CanLocalMint = canLocalMint,
-                CanLocalBurn = canLocalBurn
-            };
         }
     }
 }

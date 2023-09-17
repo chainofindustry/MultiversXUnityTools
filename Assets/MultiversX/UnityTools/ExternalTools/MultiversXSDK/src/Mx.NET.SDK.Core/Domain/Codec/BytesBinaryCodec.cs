@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
 
@@ -14,16 +12,10 @@ namespace Mx.NET.SDK.Core.Domain.Codec
 
         public (IBinaryType Value, int BytesLength) DecodeNested(byte[] data, TypeValue type)
         {
-            var sizeInBytes = (int)BitConverter.ToUInt32(data.Take(BytesSizeOfU32).ToArray(), 0);
-            if (BitConverter.IsLittleEndian)
-            {
-                sizeInBytes = (int)BitConverter.ToUInt32(BitConverter.GetBytes(sizeInBytes).Reverse().ToArray(), 0);
-            }
-
+            var sizeInBytes = data.ReadUInt32BE(0);
             var payload = data.Slice(BytesSizeOfU32, BytesSizeOfU32 + sizeInBytes);
-            var bv = new BytesValue(payload, type).ToString();
 
-            return (new BytesValue(payload, type), /*sizeInBytes +*/ BytesSizeOfU32 + payload.Length);
+            return (new BytesValue(payload, type), BytesSizeOfU32 + payload.Length);
         }
 
         public IBinaryType DecodeTopLevel(byte[] data, TypeValue type)
@@ -33,20 +25,13 @@ namespace Mx.NET.SDK.Core.Domain.Codec
 
         public byte[] EncodeNested(IBinaryType value)
         {
-            var bytes = value.ValueOf<BytesValue>();
-            var buffer = new List<byte>();
-            var lengthBytes = BitConverter.GetBytes(bytes.GetLength());
-            if (BitConverter.IsLittleEndian)
-            {
-                lengthBytes = lengthBytes.Reverse().ToArray();
-            }
+            var bytesValueObject = value.ValueOf<BytesValue>();
 
-            buffer.AddRange(lengthBytes);
-            buffer.AddRange(bytes.Buffer);
+            var lengthBuffer = new byte[4];
+            lengthBuffer.WriteUInt32BE(bytesValueObject.GetLength());
 
-            var data = buffer.ToArray();
-
-            return data;
+            var data = lengthBuffer.Concat(bytesValueObject.Buffer);
+            return data.ToArray();
         }
 
         public byte[] EncodeTopLevel(IBinaryType value)

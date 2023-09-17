@@ -144,5 +144,10 @@ namespace Mx.NET.SDK.Core.Domain.Values
             }
             catch { return false; }
         }
+
+        public override string ToJson()
+        {
+            return JsonWrapper.Serialize(this);
+        }
     }
 }

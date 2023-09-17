@@ -2,12 +2,12 @@ using Mx.NET.SDK.Configuration;
 using Mx.NET.SDK.Core.Domain;
 using Mx.NET.SDK.Core.Domain.Values;
 using Mx.NET.SDK.Domain;
-using Mx.NET.SDK.Domain.Data.Account;
+using Mx.NET.SDK.Domain.Data.Accounts;
 using Mx.NET.SDK.Domain.Data.Network;
-using Mx.NET.SDK.Domain.Data.Transaction;
+using Mx.NET.SDK.Domain.Data.Transactions;
 using Mx.NET.SDK.Domain.Exceptions;
 using Mx.NET.SDK.Domain.SmartContracts;
-using Mx.NET.SDK.Provider.Dtos.API.Transactions;
+using Mx.NET.SDK.Provider.Dtos.Common.Transactions;
 using Mx.NET.SDK.TransactionsManager;
 using System;
 using System.Collections;
@@ -26,7 +26,8 @@ namespace MultiversX.UnityTools
         private NetworkConfig networkConfig;
         private AppSettings apiSettings;
         private WalletConnectUnity walletConnectUnity;
-        private IMultiversXUnityApi multiversXProvider;
+        private IApiProviderUnity apiProviderUnity;
+        private IGatewayProviderUnity gatewayProviderUnity;
 
 
         //Create a static instance for easy access
@@ -63,7 +64,8 @@ namespace MultiversX.UnityTools
 
             try
             {
-                multiversXProvider = new MultiversXProviderUnity(new MultiversxNetworkConfiguration(apiSettings.selectedNetwork));
+                apiProviderUnity = new ApiProviderUnity(new ApiNetworkConfiguration(apiSettings.selectedNetwork));
+                gatewayProviderUnity = new GatewayProviderUnity(new GatewayNetworkConfiguration(apiSettings.selectedNetwork));
             }
             catch
             {
@@ -139,7 +141,7 @@ namespace MultiversX.UnityTools
             }
             try
             {
-                networkConfig = await NetworkConfig.GetFromNetwork(multiversXProvider);
+                networkConfig = await NetworkConfig.GetFromNetwork(gatewayProviderUnity);
                 return networkConfig;
             }
             catch (Exception e)
@@ -161,7 +163,7 @@ namespace MultiversX.UnityTools
         {
             try
             {
-                await connectedAccount.Sync(multiversXProvider);
+                await connectedAccount.Sync(apiProviderUnity);
                 completeMethod?.Invoke(new CompleteCallback<Account>(OperationStatus.Success, "", connectedAccount));
             }
             catch (Exception e)
@@ -200,24 +202,25 @@ namespace MultiversX.UnityTools
         internal async void SendTransactions(TransactionRequest[] transactionsToSign, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             //wait for the signature from wallet
-            try
-            {
+            //try
+            //{
                 completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.InProgress, "Waiting to sign", null));
                 TransactionRequestDto[] signedTransactions = await walletConnectUnity.MultiSign(transactionsToSign);
-                MultipleTransactionsResponseDto response = await multiversXProvider.SendTransactions(signedTransactions);
-
+            Debug.LogWarning("BEFORE");
+                MultipleTransactionsResponseDto response = await apiProviderUnity.SendTransactions(signedTransactions);
+            Debug.LogWarning("AFTER");
                 string[] txHashes = new string[response.NumOfSentTxs];
                 foreach (var item in response.TxsHashes)
                 {
                     txHashes[int.Parse(item.Key)] = item.Value;
                 }
                 completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Success, "", txHashes));
-            }
-            catch (Exception e)
-            {
-                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
-                return;
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
+            //    return;
+            //}
         }
 
 
@@ -237,7 +240,7 @@ namespace MultiversX.UnityTools
 
             try
             {
-                await connectedAccount.Sync(multiversXProvider);
+                await connectedAccount.Sync(apiProviderUnity);
             }
             catch (Exception e)
             {
@@ -404,7 +407,7 @@ namespace MultiversX.UnityTools
             {
                 try
                 {
-                    await txs[i].Sync(multiversXProvider);
+                    await txs[i].Sync(apiProviderUnity);
                 }
                 catch (Exception e)
                 {
@@ -449,7 +452,7 @@ namespace MultiversX.UnityTools
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<TokenMetadata[]>(OperationStatus.Success, "", await multiversXProvider.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString())));
+                completeMethod?.Invoke(new CompleteCallback<TokenMetadata[]>(OperationStatus.Success, "", await apiProviderUnity.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString())));
             }
             catch (Exception e)
             {
@@ -470,7 +473,7 @@ namespace MultiversX.UnityTools
 
             try
             {
-                List<NFTMetadata> allNfts = await multiversXProvider.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
+                List<NFTMetadata> allNfts = await apiProviderUnity.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
                 for (int i = allNfts.Count - 1; i >= 0; i--)
                 {
                     var medatada = allNfts[i].metadata;
@@ -502,11 +505,11 @@ namespace MultiversX.UnityTools
         /// <param name="completeMethod">callback method</param>
         /// <param name="outputType">typevalue of the output</param>
         /// <param name="args">list of arguments if required</param>
-        internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<CompleteCallback<T>> completeMethod, TypeValue outputType, params IBinaryType[] args) where T : IBinaryType
+        internal async void MakeSCQuery<T>(string scAddress, string methodName, UnityAction<CompleteCallback<T>> completeMethod, TypeValue[] outputType, params IBinaryType[] args) where T : IBinaryType
         {
             try
             {
-                var queryResult = await SmartContract.QuerySmartContract<T>(multiversXProvider, Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
+                var queryResult = await SmartContract.QuerySmartContract<T>(gatewayProviderUnity, Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
                 completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", queryResult));
             }
             catch (APIException e)
@@ -524,11 +527,11 @@ namespace MultiversX.UnityTools
         /// <typeparam name="T"></typeparam>
         /// <param name="url"></param>
         /// <param name="completeMethod"></param>
-        internal async void GetRequest<T>(string url, UnityAction<CompleteCallback<T>> completeMethod)
+        internal async void GetRequest<T>(IUnityProvider provider, string url, UnityAction<CompleteCallback<T>> completeMethod)
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.Get<T>(url)));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await provider.Get<T>(url)));
             }
             catch (Exception e)
             {
@@ -544,11 +547,11 @@ namespace MultiversX.UnityTools
         /// <param name="url"></param>
         /// <param name="jsonData"></param>
         /// <param name="completeMethod"></param>
-        internal async void PostRequest<T>(string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
+        internal async void PostRequest<T>(IUnityProvider provider, string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await multiversXProvider.Post<T>(url, jsonData)));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await provider.Post<T>(url, jsonData)));
             }
             catch (Exception e)
             {
@@ -680,6 +683,16 @@ namespace MultiversX.UnityTools
                 completeMethod?.Invoke(new CompleteCallback<NetworkConfig>(OperationStatus.Error, $"{e.Message}", null));
                 return;
             }
+        }
+
+        internal IApiProviderUnity GetApiProvider()
+        {
+            return apiProviderUnity;
+        }
+
+        internal IGatewayProviderUnity GetGatewayProvider()
+        {
+            return gatewayProviderUnity;
         }
         #endregion
     }

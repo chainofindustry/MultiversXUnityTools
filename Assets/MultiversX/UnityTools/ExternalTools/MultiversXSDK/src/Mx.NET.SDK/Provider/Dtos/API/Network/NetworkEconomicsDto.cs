@@ -1,4 +1,6 @@
-﻿namespace Mx.NET.SDK.Provider.Dtos.API.Network
+﻿using System.Numerics;
+
+namespace Mx.NET.SDK.Provider.Dtos.API.Network
 {
     public class NetworkEconomicsDto
     {
@@ -10,6 +12,6 @@
         public double Apr { get; set; }
         public double TotalUpApr { get; set; }
         public double BaseApr { get; set; }
-        public long TokenMarketCap { get; set; }
+        public BigInteger TokenMarketCap { get; set; }
     }
 }

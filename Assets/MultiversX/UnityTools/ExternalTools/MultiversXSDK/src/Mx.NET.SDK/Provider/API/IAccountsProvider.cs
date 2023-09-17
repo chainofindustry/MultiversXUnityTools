@@ -1,4 +1,4 @@
-﻿using Mx.NET.SDK.Provider.Dtos.API.Account;
+﻿using Mx.NET.SDK.Provider.Dtos.API.Accounts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

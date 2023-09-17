@@ -25,6 +25,18 @@ namespace Mx.NET.SDK.Wallet.Wallet
             return new Mnemonic(bip39.GenerateMnemonic(MNEMONIC_STRENGTH, BIP39Wordlist.English));
         }
 
+        public static Mnemonic GenerateInShard(int expectedShard)
+        {
+        GENERATE:
+            var mnemonic = Generate();
+            var publicKey = Wallet.FromMnemonic(mnemonic.SeedPhrase).GetPublicKey();
+            var walletShard = new WalletPublicKey(publicKey).GetShard();
+            if (walletShard != expectedShard)
+                goto GENERATE;
+
+            return mnemonic;
+        }
+
         public static Mnemonic FromString(string seedPhrase)
         {
             seedPhrase = seedPhrase.Trim();

@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Mx.NET.SDK.Core.Domain.Constants;
+using Mx.NET.SDK.Core.Domain.Helper;
 
 namespace Mx.NET.SDK.Core.Domain.Values
 {
@@ -32,7 +32,8 @@ namespace Mx.NET.SDK.Core.Domain.Values
             return new ESDTIdentifierValue(bytes, TypeValue.TokenIdentifierValue);
         }
 
-        public static bool operator ==(ESDTIdentifierValue value1, ESDTIdentifierValue value2) => value1.Value.Equals(value2.Value);
+        public static bool operator ==(ESDTIdentifierValue value1, ESDTIdentifierValue value2) => value1.Equals(value2);
+        public static bool operator !=(ESDTIdentifierValue value1, ESDTIdentifierValue value2) => !value1.Equals(value2);
 
         public override bool Equals(object obj)
         {
@@ -42,7 +43,6 @@ namespace Mx.NET.SDK.Core.Domain.Values
                 return Value.Equals(((ESDTIdentifierValue)obj).Value);
         }
 
-        public static bool operator !=(ESDTIdentifierValue value1, ESDTIdentifierValue value2) => !value1.Value.Equals(value2.Value);
 
         public bool IsEGLD()
         {
@@ -63,6 +63,11 @@ namespace Mx.NET.SDK.Core.Domain.Values
         public override int GetHashCode()
         {
             return base.GetHashCode();
+        }
+
+        public override string ToJson()
+        {
+            return JsonWrapper.Serialize(Value);
         }
     }
 }

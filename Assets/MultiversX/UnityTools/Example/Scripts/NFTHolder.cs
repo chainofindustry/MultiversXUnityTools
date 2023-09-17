@@ -1,4 +1,4 @@
-using Mx.NET.SDK.Domain.Data.Transaction;
+using Mx.NET.SDK.Domain.Data.Transactions;
 using UnityEngine;
 using UnityEngine.UI;
 

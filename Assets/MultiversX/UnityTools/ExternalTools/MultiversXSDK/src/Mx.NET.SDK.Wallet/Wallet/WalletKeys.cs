@@ -2,6 +2,7 @@
 using Mx.NET.SDK.Core.Domain.Values;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
+using System;
 
 namespace Mx.NET.SDK.Wallet.Wallet
 {
@@ -99,6 +100,31 @@ namespace Mx.NET.SDK.Wallet.Wallet
         public Address ToAddress()
         {
             return Address.FromBytes(_publicKey);
+        }
+
+        public int GetShard()
+        {
+            int startingIndex = _publicKey.Length - 1;
+            byte[] usedBuffer = new byte[_publicKey.Length - startingIndex];
+            Array.Copy(_publicKey, startingIndex, usedBuffer, 0, usedBuffer.Length);
+
+            int addr = 0;
+            for (int i = 0; i < usedBuffer.Length; i++)
+            {
+                addr = (addr << 8) + usedBuffer[i];
+            }
+
+            int n = (int)Math.Ceiling(Math.Log(3, 2));
+            int maskHigh = (1 << n) - 1;
+            int maskLow = (1 << (n - 1)) - 1;
+
+            int shard = addr & maskHigh;
+            if (shard > 2)
+            {
+                shard = addr & maskLow;
+            }
+
+            return shard;
         }
 
         public bool Verify(byte[] data, byte[] signature)

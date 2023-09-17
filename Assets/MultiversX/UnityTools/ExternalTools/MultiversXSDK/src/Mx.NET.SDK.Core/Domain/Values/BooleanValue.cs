@@ -27,7 +27,12 @@
 
         public override string ToString()
         {
-            return _value.ToString();
+            return _value.ToString().ToLower();
+        }
+
+        public override string ToJson()
+        {
+            return ToString();
         }
     }
 }

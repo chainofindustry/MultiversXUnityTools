@@ -1,4 +1,4 @@
-﻿using Mx.NET.SDK.Provider.Dtos.API.Block;
+﻿using Mx.NET.SDK.Provider.Dtos.API.Blocks;
 
 namespace Mx.NET.SDK.Domain.Data.Common
 {

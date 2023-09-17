@@ -10,7 +10,12 @@ namespace Mx.NET.SDK.Domain.Data.Common
     /// </summary>
     public class CollectionAccountRole
     {
-        public CollectionManagerProperties AddressProperties { get; private set; }
+        public bool CanCreate { get; private set; }
+        public bool CanBurn { get; private set; }
+        public bool CanAddQuantity { get; private set; }
+        public bool CanUpdateAttributes { get; private set; }
+        public bool CanAddUri { get; private set; }
+        public bool CanTransfer { get; private set; }
         public string[] Roles { get; private set; }
 
         private CollectionAccountRole() { }
@@ -21,12 +26,12 @@ namespace Mx.NET.SDK.Domain.Data.Common
 
             return new CollectionAccountRole()
             {
-                AddressProperties = CollectionManagerProperties.From(role.CanCreate,
-                                                                     role.CanBurn,
-                                                                     role.CanAddQuantity,
-                                                                     role.CanUpdateAttributes,
-                                                                     role.CanTransfer,
-                                                                     role.CanAddUri),
+                CanCreate = role.CanCreate,
+                CanBurn = role.CanBurn,
+                CanAddQuantity = role.CanAddQuantity,
+                CanUpdateAttributes = role.CanUpdateAttributes,
+                CanTransfer = role.CanTransfer,
+                CanAddUri = role.CanAddUri,
                 Roles = role.Roles
             };
         }
@@ -38,8 +43,13 @@ namespace Mx.NET.SDK.Domain.Data.Common
     public class CollectionRoles
     {
         public Address Address { get; private set; }
-        public CollectionManagerProperties AddressProperties { get; private set; }
-        public string[] AddressRoles { get; private set; }
+        public bool CanCreate { get; private set; }
+        public bool CanBurn { get; private set; }
+        public bool CanAddQuantity { get; private set; }
+        public bool CanUpdateAttributes { get; private set; }
+        public bool CanAddUri { get; private set; }
+        public bool CanTransfer { get; private set; }
+        public string[] Roles { get; private set; }
 
         private CollectionRoles() { }
 
@@ -50,13 +60,13 @@ namespace Mx.NET.SDK.Domain.Data.Common
             return roles.Select(role => new CollectionRoles()
             {
                 Address = Address.FromBech32(role.Address),
-                AddressProperties = CollectionManagerProperties.From(role.CanCreate,
-                                                                     role.CanBurn,
-                                                                     role.CanAddQuantity,
-                                                                     role.CanUpdateAttributes,
-                                                                     role.CanTransfer,
-                                                                     role.CanAddUri),
-                AddressRoles = role.Roles
+                CanCreate = role.CanCreate,
+                CanBurn = role.CanBurn,
+                CanAddQuantity = role.CanAddQuantity,
+                CanUpdateAttributes = role.CanUpdateAttributes,
+                CanAddUri = role.CanAddUri,
+                CanTransfer = role.CanTransfer,
+                Roles = role.Roles
             }).ToArray();
         }
     }

@@ -1,56 +1,58 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using Mx.NET.SDK.Core.Domain;
-using Mx.NET.SDK.Core.Domain.Helper;
-using Mx.NET.SDK.Domain;
-using Mx.NET.SDK.Provider.Dtos.API.Transactions;
+using Mx.NET.SDK.Core.Domain.Values;
 using Mx.NET.SDK.Wallet.Wallet;
 
 namespace Mx.NET.SDK.Wallet
 {
     public static class WalletMethods
     {
-        public static TransactionRequestDto SignTransaction(this WalletSigner signer, TransactionRequest transactionRequest)
+        /// <summary>
+        /// Sign transaction
+        /// </summary>
+        /// <param name="signer">WalletSigner</param>
+        /// <param name="txBuffer">Serialized transaction</param>
+        /// <returns>Signature</returns>
+        public static string SignTransaction(this WalletSigner signer, byte[] txBuffer)
         {
-            var transactionRequestDto = transactionRequest.GetTransactionRequest();
-            var json = JsonWrapper.Serialize(transactionRequestDto);
-            var message = Encoding.UTF8.GetBytes(json);
-
-            transactionRequestDto.Signature = signer.Sign(message);
-            return transactionRequestDto;
+            return signer.Sign(txBuffer);
         }
 
-        public static TransactionRequestDto[] SignTransactions(this WalletSigner signer, TransactionRequest[] transactionsRequest)
+        /// <summary>
+        /// Sign a bunch of transactions
+        /// </summary>
+        /// <param name="signer">WalletSigner</param>
+        /// <param name="txBuffer">Serialized transactions</param>
+        /// <returns>Array of signatures</returns>
+        public static string[] SignTransactions(this WalletSigner signer, byte[][] txsBuffer)
         {
-            var transactions = new List<TransactionRequestDto>();
-
-            foreach (var transactionRequest in transactionsRequest)
-            {
-                var transactionRequestDto = transactionRequest.GetTransactionRequest();
-                var json = JsonWrapper.Serialize(transactionRequestDto);
-                var message = Encoding.UTF8.GetBytes(json);
-
-                transactionRequestDto.Signature = signer.Sign(message);
-                transactions.Add(transactionRequestDto);
-            }
-
-            return transactions.ToArray();
+            return txsBuffer.Select(buffer => signer.Sign(buffer)).ToArray();
         }
 
-        public static bool VerifySignature(this TransactionRequest transactionRequest, string signature)
+        /// <summary>
+        /// Verify signature in the context of Transaction
+        /// </summary>
+        /// <param name="txData">Serialized JSON of one transaction</param>
+        /// <param name="address">Wallet address</param>
+        /// <param name="signature">Signature</param>
+        /// <returns></returns>
+        public static bool VerifySignature(this string txData, string address, string signature)
         {
-            var transactionRequestDto = transactionRequest.GetTransactionRequest();
-            var message = JsonWrapper.Serialize(transactionRequestDto);
-
-            var verifier = WalletVerifier.FromAddress(transactionRequest.Sender);
+            var verifier = WalletVerifier.FromAddress(Address.FromBech32(address));
             return verifier.VerifyRaw(new SignableMessage()
             {
-                Message = message,
+                Message = txData,
                 Signature = signature
             });
         }
 
+        /// <summary>
+        /// Verify a signed message
+        /// </summary>
+        /// <param name="signableMessage">Signable Message object</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static bool VerifyMessage(this SignableMessage signableMessage)
         {
             if (signableMessage.Address is null)

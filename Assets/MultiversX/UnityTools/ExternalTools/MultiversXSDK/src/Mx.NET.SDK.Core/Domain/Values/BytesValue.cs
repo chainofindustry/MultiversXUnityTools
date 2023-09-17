@@ -35,7 +35,12 @@ namespace Mx.NET.SDK.Core.Domain.Values
 
         public override string ToString()
         {
-            return Converter.ToHexString(Buffer);
+            return $"\"{Converter.ToHexString(Buffer)}\"";
+        }
+
+        public override string ToJson()
+        {
+            return ToString();
         }
     }
 }

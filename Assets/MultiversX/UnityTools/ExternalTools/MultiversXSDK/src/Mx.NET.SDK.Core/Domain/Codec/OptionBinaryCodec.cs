@@ -39,8 +39,8 @@ namespace Mx.NET.SDK.Core.Domain.Codec
                 return OptionValue.NewMissing();
             }
 
-            var decoded = _binaryCodec.DecodeTopLevel(data, type.InnerType);
-            return OptionValue.NewProvided(decoded);
+            var (value, _) = DecodeNested(data, type);
+            return OptionValue.NewProvided(value);
         }
 
         public byte[] EncodeNested(IBinaryType value)

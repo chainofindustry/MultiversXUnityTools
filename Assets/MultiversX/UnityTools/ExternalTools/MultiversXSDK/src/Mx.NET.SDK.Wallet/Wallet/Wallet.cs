@@ -1,6 +1,5 @@
 ﻿using Mx.NET.SDK.Core.Domain.Helper;
 using Mx.NET.SDK.Core.Domain.Values;
-using Mx.NET.SDK.Domain.Data.Account;
 using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Mx.NET.SDK.Wallet.Wallet
@@ -57,12 +56,12 @@ namespace Mx.NET.SDK.Wallet.Wallet
         }
 
         /// <summary>
-        /// Get the account wallet
+        /// Get the address
         /// </summary>
         /// <returns>Account</returns>
-        public Account GetAccount()
+        public Address GetAddress()
         {
-            return new Account(Address.FromBytes(_publicKey));
+            return Address.FromBytes(_publicKey);
         }
 
         /// <summary>
