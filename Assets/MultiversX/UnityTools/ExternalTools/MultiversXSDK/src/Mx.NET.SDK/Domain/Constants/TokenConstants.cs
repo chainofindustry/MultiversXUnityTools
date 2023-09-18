@@ -21,6 +21,11 @@
             public const string ESDTRoleLocalBurn = "ESDTRoleLocalBurn";
 
             /// <summary>
+            /// This role allows anyone to burn a supply of tokens locally
+            /// </summary>
+            public const string ESDTRoleLocalBurnForAll = "ESDTRoleBurnForAll";
+
+            /// <summary>
             /// This role restricts transferability of the token only to the addresses that have the role set, while these addresses can send to any address
             /// </summary>
             public const string ESDTTransferRole = "ESDTTransferRole";

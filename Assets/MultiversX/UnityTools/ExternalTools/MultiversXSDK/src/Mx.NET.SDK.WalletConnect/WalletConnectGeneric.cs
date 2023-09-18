@@ -15,6 +15,7 @@ using System.IO;
 using WalletConnectSharp.Storage;
 using System.Linq;
 using Mx.NET.SDK.WalletConnect.Data;
+using UnityEngine;
 
 namespace Mx.NET.SDK.WalletConnect
 {
@@ -169,11 +170,13 @@ namespace Mx.NET.SDK.WalletConnect
             return response.Signature;
         }
 
-        public async Task<string[]> MultiSign(RequestData[] requestsData)
+        public async Task<ResponseData[]> MultiSign(RequestData[] requestsData)
         {
             var request = new SignTransactionsRequest() { Transactions = requestsData };
+            Debug.Log(request);
             var response = await _client.Request<SignTransactionsRequest, SignTransactionsResponse>(_walletConnectSession.Topic, request);
-            return response.Signatures.Select(s => s.Signature).ToArray();
+            Debug.Log(response);
+            return response.Signatures;
         }
 
         public event EventHandler<GenericEvent<SessionUpdateEvent>> OnSessionUpdateEvent;

@@ -7,6 +7,7 @@ using WalletConnectSharp.Core.Models.Pairing;
 using Mx.NET.SDK.Wallet;
 using Mx.NET.SDK.WalletConnect.Helper;
 using Mx.NET.SDK.Provider.Dtos.Common.Transactions;
+using UnityEngine;
 
 namespace Mx.NET.SDK.WalletConnect
 {
@@ -45,13 +46,18 @@ namespace Mx.NET.SDK.WalletConnect
         public async Task<TransactionRequestDto[]> MultiSign(TransactionRequest[] transactionsRequest)
         {
             var requestsData = transactionsRequest.GetSignTransactionsRequest();
-            var signatures = await MultiSign(requestsData);
+            var responseData = await MultiSign(requestsData);
 
             var transactions = new List<TransactionRequestDto>();
-            for (var i = 0; i < signatures.Length; i++)
+            for (var i = 0; i < responseData.Length; i++)
             {
                 var transactionRequestDto = transactionsRequest[i].GetTransactionRequest();
-                transactionRequestDto.Signature = signatures[i];
+                Debug.Log(transactionsRequest[i].Guardian);
+                transactionRequestDto.Signature = responseData[i].Signature;
+                transactionRequestDto.Guardian = responseData[i].Guardian;
+                transactionRequestDto.GuardianSignature = responseData[i].GuardianSignature;
+                transactionRequestDto.Version = responseData[i].Version;
+                transactionRequestDto.Options = responseData[i].Options;
                 transactions.Add(transactionRequestDto);
             }
 

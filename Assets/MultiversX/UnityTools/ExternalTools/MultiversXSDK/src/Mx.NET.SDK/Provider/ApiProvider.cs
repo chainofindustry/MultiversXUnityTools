@@ -18,6 +18,7 @@ using Mx.NET.SDK.Provider.Dtos.API.Blocks;
 using Mx.NET.SDK.Provider.Dtos.API.Transactions;
 using Mx.NET.SDK.Provider.Dtos.Common.QueryVm;
 using Mx.NET.SDK.Provider.Dtos.Common.Transactions;
+using Mx.NET.SDK.Provider.Dtos.Gateway;
 
 namespace Mx.NET.SDK.Provider
 {
@@ -514,7 +515,7 @@ namespace Mx.NET.SDK.Provider
 
         public async Task<MultipleTransactionsResponseDto> SendTransactions(TransactionRequestDto[] transactionsRequest)
         {
-            return await Post<MultipleTransactionsResponseDto>("transaction/send-multiple", transactionsRequest);
+            return (await Post<GatewayResponseDto<MultipleTransactionsResponseDto>>("transaction/send-multiple", transactionsRequest)).Data;
         }
 
         public async Task<string> GetTransactionsCount(Dictionary<string, string> parameters = null)

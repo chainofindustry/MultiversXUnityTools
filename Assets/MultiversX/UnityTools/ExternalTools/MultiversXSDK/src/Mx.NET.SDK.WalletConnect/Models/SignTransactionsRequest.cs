@@ -1,6 +1,5 @@
 ﻿using Mx.NET.SDK.WalletConnect.Data;
 using Newtonsoft.Json;
-using WalletConnectSharp.Common.Utils;
 using WalletConnectSharp.Network.Models;
 
 namespace Mx.NET.SDK.WalletConnect.Models

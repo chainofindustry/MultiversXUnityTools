@@ -74,6 +74,6 @@ namespace Mx.NET.SDK.WalletConnect
         /// </summary>
         /// <param name="requestsData">Transactions request data</param>
         /// <returns>Transactions signature</returns>
-        Task<string[]> MultiSign(RequestData[] requestsData);
+        Task<ResponseData[]> MultiSign(RequestData[] requestsData);
     }
 }

@@ -163,7 +163,7 @@ namespace MultiversX.UnityTools.Examples
                           "}";
 
             //Make the Post request 
-            API.PostRequest<TransactionCostResponseDto>(API.GetGatewayProvider(), url, json, CompleteMethodPost);
+            API.PostRequest<TransactionCostResponseDto>(url, json, CompleteMethodPost);
         }
 
 

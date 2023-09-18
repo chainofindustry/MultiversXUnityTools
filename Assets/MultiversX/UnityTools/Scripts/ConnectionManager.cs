@@ -7,6 +7,7 @@ using Mx.NET.SDK.Domain.Data.Network;
 using Mx.NET.SDK.Domain.Data.Transactions;
 using Mx.NET.SDK.Domain.Exceptions;
 using Mx.NET.SDK.Domain.SmartContracts;
+using Mx.NET.SDK.Provider;
 using Mx.NET.SDK.Provider.Dtos.Common.Transactions;
 using Mx.NET.SDK.TransactionsManager;
 using System;
@@ -26,8 +27,7 @@ namespace MultiversX.UnityTools
         private NetworkConfig networkConfig;
         private AppSettings apiSettings;
         private WalletConnectUnity walletConnectUnity;
-        private IApiProviderUnity apiProviderUnity;
-        private IGatewayProviderUnity gatewayProviderUnity;
+        private IApiProvider apiProviderUnity;
 
 
         //Create a static instance for easy access
@@ -65,7 +65,6 @@ namespace MultiversX.UnityTools
             try
             {
                 apiProviderUnity = new ApiProviderUnity(new ApiNetworkConfiguration(apiSettings.selectedNetwork));
-                gatewayProviderUnity = new GatewayProviderUnity(new GatewayNetworkConfiguration(apiSettings.selectedNetwork));
             }
             catch
             {
@@ -141,7 +140,7 @@ namespace MultiversX.UnityTools
             }
             try
             {
-                networkConfig = await NetworkConfig.GetFromNetwork(gatewayProviderUnity);
+                networkConfig = await NetworkConfig.GetFromNetwork(apiProviderUnity);
                 return networkConfig;
             }
             catch (Exception e)
@@ -452,12 +451,25 @@ namespace MultiversX.UnityTools
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<TokenMetadata[]>(OperationStatus.Success, "", await apiProviderUnity.GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString())));
+                completeMethod?.Invoke(new CompleteCallback<TokenMetadata[]>(OperationStatus.Success, "", await GetWalletTokens<TokenMetadata[]>(connectedAccount.Address.ToString())));
             }
             catch (Exception e)
             {
                 completeMethod?.Invoke(new CompleteCallback<TokenMetadata[]>(OperationStatus.Error, e.Message + ": " + e.Data, null));
             }
+        }
+
+        public async Task<T> GetWalletTokens<T>(string address)
+        {
+            string response = await apiProviderUnity.GetAccountTokensCount(address);
+            int totalTokens;
+            int.TryParse(response, out totalTokens);
+            if(totalTokens<0)
+            {
+                throw new Exception($"Get account token error: {response}");
+            }
+            string url = $"accounts/{address}/tokens?from={0}&size={totalTokens}";
+            return await apiProviderUnity.Get<T>(url);
         }
         #endregion
 
@@ -469,11 +481,9 @@ namespace MultiversX.UnityTools
         /// <param name="completeMethod"></param>
         public async void LoadWalletNFTs(UnityAction<CompleteCallback<NFTMetadata[]>> completeMethod)
         {
-
-
             try
             {
-                List<NFTMetadata> allNfts = await apiProviderUnity.GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
+                List<NFTMetadata> allNfts = await GetWalletNfts<List<NFTMetadata>>(connectedAccount.Address.ToString());
                 for (int i = allNfts.Count - 1; i >= 0; i--)
                 {
                     var medatada = allNfts[i].metadata;
@@ -492,6 +502,14 @@ namespace MultiversX.UnityTools
                 return;
             }
         }
+
+        public async Task<T> GetWalletNfts<T>(string address)
+        {
+            string url = $"accounts/{address}/nfts/count";
+            int totalNfts = await apiProviderUnity.Get<int>(url);
+            url = $"accounts/{address}/nfts?from={0}&size={totalNfts}";
+            return await apiProviderUnity.Get<T>(url);
+        }
         #endregion
 
 
@@ -509,7 +527,7 @@ namespace MultiversX.UnityTools
         {
             try
             {
-                var queryResult = await SmartContract.QuerySmartContract<T>(gatewayProviderUnity, Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
+                var queryResult = await SmartContract.QuerySmartContract<T>(apiProviderUnity, Address.From(scAddress), outputType, methodName, connectedAccount.Address, args);
                 completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", queryResult));
             }
             catch (APIException e)
@@ -527,11 +545,11 @@ namespace MultiversX.UnityTools
         /// <typeparam name="T"></typeparam>
         /// <param name="url"></param>
         /// <param name="completeMethod"></param>
-        internal async void GetRequest<T>(IUnityProvider provider, string url, UnityAction<CompleteCallback<T>> completeMethod)
+        internal async void GetRequest<T>(string url, UnityAction<CompleteCallback<T>> completeMethod)
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await provider.Get<T>(url)));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await apiProviderUnity.Get<T>(url)));
             }
             catch (Exception e)
             {
@@ -547,11 +565,11 @@ namespace MultiversX.UnityTools
         /// <param name="url"></param>
         /// <param name="jsonData"></param>
         /// <param name="completeMethod"></param>
-        internal async void PostRequest<T>(IUnityProvider provider, string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
+        internal async void PostRequest<T>(string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
         {
             try
             {
-                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await provider.Post<T>(url, jsonData)));
+                completeMethod?.Invoke(new CompleteCallback<T>(OperationStatus.Success, "", await apiProviderUnity.Post<T>(url, jsonData)));
             }
             catch (Exception e)
             {
@@ -685,14 +703,9 @@ namespace MultiversX.UnityTools
             }
         }
 
-        internal IApiProviderUnity GetApiProvider()
+        internal IApiProvider GetApiProvider()
         {
             return apiProviderUnity;
-        }
-
-        internal IGatewayProviderUnity GetGatewayProvider()
-        {
-            return gatewayProviderUnity;
         }
         #endregion
     }

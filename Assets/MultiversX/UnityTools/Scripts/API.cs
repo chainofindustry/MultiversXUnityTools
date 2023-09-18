@@ -4,6 +4,7 @@ using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.Domain.Data.Accounts;
 using Mx.NET.SDK.Domain.Data.Network;
 using Mx.NET.SDK.Domain.Data.Transactions;
+using Mx.NET.SDK.Provider;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -136,9 +137,9 @@ namespace MultiversX.UnityTools
         /// <typeparam name="T">Return type</typeparam>
         /// <param name="url">Get API url</param>
         /// <param name="completeMethod">Complete listener (operation status, error message, return data)</param>
-        public static void GetRequest<T>(IUnityProvider provider, string url, UnityAction<CompleteCallback<T>> completeMethod)
+        public static void GetRequest<T>(string url, UnityAction<CompleteCallback<T>> completeMethod)
         {
-            ConnectionManager.Instance.GetRequest(provider, url, completeMethod);
+            ConnectionManager.Instance.GetRequest(url, completeMethod);
         }
 
 
@@ -148,19 +149,14 @@ namespace MultiversX.UnityTools
         /// <param name="url">Post url</param>
         /// <param name="jsonData">json data to send</param>
         /// <param name="completeMethod">Complete listener (operation status, error message, return data)</param>
-        public static void PostRequest<T>(IUnityProvider provider, string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
+        public static void PostRequest<T>(string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
         {
-            ConnectionManager.Instance.PostRequest(provider, url, jsonData, completeMethod);
+            ConnectionManager.Instance.PostRequest(url, jsonData, completeMethod);
         }
 
-        public static IApiProviderUnity GetApiProvider()
+        public static IApiProvider GetApiProvider()
         {
             return ConnectionManager.Instance.GetApiProvider();
-        }
-
-        public static IGatewayProviderUnity GetGatewayProvider()
-        {
-            return ConnectionManager.Instance.GetGatewayProvider();
         }
 
         /// <summary>
