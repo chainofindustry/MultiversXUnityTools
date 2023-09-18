@@ -3,11 +3,11 @@ using Mx.NET.SDK.Domain;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-using WalletConnectSharp.Core.Models.Pairing;
 using Mx.NET.SDK.Wallet;
 using Mx.NET.SDK.WalletConnect.Helper;
 using Mx.NET.SDK.Provider.Dtos.Common.Transactions;
-using UnityEngine;
+using WalletConnectSharp.Core;
+using WalletConnectSharp.Core.Models.Pairing;
 
 namespace Mx.NET.SDK.WalletConnect
 {
@@ -36,28 +36,25 @@ namespace Mx.NET.SDK.WalletConnect
         public async Task<TransactionRequestDto> Sign(TransactionRequest transactionRequest)
         {
             var requestData = transactionRequest.GetSignTransactionRequest();
-            var signature = await Sign(requestData);
+            var response = await Sign(requestData);
 
             var transaction = transactionRequest.GetTransactionRequest();
-            transaction.Signature = signature;
+            transaction.Signature = response.Signature;
+            transaction.GuardianSignature = response.GuardianSignature;
             return transaction;
         }
 
         public async Task<TransactionRequestDto[]> MultiSign(TransactionRequest[] transactionsRequest)
         {
             var requestsData = transactionsRequest.GetSignTransactionsRequest();
-            var responseData = await MultiSign(requestsData);
+            var responses = await MultiSign(requestsData);
 
             var transactions = new List<TransactionRequestDto>();
-            for (var i = 0; i < responseData.Length; i++)
+            for (var i = 0; i < responses.Length; i++)
             {
                 var transactionRequestDto = transactionsRequest[i].GetTransactionRequest();
-                Debug.Log(transactionsRequest[i].Guardian);
-                transactionRequestDto.Signature = responseData[i].Signature;
-                transactionRequestDto.Guardian = responseData[i].Guardian;
-                transactionRequestDto.GuardianSignature = responseData[i].GuardianSignature;
-                transactionRequestDto.Version = responseData[i].Version;
-                transactionRequestDto.Options = responseData[i].Options;
+                transactionRequestDto.Signature = responses[i].Signature;
+                transactionRequestDto.GuardianSignature = responses[i].GuardianSignature;
                 transactions.Add(transactionRequestDto);
             }
 

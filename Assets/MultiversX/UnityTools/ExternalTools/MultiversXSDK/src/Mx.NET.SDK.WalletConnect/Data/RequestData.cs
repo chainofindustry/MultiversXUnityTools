@@ -11,7 +11,8 @@
         public ulong nonce { get; set; }
         public string receiver { get; set; }
         public int version { get; set; }
-        public int options { get; set; }
+        public int? options { get; set; }
         public string guardian { get; set; }
+        public string guardianSignature { get; set; }
     }
 }

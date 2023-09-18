@@ -1,12 +1,8 @@
-﻿using Mx.NET.SDK.Core.Domain;
-using Mx.NET.SDK.Domain;
-using Mx.NET.SDK.Provider.Dtos.API.Transactions;
-using Mx.NET.SDK.WalletConnect.Data;
+﻿using Mx.NET.SDK.WalletConnect.Data;
 using Mx.NET.SDK.WalletConnect.Models.Events;
 using System;
 using System.Threading.Tasks;
 using WalletConnectSharp.Events.Model;
-using WalletConnectSharp.Sign;
 
 namespace Mx.NET.SDK.WalletConnect
 {
@@ -66,14 +62,14 @@ namespace Mx.NET.SDK.WalletConnect
         /// Request to xPortal app to sign a transaction
         /// </summary>
         /// <param name="requestData">Transaction request data</param>
-        /// <returns>Transaction signature</returns>
-        Task<string> Sign(RequestData requestData);
+        /// <returns>Transaction response data</returns>
+        Task<ResponseData> Sign(RequestData requestData);
 
         /// <summary>
         /// Request to xPortal app to sign multiple transactions
         /// </summary>
         /// <param name="requestsData">Transactions request data</param>
-        /// <returns>Transactions signature</returns>
+        /// <returns>Transactions response data</returns>
         Task<ResponseData[]> MultiSign(RequestData[] requestsData);
     }
 }

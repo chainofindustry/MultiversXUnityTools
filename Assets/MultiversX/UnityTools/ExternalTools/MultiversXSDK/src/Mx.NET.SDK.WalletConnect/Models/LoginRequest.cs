@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
-using WalletConnectSharp.Common.Utils;
 using WalletConnectSharp.Network.Models;
 
 namespace Mx.NET.SDK.WalletConnect.Models
 {
-    [RpcMethod("mvx_signLoginToken")]
+    [RpcMethod("mvx_signNativeAuthToken")]
     public class LoginRequest
     {
         [JsonProperty("token")]

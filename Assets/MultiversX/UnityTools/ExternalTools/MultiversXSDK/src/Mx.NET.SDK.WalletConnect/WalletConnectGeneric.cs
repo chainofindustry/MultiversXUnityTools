@@ -4,18 +4,18 @@ using WalletConnectSharp.Sign.Models;
 using WalletConnectSharp.Sign;
 using WalletConnectSharp.Sign.Models.Engine;
 using Mx.NET.SDK.WalletConnect.Models;
-using WalletConnectSharp.Network.Models;
-using WalletConnectSharp.Core.Models.Pairing;
 using WalletConnectSharp.Common.Model.Errors;
 using WalletConnectSharp.Events;
 using WalletConnectSharp.Events.Model;
 using Mx.NET.SDK.WalletConnect.Models.Events;
+using static Mx.NET.SDK.WalletConnect.Constants.Operations;
 using static Mx.NET.SDK.WalletConnect.Constants.Events;
 using System.IO;
 using WalletConnectSharp.Storage;
-using System.Linq;
 using Mx.NET.SDK.WalletConnect.Data;
-using UnityEngine;
+using WalletConnectSharp.Core;
+using WalletConnectSharp.Network.Models;
+using WalletConnectSharp.Core.Models.Pairing;
 
 namespace Mx.NET.SDK.WalletConnect
 {
@@ -163,19 +163,24 @@ namespace Mx.NET.SDK.WalletConnect
             return response.Signature;
         }
 
-        public async Task<string> Sign(RequestData requestData)
+        public async Task<ResponseData> Sign(RequestData requestData)
         {
             var request = new SignTransactionRequest() { Transaction = requestData };
             var response = await _client.Request<SignTransactionRequest, SignTransactionResponse>(_walletConnectSession.Topic, request);
-            return response.Signature;
+            return new ResponseData()
+            {
+                Signature = response.Signature,
+                Version = response.Version,
+                Options = response.Options,
+                Guardian = response.Guardian,
+                GuardianSignature = response.GuardianSignature
+            };
         }
 
         public async Task<ResponseData[]> MultiSign(RequestData[] requestsData)
         {
             var request = new SignTransactionsRequest() { Transactions = requestsData };
-            Debug.Log(request);
             var response = await _client.Request<SignTransactionsRequest, SignTransactionsResponse>(_walletConnectSession.Topic, request);
-            Debug.Log(response);
             return response.Signatures;
         }
 

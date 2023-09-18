@@ -14,7 +14,7 @@ The content is delivered via nuget package:
 
 1. Variables init
 ```csharp
-MultiversxProvider Provider = new(new MultiversxNetworkConfiguration(Network.DevNet));
+ApiProvider Provider = new ApiProvider(new ApiNetworkConfiguration(Network.DevNet));
 NetworkConfig NetworkConfig { get; set; } = default!;
 Account Account { get; set; } = default!;
 ```

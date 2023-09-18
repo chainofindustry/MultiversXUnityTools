@@ -15,5 +15,9 @@ namespace Mx.NET.SDK.WalletConnect.Models
     public class SignTransactionResponse
     {
         public string Signature { get; set; }
+        public string Guardian { get; set; }
+        public string GuardianSignature { get; set; }
+        public int Version { get; set; }
+        public int Options { get; set; }
     }
 }

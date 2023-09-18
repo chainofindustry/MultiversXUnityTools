@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Mx.NET.SDK.Domain;
 using Mx.NET.SDK.WalletConnect.Data;
-using Mx.NET.SDK.WalletConnect.Models;
 
 namespace Mx.NET.SDK.WalletConnect.Helper
 {
@@ -20,6 +19,9 @@ namespace Mx.NET.SDK.WalletConnect.Helper
                 receiver = transaction.Receiver.Bech32,
                 value = transaction.Value.ToString(),
                 version = transaction.Version,
+                options = transaction.Options,
+                guardian = transaction.Guardian?.Bech32,
+                guardianSignature = null
             };
         }
 
@@ -35,7 +37,10 @@ namespace Mx.NET.SDK.WalletConnect.Helper
                 sender = transaction.Sender.Bech32,
                 receiver = transaction.Receiver.Bech32,
                 value = transaction.Value.ToString(),
-                version = transaction.Version
+                version = transaction.Version,
+                options = transaction.Options,
+                guardian = transaction.Guardian?.Bech32,
+                guardianSignature = null
             }).ToArray();
         }
     }
