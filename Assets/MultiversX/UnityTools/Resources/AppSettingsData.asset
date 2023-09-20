@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: AppSettingsData
   m_EditorClassIdentifier: 
   selectedNetwork: 3
-  appDescription: You are using Chain of Industry test login
+  appDescription: Unity SDK for MultiversX
   appIcon: https://gleygames.com/blockchain/COI-Building-Avatar-192x192.jpg
-  appName: Chain of Industry
-  appWebsite: https://chainofindustry.com/
+  appName: Unity Tools
+  appWebsite: https://multiversx.com/
   projectID: 39f3dc0a2c604ec9885799f9fc5feb7c
   savePath: /wc/sessionData.json

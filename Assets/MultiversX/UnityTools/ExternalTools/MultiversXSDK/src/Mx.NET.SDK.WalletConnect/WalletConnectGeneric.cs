@@ -60,7 +60,7 @@ namespace Mx.NET.SDK.WalletConnect
                 RequiredNamespaces = new RequiredNamespaces()
                 {
                     {
-                        WALLETCONNECT_MULTIVERSX_NAMESPACE, new RequiredNamespace()
+                        WALLETCONNECT_MULTIVERSX_NAMESPACE, new ProposedNamespace()
                         {
                             Methods = new[]
                             {
@@ -151,7 +151,7 @@ namespace Mx.NET.SDK.WalletConnect
 
         public async Task Disconnect()
         {
-            await _client.Disconnect(_walletConnectSession.Topic, ErrorResponse.FromErrorType(ErrorType.USER_DISCONNECTED));
+            await _client.Disconnect(_walletConnectSession.Topic, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
             Address = string.Empty;
             Signature = string.Empty;
         }

@@ -18,6 +18,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using WalletConnectSharp.Core;
 
 namespace MultiversX.UnityTools
 {
@@ -75,7 +76,7 @@ namespace MultiversX.UnityTools
             {
                 networkConfig = await LoadNetworkConfig(true, true);
 
-                WalletConnectSharp.Core.Models.Pairing.Metadata metadata = new WalletConnectSharp.Core.Models.Pairing.Metadata()
+                Metadata metadata = new Metadata()
                 {
                     Description = apiSettings.appDescription,
                     Icons = new[] { apiSettings.appIcon },

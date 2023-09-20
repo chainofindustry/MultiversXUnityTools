@@ -17,7 +17,7 @@ namespace MultiversX.UnityTools
         private bool disconnected;
         private bool sessionConnected;
 
-        internal async Task<WalletConnectUnity> Initialize(WalletConnectSharp.Core.Models.Pairing.Metadata appMetadata, string projectID, string chainId, string filePath)
+        internal async Task<WalletConnectUnity> Initialize(WalletConnectSharp.Core.Metadata appMetadata, string projectID, string chainId, string filePath)
         {
             walletConnect = new WalletConnect(appMetadata, projectID, chainId, filePath);
             walletConnect.OnSessionDeleteEvent += WalletDisconnected;
