@@ -39,5 +39,7 @@ If Newtonsoft.Json is missing, import it from [here](https://github.com/jilleJr/
 8. Demo Scene
 
 
-**Full documentation** available [here soon](https://github.com/chainofindustry/ElrondUnityDevelopmentTools/wiki).  
+### Documentation
+
+Full documentation available [here](https://mxunitytools.gitbook.io/multiversx-unity-tools/).  
 
