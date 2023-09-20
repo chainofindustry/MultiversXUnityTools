@@ -11,7 +11,6 @@ namespace MultiversX.UnityTools.Examples
 
         public override void Init(params object[] args)
         {
-            Debug.Log("Init");
             message.text = "Do you want to sign this message?";
             base.Init(args);
         }

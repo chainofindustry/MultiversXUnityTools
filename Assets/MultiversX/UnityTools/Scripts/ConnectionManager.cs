@@ -201,25 +201,23 @@ namespace MultiversX.UnityTools
         internal async void SendTransactions(TransactionRequest[] transactionsToSign, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             //wait for the signature from wallet
-            //try
-            //{
+            try
+            {
                 completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.InProgress, "Waiting to sign", null));
                 TransactionRequestDto[] signedTransactions = await walletConnectUnity.MultiSign(transactionsToSign);
-            Debug.LogWarning("BEFORE");
                 MultipleTransactionsResponseDto response = await apiProviderUnity.SendTransactions(signedTransactions);
-            Debug.LogWarning("AFTER");
                 string[] txHashes = new string[response.NumOfSentTxs];
                 foreach (var item in response.TxsHashes)
                 {
                     txHashes[int.Parse(item.Key)] = item.Value;
                 }
                 completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Success, "", txHashes));
-            //}
-            //catch (Exception e)
-            //{
-            //    completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
-            //    return;
-            //}
+            }
+            catch (Exception e)
+            {
+                completeMethod?.Invoke(new CompleteCallback<string[]>(OperationStatus.Error, $"{e.Message}", null));
+                return;
+            }
         }
 
 
