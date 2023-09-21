@@ -33,7 +33,7 @@ namespace MultiversX.UnityTools
         /// <param name="OnWalletConnected">Callback triggered when user wallet connected</param>
         /// <param name="OnWalletDisconnected">Callback triggered when user wallet disconnected</param>
         /// <param name="OnSessionConnected">When trigger the connection is established. qr code can be displayed</param>
-        /// <param name="qrImage"></param>
+        /// <param name="qrImage">The image component that will display the QR for xPortal login</param>
         public static void Connect(UnityAction<CompleteCallback<Account>> OnWalletConnected, UnityAction OnWalletDisconnected, UnityAction<string> OnSessionConnected, Image qrImage)
         {
             ConnectionManager.Instance.Connect(OnWalletConnected, OnWalletDisconnected, OnSessionConnected, qrImage);
@@ -43,7 +43,7 @@ namespace MultiversX.UnityTools
         /// <summary>
         /// Simple check for connection status
         /// </summary>
-        /// <returns>true - if connection to the wallet is active</returns>
+        /// <returns>true - if the connection to the wallet is active</returns>
         public static bool IsWalletConnected()
         {
             return ConnectionManager.Instance.IsWalletConnected();
@@ -53,7 +53,7 @@ namespace MultiversX.UnityTools
         /// <summary>
         /// Returns the current connected account
         /// </summary>
-        /// <returns>Informations about current account</returns>
+        /// <returns>Informations about the current account</returns>
         public static Account GetConnectedAccount()
         {
             return ConnectionManager.Instance.GetConnectedAccount();
@@ -63,7 +63,7 @@ namespace MultiversX.UnityTools
         /// <summary>
         /// Network config is required if direct interaction with MVX SDK is needed
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Information about blockchain network.</returns>
         public static NetworkConfig GetNetworkConfig()
         {
             return ConnectionManager.Instance.GetNetworkConfig();
@@ -97,12 +97,13 @@ namespace MultiversX.UnityTools
             ConnectionManager.Instance.Disconnect();
         }
 
+
         /// <summary>
         /// Generic method to sign any transaction created with MVX SDK
         /// </summary>
-        /// <param name="transactions"></param>
-        /// <param name="completeMethod"></param>
-        public static void SignMultiplStrasactions(TransactionRequest[] transactions, UnityAction<CompleteCallback<string[]>> completeMethod)
+        /// <param name="transactions">An array of transactions to sign</param>
+        /// <param name="completeMethod">Callback called after the transaction was signed and broadcasted to the blockchain</param>
+        public static void SignMultipleTrasactions(TransactionRequest[] transactions, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             ConnectionManager.Instance.SendTransactions(transactions, completeMethod);
         }
@@ -111,8 +112,8 @@ namespace MultiversX.UnityTools
         /// <summary>
         /// Sign a message with your wallet address
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="completeMethod"></param>
+        /// <param name="message">Message to sign</param>
+        /// <param name="completeMethod">Callback called after the message was signed by xPortal</param>
         public static void SignMessage(string message, UnityAction<CompleteCallback<SignableMessage>> completeMethod)
         {
             ConnectionManager.Instance.SignMessage(message, completeMethod);
@@ -124,7 +125,7 @@ namespace MultiversX.UnityTools
         /// </summary>
         /// <param name="txHash">The hash of the transaction obtained after signing</param>
         /// <param name="completeMethod">Callback to track the result</param>
-        /// <param name="refreshTime">Time to wait before querying the tx status. A tx takes some time to process so some delays are good to limit the usage of the APIs</param>
+        /// <param name="refreshTime">Time to wait before querying the TX status. A TX takes some time to process so some delays are good for limiting the usage of the APIs.</param>
         public static void CheckTransactionStatus(string[] txHash, UnityAction<CompleteCallback<Transaction[]>> completeMethod, float refreshTime)
         {
             ConnectionManager.Instance.CheckTransactionsStatus(txHash, completeMethod, refreshTime);
@@ -147,17 +148,23 @@ namespace MultiversX.UnityTools
         /// Make a POST request to MultiversX APIs
         /// </summary>
         /// <param name="url">Post url</param>
-        /// <param name="jsonData">json data to send</param>
+        /// <param name="jsonData">JSON data to send</param>
         /// <param name="completeMethod">Complete listener (operation status, error message, return data)</param>
         public static void PostRequest<T>(string url, string jsonData, UnityAction<CompleteCallback<T>> completeMethod)
         {
             ConnectionManager.Instance.PostRequest(url, jsonData, completeMethod);
         }
 
+
+        /// <summary>
+        /// Get the API implementation used to interact with the MVX SDK
+        /// </summary>
+        /// <returns>The API implementation</returns>
         public static IApiProvider GetApiProvider()
         {
             return ConnectionManager.Instance.GetApiProvider();
         }
+
 
         /// <summary>
         /// Get the current config settings saved using the Settings Window
@@ -175,7 +182,7 @@ namespace MultiversX.UnityTools
         /// Send an EGLD transaction for signing to the xPortal wallet. After the signing the transaction will be automatically broadcasted to the blockchain 
         /// </summary>
         /// <param name="destinationAddress">The erd address of the receiver</param>
-        /// <param name="amount">Amount of EGLD to send(in decimals) as string</param>
+        /// <param name="amount">Amount of EGLD to send(in decimals) as a string</param>
         /// <param name="data">An optional custom message</param>
         /// <param name="completeMethod">Callback to track the status of the transaction. At complete, the message will be the transaction hash</param>
         public static void SendEGLDTransaction(string destinationAddress, string amount, string data, UnityAction<CompleteCallback<string[]>> completeMethod)
@@ -254,7 +261,7 @@ namespace MultiversX.UnityTools
         /// </summary>
         /// <param name="transactions"></param>
         /// <param name="completeMethod"></param>
-        public static void SendMultipletrasactions(TransactionToSign[] transactions, UnityAction<CompleteCallback<string[]>> completeMethod)
+        public static void SendMultipleTrasactions(TransactionToSign[] transactions, UnityAction<CompleteCallback<string[]>> completeMethod)
         {
             ConnectionManager.Instance.SendMultipleTransactions(transactions, completeMethod);
         }

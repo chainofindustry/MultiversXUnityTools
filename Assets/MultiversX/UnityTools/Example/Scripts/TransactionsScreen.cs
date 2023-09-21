@@ -150,7 +150,7 @@ namespace MultiversX.UnityTools.Examples
                 new TransactionToSign(destination.text, amount.text, message.text),
                 new TransactionToSign(destination.text, selectedToken, esdtAmount.text)
             };
-            API.SendMultipletrasactions(transactions, SigningStatusListener);
+            API.SendMultipleTrasactions(transactions, SigningStatusListener);
         }
 
         /// <summary>
